@@ -41,7 +41,7 @@ export default function RoleBuilderMatrix({ permissions, onChange, disabled = fa
           <h3 className="text-sm font-semibold text-gray-900">Safety Events</h3>
           <p className="text-xs text-gray-600 mt-0.5">Control access to incident and near-miss reporting</p>
         </div>
-        <div className="px-4 py-3 space-y-2.5">
+        <div className="px-4 py-3 grid grid-cols-2 gap-x-6 gap-y-2.5">
           <PermissionToggle
             label="Create"
             description="Create new safety event reports"
@@ -86,7 +86,7 @@ export default function RoleBuilderMatrix({ permissions, onChange, disabled = fa
           <h3 className="text-sm font-semibold text-gray-900">Corrective & Preventive Actions (CAPAs)</h3>
           <p className="text-xs text-gray-600 mt-0.5">Manage follow-up actions from safety events</p>
         </div>
-        <div className="px-4 py-3 space-y-2.5">
+        <div className="px-4 py-3 grid grid-cols-2 gap-x-6 gap-y-2.5">
           <PermissionToggle
             label="Create"
             description="Create new CAPA items"
@@ -131,7 +131,7 @@ export default function RoleBuilderMatrix({ permissions, onChange, disabled = fa
             </div>
           </div>
         </div>
-        <div className="px-4 py-3 space-y-2.5 bg-white">
+        <div className="px-4 py-3 grid grid-cols-2 gap-x-6 gap-y-2.5 bg-white">
           <PermissionToggle
             label="Access OSHA Logs"
             description="View injury logs and medical records (contains PII)"
@@ -164,7 +164,7 @@ export default function RoleBuilderMatrix({ permissions, onChange, disabled = fa
           <h3 className="text-sm font-semibold text-gray-900">Documentation</h3>
           <p className="text-xs text-gray-600 mt-0.5">Manage safety procedures and templates</p>
         </div>
-        <div className="px-4 py-3 space-y-2.5">
+        <div className="px-4 py-3 grid grid-cols-2 gap-x-6 gap-y-2.5">
           <PermissionToggle
             label="Create JHA/SOP"
             description="Create Job Hazard Analysis and Standard Operating Procedures"

@@ -27,12 +27,16 @@ function PeopleContent() {
   const [searchQuery, setSearchQuery] = useState("");
   const [roleFilter, setRoleFilter] = useState("all");
   const [statusFilter, setStatusFilter] = useState("all");
+  const [locationFilter, setLocationFilter] = useState("all");
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [editingUserId, setEditingUserId] = useState<string | null>(null);
   const [openMenuId, setOpenMenuId] = useState<string | null>(null);
 
   const users = getUsersList();
   const roles = getRolesList();
+
+  // Get unique locations for filter
+  const uniqueLocations = Array.from(new Set(users.map(u => u.locationPath))).sort();
 
   // Filter users
   const filteredUsers = users.filter(user => {
@@ -43,8 +47,9 @@ function PeopleContent() {
     
     const matchesRole = roleFilter === "all" || user.roleId === roleFilter;
     const matchesStatus = statusFilter === "all" || user.status === statusFilter;
+    const matchesLocation = locationFilter === "all" || user.locationPath === locationFilter;
     
-    return matchesSearch && matchesRole && matchesStatus;
+    return matchesSearch && matchesRole && matchesStatus && matchesLocation;
   });
 
   const handleAddUser = () => {
@@ -149,7 +154,7 @@ function PeopleContent() {
                 placeholder="Search users..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-96 pl-9 pr-4 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="w-96 pl-9 pr-4 py-2 border border-gray-300 rounded-md text-sm text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
               />
             </div>
 
@@ -179,6 +184,21 @@ function PeopleContent() {
                 <option value="all">All</option>
                 <option value="active">Active</option>
                 <option value="inactive">Inactive</option>
+              </select>
+            </div>
+
+            {/* Location Filter */}
+            <div className="flex items-center gap-2">
+              <span className="text-sm text-gray-700 font-medium">Location:</span>
+              <select
+                value={locationFilter}
+                onChange={(e) => setLocationFilter(e.target.value)}
+                className="px-3 py-2 bg-white border border-gray-300 rounded-md text-sm text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer max-w-xs"
+              >
+                <option value="all">All Locations</option>
+                {uniqueLocations.map(location => (
+                  <option key={location} value={location}>{location}</option>
+                ))}
               </select>
             </div>
           </div>
@@ -253,18 +273,13 @@ function PeopleContent() {
                         </div>
                       </td>
                       <td className="px-6 py-4">
-                        <button
-                          onClick={() => handleToggleStatus(user.id)}
-                          className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors ${
-                            user.status === "active" ? "bg-green-600" : "bg-gray-300"
-                          }`}
-                        >
-                          <span
-                            className={`inline-block h-3.5 w-3.5 transform rounded-full bg-white transition-transform ${
-                              user.status === "active" ? "translate-x-5" : "translate-x-0.5"
-                            }`}
-                          />
-                        </button>
+                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-md text-xs font-medium border ${
+                          user.status === "active"
+                            ? "bg-green-50 text-green-700 border-green-200"
+                            : "bg-gray-100 text-gray-700 border-gray-200"
+                        }`}>
+                          {user.status === "active" ? "Active" : "Inactive"}
+                        </span>
                       </td>
                       <td className="px-6 py-4 text-right">
                         <div className="relative inline-block">
@@ -322,15 +337,15 @@ function PeopleContent() {
                 </svg>
               </div>
               <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                {searchQuery || roleFilter !== "all" || statusFilter !== "all" ? "No users found" : "No users yet"}
+                {searchQuery || roleFilter !== "all" || statusFilter !== "all" || locationFilter !== "all" ? "No users found" : "No users yet"}
               </h3>
               <p className="text-sm text-gray-600 mb-6 max-w-md">
-                {searchQuery || roleFilter !== "all" || statusFilter !== "all"
+                {searchQuery || roleFilter !== "all" || statusFilter !== "all" || locationFilter !== "all"
                   ? "Try adjusting your filters or search query"
                   : "Add your first EHS user to get started"
                 }
               </p>
-              {!searchQuery && roleFilter === "all" && statusFilter === "all" && (
+              {!searchQuery && roleFilter === "all" && statusFilter === "all" && locationFilter === "all" && (
                 <button
                   onClick={handleAddUser}
                   className="px-4 py-2 bg-blue-600 text-white rounded-md text-sm font-medium hover:bg-blue-700 transition-colors"
