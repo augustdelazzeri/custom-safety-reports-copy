@@ -190,9 +190,18 @@ export function countEnabledPermissions(permissions: RolePermissions): number {
   Object.values(permissions.capas).forEach(val => { if (val) count++; });
   Object.values(permissions.compliance).forEach(val => { if (val) count++; });
   Object.values(permissions.documentation).forEach(val => { if (val) count++; });
-  Object.values(permissions.accessPoints).forEach(val => { if (val) count++; });
-  Object.values(permissions.checklists).forEach(val => { if (val) count++; });
-  Object.values(permissions.auditExport).forEach(val => { if (val) count++; });
+  
+  // Handle new optional permission categories (for backward compatibility)
+  if (permissions.accessPoints) {
+    Object.values(permissions.accessPoints).forEach(val => { if (val) count++; });
+  }
+  if (permissions.checklists) {
+    Object.values(permissions.checklists).forEach(val => { if (val) count++; });
+  }
+  if (permissions.auditExport) {
+    Object.values(permissions.auditExport).forEach(val => { if (val) count++; });
+  }
+  
   Object.values(permissions.cmmsBridge).forEach(val => { if (val) count++; });
   
   return count;
