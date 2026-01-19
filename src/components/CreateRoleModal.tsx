@@ -28,6 +28,7 @@ export default function CreateRoleModal({
   const [roleName, setRoleName] = useState("");
   const [permissions, setPermissions] = useState<RolePermissions>(createDefaultPermissions());
   const [error, setError] = useState("");
+  const [advancedMode, setAdvancedMode] = useState(false);
 
   const isEditMode = !!existingRole;
 
@@ -158,13 +159,39 @@ export default function CreateRoleModal({
 
             {/* Permissions Matrix */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-3">
-                Permissions <span className="text-red-500">*</span>
-              </label>
+              <div className="flex items-center justify-between mb-3">
+                <label className="block text-sm font-medium text-gray-700">
+                  Permissions <span className="text-red-500">*</span>
+                </label>
+                
+                {/* Advanced Mode Toggle */}
+                <div className="flex items-center gap-2">
+                  <span className="text-xs text-gray-600">Simple</span>
+                  <button
+                    type="button"
+                    onClick={() => setAdvancedMode(!advancedMode)}
+                    className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors ${
+                      advancedMode ? "bg-blue-600" : "bg-gray-300"
+                    }`}
+                    disabled={existingRole?.isSystemRole}
+                  >
+                    <span
+                      className={`inline-block h-3.5 w-3.5 transform rounded-full bg-white transition-transform ${
+                        advancedMode ? "translate-x-5" : "translate-x-1"
+                      }`}
+                    />
+                  </button>
+                  <span className={`text-xs font-medium ${advancedMode ? "text-blue-600" : "text-gray-600"}`}>
+                    Advanced
+                  </span>
+                </div>
+              </div>
+              
               <RoleBuilderMatrix 
                 permissions={permissions} 
                 onChange={setPermissions}
                 disabled={existingRole?.isSystemRole}
+                advancedMode={advancedMode}
               />
               {existingRole?.isSystemRole && (
                 <p className="text-xs text-amber-600 mt-3 flex items-center gap-1">
