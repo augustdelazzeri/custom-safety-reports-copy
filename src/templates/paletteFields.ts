@@ -41,15 +41,6 @@ export const INCIDENT_DETAILS_FIELDS: TemplateField[] = [
     required: true
   },
   {
-    id: "assets",
-    fieldType: "common",
-    componentType: "text",
-    label: "Asset(s) Involved",
-    helpText: "Equipment or machinery involved (if any)",
-    placeholder: "e.g., Forklift #42",
-    required: false
-  },
-  {
     id: "hazard",
     fieldType: "common",
     componentType: "dropdown",

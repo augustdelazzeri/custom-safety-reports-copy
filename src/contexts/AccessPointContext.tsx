@@ -5,8 +5,8 @@ import React, { createContext, useContext, useState, ReactNode } from "react";
 export interface AccessPoint {
   id: string;
   name: string;
-  location: string;
-  asset?: string;
+  location: string; // Keep for backward compatibility, will be deprecated
+  locationNodeId?: string; // New: references LocationNode.id
   templateIds: string[]; // Array of 1-5 template IDs
   createdBy: string;
   createdAt: string;
@@ -16,7 +16,7 @@ export interface AccessPoint {
 
 interface AccessPointContextValue {
   accessPoints: AccessPoint[];
-  createAccessPoint: (name: string, location: string, asset: string | undefined, templateIds: string[]) => string;
+  createAccessPoint: (name: string, location: string, templateIds: string[]) => string;
   getAccessPoint: (id: string) => AccessPoint | undefined;
   getAllAccessPoints: () => AccessPoint[];
   updateAccessPoint: (id: string, updates: Partial<AccessPoint>) => void;
@@ -122,23 +122,21 @@ function createDefaultAccessPoints(): AccessPoint[] {
       id: "access-point-9",
       name: "Shipping Yard",
       location: "Loading Dock",
-      asset: "Forklift FLT-12",
       templateIds: ["injury-report"],
       createdBy: "Joty Grewal",
       createdAt: "2025-09-16T09:15:00.000Z",
       status: "active",
-      qrCodeUrl: "/safety-events/template-form?templateId=injury-report&accessPointId=access-point-9&location=Loading%20Dock&asset=Forklift%20FLT-12"
+      qrCodeUrl: "/safety-events/template-form?templateId=injury-report&accessPointId=access-point-9&location=Loading%20Dock"
     },
     {
       id: "access-point-10",
       name: "Manufacturing Plant 5",
       location: "Willy Wonka's Chocolate Factory",
-      asset: "Chocolate Mixer 2",
       templateIds: ["injury-report"],
       createdBy: "Joty Grewal",
       createdAt: "2025-09-17T14:00:00.000Z",
       status: "active",
-      qrCodeUrl: "/safety-events/template-form?templateId=injury-report&accessPointId=access-point-10&location=Willy%20Wonka's%20Chocolate%20Factory&asset=Chocolate%20Mixer%202"
+      qrCodeUrl: "/safety-events/template-form?templateId=injury-report&accessPointId=access-point-10&location=Willy%20Wonka's%20Chocolate%20Factory"
     }
   ];
 }
@@ -184,7 +182,6 @@ export function AccessPointProvider({ children }: AccessPointProviderProps) {
   const createAccessPoint = (
     name: string,
     location: string,
-    asset: string | undefined,
     templateIds: string[]
   ): string => {
     const newId = `access-point-${Date.now()}`;
@@ -194,13 +191,12 @@ export function AccessPointProvider({ children }: AccessPointProviderProps) {
     const templateIdsParam = templateIds.length === 1 
       ? `templateId=${templateIds[0]}`
       : `templateIds=${templateIds.join(',')}`;
-    const qrCodeUrl = `/safety-events/template-form?${templateIdsParam}&accessPointId=${newId}&location=${encodeURIComponent(location)}${asset ? `&asset=${encodeURIComponent(asset)}` : ''}`;
+    const qrCodeUrl = `/safety-events/template-form?${templateIdsParam}&accessPointId=${newId}&location=${encodeURIComponent(location)}`;
     
     const newAccessPoint: AccessPoint = {
       id: newId,
       name: name,
       location: location,
-      asset: asset,
       templateIds: templateIds,
       createdBy: "Joty Grewal", // Placeholder
       createdAt: now,

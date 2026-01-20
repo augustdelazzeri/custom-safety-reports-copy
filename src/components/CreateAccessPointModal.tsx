@@ -20,11 +20,6 @@ const LOCATIONS = [
   "Utility Room"
 ];
 
-const ASSETS = [
-  "Forklift FLT-12",
-  "Chocolate Mixer 2"
-];
-
 export default function CreateAccessPointModal({
   isOpen,
   onClose,
@@ -35,7 +30,6 @@ export default function CreateAccessPointModal({
   
   const [name, setName] = useState("");
   const [location, setLocation] = useState("");
-  const [asset, setAsset] = useState("");
   const [selectedTemplateIds, setSelectedTemplateIds] = useState<string[]>([]);
   const [lastOpenState, setLastOpenState] = useState(isOpen);
 
@@ -43,7 +37,6 @@ export default function CreateAccessPointModal({
   if (isOpen && !lastOpenState) {
     setName("");
     setLocation("");
-    setAsset("");
     setSelectedTemplateIds([]);
   }
   if (isOpen !== lastOpenState) {
@@ -62,7 +55,6 @@ export default function CreateAccessPointModal({
     const newId = createAccessPoint(
       name.trim(),
       location,
-      asset || undefined,
       selectedTemplateIds
     );
     
@@ -72,7 +64,6 @@ export default function CreateAccessPointModal({
   const handleCancel = () => {
     setName("");
     setLocation("");
-    setAsset("");
     setSelectedTemplateIds([]);
     onClose();
   };
@@ -165,27 +156,7 @@ export default function CreateAccessPointModal({
               </select>
             </div>
 
-            {/* Asset (Optional) */}
-            <div>
-              <label htmlFor="asset" className="block text-sm font-medium text-gray-700 mb-2">
-                Asset (Optional)
-              </label>
-              <select
-                id="asset"
-                value={asset}
-                onChange={(e) => setAsset(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:border-blue-500 focus:ring-blue-500 transition-colors"
-              >
-                <option value="">Select an asset</option>
-                {ASSETS.map((a) => (
-                  <option key={a} value={a}>
-                    {a}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            {/* Templates */}
+            {/* Templates */
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Templates <span className="text-gray-500 font-normal">(Select 1-5 templates)</span>

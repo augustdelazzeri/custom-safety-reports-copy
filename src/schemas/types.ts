@@ -79,3 +79,45 @@ export interface SubmissionPayload {
   origin?: Record<string, "manual" | "ai" | "static" | "default">;
 }
 
+/**
+ * Safety Event Data Structure
+ * Represents a submitted safety event with location hierarchy support
+ */
+export interface SafetyEvent {
+  id: string;
+  templateVersionId: string;
+  system: {
+    title: string;
+    dateTime: string;
+    type?: string;
+    location?: string; // Deprecated: legacy text field
+    description: string;
+  };
+  locationNodeId?: string; // New: references LocationNode.id for hierarchical filtering
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  values: Record<string, any>;
+  attachments?: Array<{ fieldId: string; name: string; url?: string; mime?: string; bytes?: number }>;
+  createdBy: string;
+  createdAt: string;
+  updatedAt?: string;
+  status: 'draft' | 'submitted' | 'under_review' | 'closed';
+}
+
+/**
+ * Documentation with Multi-Location Support
+ * Allows tagging documents to multiple locations in the hierarchy
+ */
+export interface Document {
+  id: string;
+  title: string;
+  type: 'sop' | 'jha' | 'policy' | 'procedure' | 'other';
+  locationNodeIds: string[]; // Array of LocationNode IDs - documents can be tagged to multiple locations
+  content: string;
+  createdBy: string;
+  createdAt: string;
+  updatedAt?: string;
+  status: 'draft' | 'active' | 'archived';
+  approvedBy?: string;
+  approvedAt?: string;
+}
+

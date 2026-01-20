@@ -19,7 +19,6 @@ const injuryTemplate: TemplateVersion = {
     description: { id: "description", label: "Description", type: "textarea", required: true }
   },
   fields: [
-    { id: "assets", label: "Assets", type: "text", required: false, helpText: "Select the assets that were involved in the safety event. If the safety event involved multiple assets, select all that apply.", placeholder: "Select assets" },
     { id: "hazard", label: "Hazard Category", type: "dropdown", options: ["Chemical", "Electrical", "Ergonomic", "Fall", "Fire", "Mechanical"], helpText: "Examples: Chemical, Electrical, Ergonomic, Fall, Fire, Mechanical", placeholder: "Select hazard category" },
     { id: "severity", label: "Severity Level", type: "dropdown", options: ["Low", "Medium", "High"], helpText: "How serious was this safety event or how serious could it have been?", placeholder: "Select severity" },
     { id: "descriptionDetail", label: "Description", type: "textarea", required: false, helpText: "Provide a detailed account of what happened, what led to the event, who was involved, and any relevant circumstances", placeholder: "Describe what happened in detail" },
