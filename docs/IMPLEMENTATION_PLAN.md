@@ -110,24 +110,33 @@ Implementação de melhorias no sistema de gerenciamento de usuários e permiss�
 
 ---
 
-### � Step 5: Add Copy from User Option in User Creation
+### 👥 Step 5: Add Copy from User Option in User Creation
 
-**Status:** NOT STARTED ❌
+**Status:** COMPLETED ✅ - Ready for Testing
 
-**Planned implementation:**
-- Add toggle in CreateUserModal: "Create from scratch" vs "Copy from existing user"
-- Show user dropdown when "Copy from" selected
-- Auto-fill Role and Location fields from selected user
-- Keep fields editable after copy
-- Similar UX pattern to base role selector
+**What was implemented:**
+- Added "Copy from existing user" dropdown in CreateUserModal
+- Shows all active users with their role and location in dropdown
+- Auto-fills Role and Location fields when user selected
+- "Create from scratch" option to reset
+- Fields remain editable after copy
+- Only appears in create mode (not edit mode)
+- Includes helper text explaining functionality
 
-**Files to modify:**
-- `src/components/CreateUserModal.tsx`
+**Files modified:**
+- `src/components/CreateUserModal.tsx`: Added copyFromUserId state and handleCopyFromUser function
 
-**What to validate:**
-- [ ] Is this faster than selecting role/location manually?
-- [ ] Do users understand they can still override copied values?
-- [ ] Should email be pre-filled with pattern?
+**Testing instructions:**
+1. Navigate to People tab and click "Add User"
+2. Fill in name and email
+3. Select a user from "Copy Role & Location from Existing User" dropdown
+4. Verify Role and Location are pre-filled
+5. Verify you can still edit Role and Location after copy
+6. Test "Create from scratch" option clears the fields
+7. Verify dropdown only shows active users
+8. Verify it doesn't appear when editing existing users
+
+**Validated:** ⏳ Awaiting user testing
 
 ---
 
@@ -214,11 +223,18 @@ Implementação de melhorias no sistema de gerenciamento de usuários e permiss�
 ---
 
 ### Step 4: Base Role Selector ✅
-**Commit:** PENDING - Ready for commit  
+**Commit:** 593cb5b  
 **Files Modified:** 
 - `/app/settings/people/page.tsx`
 - `/src/components/CreateRoleModal.tsx`
 **Features:** Template-based role creation from existing roles
+
+---
+
+### Step 5: Copy from User ✅
+**Commit:** PENDING - Ready for commit  
+**Files Modified:** `/src/components/CreateUserModal.tsx`  
+**Features:** Copy Role & Location from existing users during user creation
 
 ---
 
@@ -248,9 +264,9 @@ Implementação de melhorias no sistema de gerenciamento de usuários e permiss�
 
 ## Current Status
 
-**Active Step:** Step 4 (Base Role Selector) - COMPLETED, awaiting commit  
-**Progress:** 4/6 steps completed (66%)  
-**Next:** Step 5 (Copy from User) upon user approval
+**Active Step:** Step 5 (Copy from User) - COMPLETED, awaiting testing  
+**Progress:** 5/6 steps completed (83%)  
+**Next:** Step 6 (Sidebar Navigation) upon user approval
 
 **Testing URL:** http://localhost:3000/settings/people  
 **Development Server:** Running
