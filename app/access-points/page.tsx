@@ -1,11 +1,20 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import Sidebar from "../../src/components/Sidebar";
 import { AccessPointProvider, useAccessPoint } from "../../src/contexts/AccessPointContext";
 import { TemplateProvider } from "../../src/contexts/TemplateContext";
 import CreateAccessPointModal from "../../src/components/CreateAccessPointModal";
 import QRCodeModal from "../../src/components/QRCodeModal";
+import { filterItemsByLocation, hasGlobalAccess } from "../../src/utils/locationFiltering";
+import { LOCATION_HIERARCHY } from "../../src/samples/locationHierarchy";
+
+// TODO: Replace with actual user context when authentication is implemented
+const MOCK_CURRENT_USER = {
+  id: "user-jennifer-chen",
+  locationNodeId: "chicago-plant", // Jennifer Chen assigned to Chicago Plant
+  role: "Safety Manager"
+};
 
 function AccessPointsListContent() {
   const { getAllAccessPoints, archiveAccessPoint } = useAccessPoint();
@@ -17,13 +26,31 @@ function AccessPointsListContent() {
 
   const accessPoints = getAllAccessPoints();
 
-  // Filter access points
-  const filteredAccessPoints = accessPoints.filter(ap => {
-    const matchesSearch = ap.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         ap.location.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesStatus = statusFilter === "all" || ap.status === statusFilter;
-    return matchesSearch && matchesStatus;
-  });
+  // Apply automatic location-based filtering
+  // Users can only see access points within their assigned location scope
+  const locationFilteredAccessPoints = useMemo(() => {
+    // Check if user has global access (assigned to root node)
+    if (hasGlobalAccess(MOCK_CURRENT_USER.locationNodeId, LOCATION_HIERARCHY)) {
+      return accessPoints; // Global users see everything
+    }
+    
+    // Filter by location hierarchy - user sees their node + all descendants
+    return filterItemsByLocation(
+      accessPoints,
+      MOCK_CURRENT_USER.locationNodeId,
+      LOCATION_HIERARCHY
+    );
+  }, [accessPoints]);
+
+  // Apply UI filters (search, status) on top of location filtering
+  const filteredAccessPoints = useMemo(() => {
+    return locationFilteredAccessPoints.filter(ap => {
+      const matchesSearch = ap.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                           ap.location.toLowerCase().includes(searchQuery.toLowerCase());
+      const matchesStatus = statusFilter === "all" || ap.status === statusFilter;
+      return matchesSearch && matchesStatus;
+    });
+  }, [locationFilteredAccessPoints, searchQuery, statusFilter]);
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);

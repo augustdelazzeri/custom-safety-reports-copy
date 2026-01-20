@@ -90,6 +90,14 @@ export function UserProvider({ children }: { children: ReactNode }) {
       throw new Error("A user with this email already exists");
     }
 
+    /**
+     * Permission Consistency Enforcement:
+     * Each user is assigned a single roleId which defines their permissions globally.
+     * This ensures consistent permission levels across all locations the user can access.
+     * The user's locationNodeId determines which data they can see (their node + descendants),
+     * but their roleId determines what actions they can perform on that data uniformly.
+     */
+
     const newId = `user_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
     const now = new Date().toISOString();
     
