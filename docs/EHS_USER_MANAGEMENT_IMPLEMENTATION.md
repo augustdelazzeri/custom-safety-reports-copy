@@ -286,26 +286,27 @@ EHSUser {
 ### 5.2 People Page (`/settings/people`)
 
 **Componentes:**
-- Header com título e descrição
-- **Barra de Filtros:**
-  - Search bar (busca por nome/email)
+- Header fixo (fixed top-0) com título e descrição - **responsivo**
+- **Barra de Filtros (com flex-wrap para responsividade):**
+  - Search bar reduzido (w-64) - busca por nome/email
   - Role filter dropdown
   - Status filter dropdown (All/Active/Inactive)
-  - Botão "Add User" (canto direito)
+  - **Location filter dropdown (NEW)** - filtra por localização
+  - Botão "Add User" com flex-shrink-0 (sempre visível)
 - **Tabela de Usuários:**
   - Colunas: Name | Email | Role | Location | Status | Actions
   - Name: Bold, `firstName lastName`
-  - Email: Texto cinza
+  - Email: Texto cinza (text-gray-900 no input de busca)
   - Role: Badge colorido (azul para system, roxo para custom)
   - Location: **Breadcrumb com separadores `/`** (ex: "Global Operations / North America / USA / Chicago Plant")
-  - Status: Toggle switch (verde = active)
-  - Actions: Menu (⋮) com Edit/Deactivate
+  - Status: **Badge** (não toggle) - Verde "Active" ou Cinza "Inactive"
+  - Actions: Menu (⋮) com Edit/Activate/Deactivate
 
 **Interações:**
 - Click em "Add User": Abre modal de criação
 - Click em "Edit": Abre modal pré-preenchido
-- Click em toggle status: Confirmação → Alterna status
-- Filtros: Aplicam em tempo real
+- Click em menu → "Activate"/"Deactivate": Confirmação → Alterna status
+- Filtros: Aplicam em tempo real (incluindo location)
 - Search: Busca em firstName, lastName, email
 
 **Empty State:**
@@ -316,37 +317,30 @@ EHSUser {
 ### 5.3 Role Builder Matrix (Componente)
 
 **Layout:**
-5 seções expansíveis com toggles:
+5 seções em **grid de 2 colunas** (`grid grid-cols-2 gap-x-6 gap-y-2.5`) - **reduz scroll verticalmente**:
 
 ```
-┌─ Safety Events ────────────────┐
-│ ☐ Create                       │
-│ ☐ View All                     │
-│ ☐ Edit Own                     │
-│ ☐ Edit All                     │
-│ ☐ Delete                       │
-└────────────────────────────────┘
+┌─ Safety Events ────────────────────────────────────────┐
+│ ☐ Create              │ ☐ View All                     │
+│ ☐ Edit Own            │ ☐ Edit All                     │
+│ ☐ Delete              │                                │
+└────────────────────────────────────────────────────────┘
 
-┌─ CAPAs ────────────────────────┐
-│ ☐ Create                       │
-│ ☐ Assign                       │
-│ ☐ Approve/Close                │
-│ ☐ View All                     │
-└────────────────────────────────┘
+┌─ CAPAs ───────────────────────────────────────────────┐
+│ ☐ Create              │ ☐ Assign                       │
+│ ☐ Approve/Close       │ ☐ View All                     │
+└────────────────────────────────────────────────────────┘
 
-┌─ ⚠️ Compliance & Regulatory ───┐  ← DESTAQUE AMBER
-│ ⚠️ Contains PII - OSHA logs    │
-│ ☐ Access OSHA Logs (PII)      │
-│ ☐ Export PII                   │
-│ ☐ Sign Logs                    │
-└────────────────────────────────┘
+┌─ ⚠️ Compliance & Regulatory ──────────────────────────┐
+│ ⚠️ Contains PII - OSHA logs and medical data          │
+│ ☐ Access OSHA Logs    │ ☐ Export PII                   │
+│ ☐ Sign Logs           │                                │
+└────────────────────────────────────────────────────────┘
 
-┌─ Documentation ────────────────┐
-│ ☐ Create JHA/SOP               │
-│ ☐ Edit Templates               │
-│ ☐ View Only                    │
-│ ☐ Approve Documents            │
-└────────────────────────────────┘
+┌─ Documentation ───────────────────────────────────────┐
+│ ☐ Create JHA/SOP      │ ☐ Edit Templates               │
+│ ☐ View Only           │ ☐ Approve Documents            │
+└────────────────────────────────────────────────────────┘
 
 ┌─ CMMS Integration ─────────────┐
 │ ☐ Safety Override (ⓘ tooltip) │
@@ -583,17 +577,32 @@ src/
 - `/settings/custom-roles` - Custom Roles management
 - `/settings/people` - EHS People management
 
-**Sidebar atualizado:**
+**Sidebar atualizado (navegação dupla para teste de UX):**
+
+**Opção 1 - Settings Dropdown:**
 ```
 Settings (dropdown)
   ├─ Safety Templates (existing)
-  ├─ Custom Roles (NEW)
-  └─ People (NEW)
+  ├─ Custom Roles
+  └─ People
+```
+
+**Opção 2 - Seção Principal (NEW):**
+```
+SAFETY MANAGEMENT
+  └─ (itens existentes)
+
+DOCUMENTATION
+  └─ (itens existentes)
+
+PEOPLE & PERMISSIONS ← NOVA SEÇÃO
+  ├─ Custom Roles (ícone shield)
+  └─ People (ícone users)
 ```
 
 **Active state:**
 - Highlight azul quando na rota correspondente
-- Auto-expand Settings dropdown se em qualquer sub-rota
+- Ambos pontos de acesso funcionais para decisão de PM
 
 ---
 
@@ -662,8 +671,11 @@ Settings (dropdown)
 | User Management Table | ✅ | Com 6 colunas conforme especificado |
 | Role Badge | ✅ | Badges coloridos diferenciando system/custom |
 | Location Breadcrumb | ✅ | Separadores `/` no estilo breadcrumb |
-| Status Toggle | ✅ | Toggle switch com confirmação |
-| Search/Filter | ✅ | Por nome, email, role, status |
+| Status Badge | ✅ | Badge (Active/Inactive) em vez de toggle |
+| Search/Filter | ✅ | Por nome, email, role, status, **location** |
+| Responsive Header | ✅ | Header fixo em Custom Roles e People |
+| 2-Column Matrix | ✅ | RoleBuilderMatrix otimizado para reduzir scroll |
+| Dual Navigation | ✅ | Settings dropdown + Sidebar principal |
 | CRUD Operations | ✅ | Create, Read, Update, Delete para roles e users |
 | LocalStorage Persistence | ✅ | Auto-save em todas operações |
 | Mock Data | ✅ | 4 roles, 10 users, org tree de 6 níveis |
@@ -710,6 +722,14 @@ Settings (dropdown)
 - Denormalização: `roleName` e `locationPath` armazenados no user
 - Flat arrays para busca rápida
 - LocalStorage: Operações síncronas (rápidas para volumes pequenos)
+
+**Responsividade:**
+- Header fixo (`fixed top-0 right-0 left-64 z-10`) em ambas páginas
+- Main content com `pt-20` para compensar header fixo
+- Barra de filtros com `flex-wrap` para quebra de linha
+- Search input reduzido para `w-64` (era `w-96`)
+- Botão "Add User" com `flex-shrink-0` para garantir visibilidade
+- RoleBuilderMatrix em 2 colunas para reduzir scroll
 
 ### 12.2 Limitações Conhecidas
 
@@ -878,8 +898,12 @@ Sistema completo de User Management & Permissions implementado conforme especifi
 | ✨ Permission Count Badge | Visual feedback rápido | Badge azul com número na tabela |
 | ✨ User Edit Modal | Necessário para correções | Edit completo de todos campos |
 | ✨ Empty States | UX profissional | Mensagens contextuais + CTAs |
-| ✨ Multiple filter options | Melhor navegação | Search + Role filter + Status filter |
+| ✨ Multiple filter options | Melhor navegação | Search + Role + Status + **Location** filters |
 | ✨ Utility functions library | Reusabilidade | buildLocationPath, getUserFullName, etc. |
+| ✨ Fixed Responsive Header | Melhor UX em scroll | Header permanece visível |
+| ✨ 2-Column Matrix Layout | Redução de scroll | Grid horizontal para permissões |
+| ✨ Status Badge vs Toggle | Clareza visual | Badge mais claro que toggle switch |
+| ✨ Dual Navigation Access | Teste de UX | Settings + Sidebar para decisão PM |
 
 ### 16.3 Matriz de Completude
 
@@ -1072,9 +1096,10 @@ Performance:       ██████████████████░░ 
 | Versão | Data | Mudanças |
 |--------|------|----------|
 | 1.0 | 2026-01-16 | ✅ Implementação completa inicial |
+| 1.1 | 2026-01-19 | ✅ Melhorias de UX: Header responsivo, Status badge, Location filter, RoleBuilderMatrix 2 colunas, Navegação dupla |
 
 ---
 
 **Documento preparado por:** GitHub Copilot (Claude Sonnet 4.5)  
-**Última atualização:** Janeiro 16, 2026  
-**Status:** ✅ **Completo e validado**
+**Última atualização:** Janeiro 19, 2026  
+**Status:** ✅ **Completo e validado** (v1.1 com melhorias de UX)

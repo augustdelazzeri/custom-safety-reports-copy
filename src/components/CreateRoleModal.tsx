@@ -9,6 +9,7 @@ import React, { useState, useEffect } from "react";
 import RoleBuilderMatrix from "./RoleBuilderMatrix";
 import { createDefaultPermissions, countEnabledPermissions } from "../schemas/roles";
 import type { CustomRole, RolePermissions } from "../schemas/roles";
+import { useRole } from "../contexts/RoleContext";
 
 interface CreateRoleModalProps {
   isOpen: boolean;
@@ -28,7 +29,11 @@ export default function CreateRoleModal({
   const [roleName, setRoleName] = useState("");
   const [permissions, setPermissions] = useState<RolePermissions>(createDefaultPermissions());
   const [error, setError] = useState("");
+  const [advancedMode, setAdvancedMode] = useState(false);
+  const [baseRoleId, setBaseRoleId] = useState("");
 
+  const { getRolesList } = useRole();
+  const roles = getRolesList();
   const isEditMode = !!existingRole;
 
   // Reset form when modal opens/closes or when existingRole changes
@@ -37,13 +42,29 @@ export default function CreateRoleModal({
       if (existingRole) {
         setRoleName(existingRole.name);
         setPermissions(existingRole.permissions);
+        setBaseRoleId("");
       } else {
         setRoleName("");
         setPermissions(createDefaultPermissions());
+        setBaseRoleId("");
       }
       setError("");
     }
   }, [isOpen, existingRole]);
+  
+  const handleBaseRoleChange = (roleId: string) => {
+    setBaseRoleId(roleId);
+    
+    if (roleId) {
+      const baseRole = roles.find(r => r.id === roleId);
+      if (baseRole) {
+        setPermissions({...baseRole.permissions});
+      }
+    } else {
+      // Reset to default if no base role selected
+      setPermissions(createDefaultPermissions());
+    }
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -156,15 +177,83 @@ export default function CreateRoleModal({
               )}
             </div>
 
+            {/* Base Role Selector - Only show when creating new role */}
+            {!isEditMode && (
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Start from existing role <span className="text-gray-400 text-xs">(optional)</span>
+                </label>
+                <select
+                  value={baseRoleId}
+                  onChange={(e) => handleBaseRoleChange(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:border-blue-500 focus:ring-blue-500 bg-white"
+                >
+                  <option value="">Create from scratch</option>
+                  <optgroup label="System Roles">
+                    {roles.filter(r => r.isSystemRole).map(role => (
+                      <option key={role.id} value={role.id}>
+                        {role.name} ({countEnabledPermissions(role.permissions)} permissions)
+                      </option>
+                    ))}
+                  </optgroup>
+                  <optgroup label="Custom Roles">
+                    {roles.filter(r => !r.isSystemRole).map(role => (
+                      <option key={role.id} value={role.id}>
+                        {role.name} ({countEnabledPermissions(role.permissions)} permissions)
+                      </option>
+                    ))}
+                  </optgroup>
+                </select>
+                <p className="text-xs text-gray-500 mt-1">
+                  {baseRoleId ? (
+                    <>
+                      <svg className="w-3 h-3 inline mr-1" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+                      </svg>
+                      Permissions pre-filled from selected role. You can customize them below.
+                    </>
+                  ) : (
+                    'Select a role to use as a template, or create from scratch'
+                  )}
+                </p>
+              </div>
+            )}
+
             {/* Permissions Matrix */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-3">
-                Permissions <span className="text-red-500">*</span>
-              </label>
+              <div className="flex items-center justify-between mb-3">
+                <label className="block text-sm font-medium text-gray-700">
+                  Permissions <span className="text-red-500">*</span>
+                </label>
+                
+                {/* Advanced Mode Toggle */}
+                <div className="flex items-center gap-2">
+                  <span className="text-xs text-gray-600">Simple</span>
+                  <button
+                    type="button"
+                    onClick={() => setAdvancedMode(!advancedMode)}
+                    className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors ${
+                      advancedMode ? "bg-blue-600" : "bg-gray-300"
+                    }`}
+                    disabled={existingRole?.isSystemRole}
+                  >
+                    <span
+                      className={`inline-block h-3.5 w-3.5 transform rounded-full bg-white transition-transform ${
+                        advancedMode ? "translate-x-5" : "translate-x-1"
+                      }`}
+                    />
+                  </button>
+                  <span className={`text-xs font-medium ${advancedMode ? "text-blue-600" : "text-gray-600"}`}>
+                    Advanced
+                  </span>
+                </div>
+              </div>
+              
               <RoleBuilderMatrix 
                 permissions={permissions} 
                 onChange={setPermissions}
                 disabled={existingRole?.isSystemRole}
+                advancedMode={advancedMode}
               />
               {existingRole?.isSystemRole && (
                 <p className="text-xs text-amber-600 mt-3 flex items-center gap-1">

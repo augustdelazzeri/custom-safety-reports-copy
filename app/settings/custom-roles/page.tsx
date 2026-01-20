@@ -84,7 +84,7 @@ function CustomRolesContent() {
       <Sidebar />
 
       {/* Header */}
-      <header className="bg-white border-b border-gray-200 ml-64">
+      <header className="bg-white border-b border-gray-200 fixed top-0 right-0 left-64 z-10">
         <div className="px-8 py-3 flex items-center justify-between">
           <div className="flex items-center gap-2">
             <div className="w-8 h-8 bg-red-600 rounded flex items-center justify-center">
@@ -106,7 +106,7 @@ function CustomRolesContent() {
       </header>
 
       {/* Main Content */}
-      <main className="ml-64 p-8">
+      <main className="ml-64 p-8 pt-20">
         {/* Page Header */}
         <div className="mb-6">
           <h1 className="text-2xl font-bold text-gray-900">Custom Roles</h1>

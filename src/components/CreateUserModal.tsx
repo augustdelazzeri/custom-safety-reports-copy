@@ -11,6 +11,7 @@
 import React, { useState, useEffect } from "react";
 import LocationNodeSelector from "./LocationNodeSelector";
 import { useRole } from "../contexts/RoleContext";
+import { useUser } from "../contexts/UserContext";
 import type { CreateUserFormData, EHSUser } from "../schemas/users";
 import { isValidEmail } from "../schemas/users";
 import type { LocationNode } from "../schemas/locations";
@@ -33,6 +34,7 @@ export default function CreateUserModal({
   locationNodes 
 }: CreateUserModalProps) {
   const { getRolesList } = useRole();
+  const { getUsersList } = useUser();
   
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
@@ -43,9 +45,33 @@ export default function CreateUserModal({
   const [showLocationSelector, setShowLocationSelector] = useState(false);
   const [error, setError] = useState("");
   const [attemptedSubmit, setAttemptedSubmit] = useState(false);
+  const [copyFromUserId, setCopyFromUserId] = useState("");
 
   const isEditMode = !!existingUser;
   const roles = getRolesList();
+  const allUsers = getUsersList();
+  const users = allUsers.filter(u => u.status === 'active'); // Show only active users
+
+  // Handle copying from another user
+  const handleCopyFromUser = (userId: string) => {
+    setCopyFromUserId(userId);
+    if (userId) {
+      const selectedUser = users.find(u => u.id === userId);
+      if (selectedUser) {
+        setRoleId(selectedUser.roleId);
+        setLocationNodeId(selectedUser.locationNodeId);
+        setLocationPath(selectedUser.locationPath || "");
+        setError("");
+      }
+    } else {
+      // Reset when "Create from scratch" is selected
+      if (!isEditMode) {
+        setRoleId("");
+        setLocationNodeId("");
+        setLocationPath("");
+      }
+    }
+  };
 
   // Reset form when modal opens/closes or when existingUser changes
   useEffect(() => {
@@ -64,6 +90,7 @@ export default function CreateUserModal({
         setRoleId("");
         setLocationNodeId("");
         setLocationPath("");
+        setCopyFromUserId("");
       }
       setError("");
       setAttemptedSubmit(false);
@@ -245,6 +272,36 @@ export default function CreateUserModal({
                   className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 />
               </div>
+
+              {/* Copy from User - Only in create mode */}
+              {!isEditMode && (
+                <div className="border-t border-gray-200 pt-4">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Copy Role & Location from Existing User (Optional)
+                  </label>
+                  <select
+                    value={copyFromUserId}
+                    onChange={(e) => handleCopyFromUser(e.target.value)}
+                    className="w-full px-3 py-2 bg-white border border-gray-300 rounded-md text-sm text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer"
+                  >
+                    <option value="">Create from scratch</option>
+                    {users.map(user => {
+                      const userRole = roles.find(r => r.id === user.roleId);
+                      return (
+                        <option key={user.id} value={user.id}>
+                          {user.firstName} {user.lastName} ({userRole?.name || "No role"} - {user.locationPath || "No location"})
+                        </option>
+                      );
+                    })}
+                  </select>
+                  <p className="text-xs text-gray-500 mt-1 flex items-center gap-1">
+                    <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+                    </svg>
+                    Pre-fill role and location from an existing user (you can still edit them)
+                  </p>
+                </div>
+              )}
 
               {/* Role Dropdown */}
               <div>
