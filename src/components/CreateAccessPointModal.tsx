@@ -3,22 +3,14 @@
 import React, { useState } from "react";
 import { useAccessPoint } from "../contexts/AccessPointContext";
 import { useTemplate } from "../contexts/TemplateContext";
+import CascadingLocationSelector from "./CascadingLocationSelector";
+import { LOCATION_HIERARCHY } from "../samples/locationHierarchy";
 
 interface CreateAccessPointModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSuccess: (id: string) => void;
 }
-
-const LOCATIONS = [
-  "Joty's Manufacturing Plant",
-  "Willy Wonka's Chocolate Factory",
-  "UpKeep HQ",
-  "Office Area",
-  "Loading Dock",
-  "Suite B",
-  "Utility Room"
-];
 
 export default function CreateAccessPointModal({
   isOpen,
@@ -29,14 +21,16 @@ export default function CreateAccessPointModal({
   const { templates } = useTemplate();
   
   const [name, setName] = useState("");
-  const [location, setLocation] = useState("");
+  const [locationNodeId, setLocationNodeId] = useState<string | undefined>(undefined);
+  const [locationBreadcrumb, setLocationBreadcrumb] = useState("");
   const [selectedTemplateIds, setSelectedTemplateIds] = useState<string[]>([]);
   const [lastOpenState, setLastOpenState] = useState(isOpen);
 
   // Reset form when modal opens - track previous state to detect transition
   if (isOpen && !lastOpenState) {
     setName("");
-    setLocation("");
+    setLocationNodeId(undefined);
+    setLocationBreadcrumb("");
     setSelectedTemplateIds([]);
   }
   if (isOpen !== lastOpenState) {
@@ -48,13 +42,13 @@ export default function CreateAccessPointModal({
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!name.trim() || !location || selectedTemplateIds.length === 0) {
+    if (!name.trim() || !locationNodeId || selectedTemplateIds.length === 0) {
       return;
     }
     
     const newId = createAccessPoint(
       name.trim(),
-      location,
+      locationBreadcrumb, // Use breadcrumb for legacy location field
       selectedTemplateIds
     );
     
@@ -63,12 +57,13 @@ export default function CreateAccessPointModal({
 
   const handleCancel = () => {
     setName("");
-    setLocation("");
+    setLocationNodeId(undefined);
+    setLocationBreadcrumb("");
     setSelectedTemplateIds([]);
     onClose();
   };
 
-  const isValid = name.trim().length > 0 && location && selectedTemplateIds.length > 0 && selectedTemplateIds.length <= 5;
+  const isValid = name.trim().length > 0 && locationNodeId && selectedTemplateIds.length > 0 && selectedTemplateIds.length <= 5;
 
   const handleTemplateToggle = (templateId: string) => {
     setSelectedTemplateIds(prev => {
@@ -138,24 +133,16 @@ export default function CreateAccessPointModal({
 
             {/* Location */}
             <div>
-              <label htmlFor="location" className="block text-sm font-medium text-gray-700 mb-2">
-                Location
-              </label>
-              <select
-                id="location"
-                value={location}
-                onChange={(e) => setLocation(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:border-blue-500 focus:ring-blue-500 transition-colors"
-              >
-                <option value="">Select a location</option>
-                {LOCATIONS.map((loc) => (
-                  <option key={loc} value={loc}>
-                    {loc}
-                  </option>
-                ))}
-              </select>
+              <CascadingLocationSelector
+                nodes={LOCATION_HIERARCHY}
+                value={locationNodeId}
+                onChange={(nodeId, breadcrumb) => {
+                  setLocationNodeId(nodeId);
+                  setLocationBreadcrumb(breadcrumb);
+                }}
+                required={true}
+              />
             </div>
-
             {/* Templates */
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">

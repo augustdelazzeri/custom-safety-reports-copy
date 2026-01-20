@@ -14,6 +14,8 @@ import BodyDiagramField from "./diagrams/BodyDiagramField";
 import SceneDiagramField from "./diagrams/SceneDiagramField";
 import SketchDrawingField from "./diagrams/SketchDrawingField";
 import GPSLocationField from "./GPSLocationField";
+import CascadingLocationSelector from "./CascadingLocationSelector";
+import { LOCATION_HIERARCHY } from "../samples/locationHierarchy";
 
 type Errors = Record<string, string | undefined>;
 
@@ -73,6 +75,28 @@ function Field({
   const baseInputClasses = `w-full px-3 py-2 text-sm border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100 disabled:cursor-not-allowed bg-white text-gray-900 placeholder:text-gray-400 ${
     error ? "border-red-500" : "border-gray-300"
   }`;
+
+  // Special handling for location field - use CascadingLocationSelector
+  if (f.id === "location") {
+    return (
+      <div className="mb-6" style={{ display: visible ? "block" : "none" }}>
+        <CascadingLocationSelector
+          nodes={LOCATION_HIERARCHY}
+          value={typeof value === 'object' ? value?.nodeId : undefined}
+          onChange={(nodeId, breadcrumb) => {
+            if (!locked) {
+              // Store both nodeId and breadcrumb for backward compatibility
+              setValue({ nodeId, breadcrumb });
+              if (onBlur) onBlur();
+            }
+          }}
+          required={required}
+          disabled={locked}
+        />
+        {error && <div className="text-red-600 text-sm mt-1.5">{error}</div>}
+      </div>
+    );
+  }
 
   switch (f.type) {
     case "text":
