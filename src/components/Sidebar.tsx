@@ -27,7 +27,6 @@ export default function Sidebar() {
     ]},
     { id: "people-permissions", label: "PEOPLE & PERMISSIONS", items: [
       { label: "User Management", icon: "users-cog", href: "/settings/people" },
-      { label: "Custom Roles", icon: "shield", href: "/settings/custom-roles" },
     ]},
   ];
   
