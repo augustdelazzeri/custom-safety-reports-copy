@@ -14,6 +14,13 @@ export default function CAPATracker() {
   const [priorityFilter, setPriorityFilter] = useState("All");
   const [openMenuId, setOpenMenuId] = useState<string | null>(null);
 
+  // Helper function for consistent date formatting (prevents hydration errors)
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+    return `${months[date.getMonth()]} ${date.getDate()}, ${date.getFullYear()}`;
+  };
+
   // Close dropdown when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -271,7 +278,7 @@ export default function CAPATracker() {
                             <svg className="w-4 h-4 mr-1.5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                             </svg>
-                            {new Date(capa.dueDate).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
+                            {capa.dueDate ? formatDate(capa.dueDate) : "Not set"}
                           </div>
                         </td>
                         <td className="px-4 py-4">
@@ -279,7 +286,7 @@ export default function CAPATracker() {
                             <svg className="w-4 h-4 mr-1.5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                             </svg>
-                            {new Date(capa.createdDate).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
+                            {formatDate(capa.createdDate)}
                           </div>
                         </td>
                         <td className="px-4 py-4">
