@@ -4,40 +4,10 @@ import React, { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import Sidebar from "../../src/components/Sidebar";
 import Header from "../../src/components/Header";
-
-interface CAPA {
-  id: string;
-  title: string;
-  description: string;
-  type: "corrective" | "preventive" | "both";
-  status: "open" | "in_progress" | "closed";
-  priority: "low" | "medium" | "high";
-  linkedEvent?: string;
-  owner: string;
-  ownerEmail: string;
-  dueDate: string;
-  createdDate: string;
-  tags: string[];
-}
-
-// Mock data
-const mockCAPAs: CAPA[] = [
-  {
-    id: "CAPA-0001",
-    title: "Slip Incident Due to Water from Air Conditioning",
-    description: "Investigation and preventive measures for slip hazard",
-    type: "both",
-    status: "open",
-    priority: "high",
-    owner: "Kaue Delazzeri",
-    ownerEmail: "kaue.delazzeri@upkeep.com",
-    dueDate: "2026-01-20",
-    createdDate: "2026-01-14",
-    tags: ["Hazard", "Equipment", "Environmental", "Safety"],
-  },
-];
+import { useCAPAs } from "../../src/contexts/CAPAContext";
 
 export default function CAPATracker() {
+  const { capas } = useCAPAs();
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("All");
   const [typeFilter, setTypeFilter] = useState("All");
@@ -78,7 +48,7 @@ export default function CAPATracker() {
     switch (status) {
       case "open":
         return "bg-blue-50 text-blue-700 border-blue-200";
-      case "in_progress":
+      case "in-review":
         return "bg-yellow-50 text-yellow-700 border-yellow-200";
       case "closed":
         return "bg-green-50 text-green-700 border-green-200";
@@ -255,8 +225,12 @@ export default function CAPATracker() {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-200">
-                    {mockCAPAs.map((capa) => (
-                      <tr key={capa.id} className="hover:bg-gray-50 cursor-pointer">
+                    {capas.map((capa) => (
+                      <tr
+                        key={capa.id}
+                        className="hover:bg-gray-50 cursor-pointer"
+                        onClick={() => window.location.href = `/capas/${capa.id}`}
+                      >
                         <td className="px-4 py-4">
                           <div className="flex flex-col">
                             <div className="font-medium text-gray-900">{capa.id}</div>
@@ -273,7 +247,7 @@ export default function CAPATracker() {
                             <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
                             </svg>
-                            {capa.status === "open" ? "Open" : capa.status === "in_progress" ? "In Progress" : "Closed"}
+                            {capa.status === "open" ? "Open" : capa.status === "in-review" ? "In Review" : "Closed"}
                           </span>
                         </td>
                         <td className="px-4 py-4">
@@ -282,14 +256,14 @@ export default function CAPATracker() {
                           </span>
                         </td>
                         <td className="px-4 py-4 text-sm text-gray-500">
-                          {capa.linkedEvent || "—"}
+                          {capa.linkedSafetyEventId || "—"}
                         </td>
                         <td className="px-4 py-4">
                           <div className="flex items-center text-sm">
                             <svg className="w-4 h-4 mr-1.5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                             </svg>
-                            <span className="text-gray-900">{capa.owner}</span>
+                            <span className="text-gray-900">{capa.ownerName}</span>
                           </div>
                         </td>
                         <td className="px-4 py-4">

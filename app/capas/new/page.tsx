@@ -4,12 +4,28 @@ import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import Sidebar from "../../../src/components/Sidebar";
 import Header from "../../../src/components/Header";
+import { useCAPAs } from "../../../src/contexts/CAPAContext";
+import { mockUsers } from "../../../src/samples/mockUsers";
+import { mockLocationHierarchy } from "../../../src/samples/locationHierarchy";
+
+// Helper function to flatten location hierarchy
+function flattenLocations(nodes: any[]): any[] {
+  let result: any[] = [];
+  for (const node of nodes) {
+    result.push(node);
+    if (node.children) {
+      result = result.concat(flattenLocations(node.children));
+    }
+  }
+  return result;
+}
 
 export default function CreateCAPA() {
   const router = useRouter();
+  const { addCAPA } = useCAPAs();
   const [formData, setFormData] = useState({
     title: "",
-    type: "corrective",
+    type: "corrective" as "corrective" | "preventive" | "both",
     eventId: "",
     locationId: "",
     assetId: "",
@@ -19,7 +35,7 @@ export default function CreateCAPA() {
     actionsToAddress: "",
     ownerId: "",
     dueDate: "",
-    priority: "low",
+    priority: "low" as "low" | "medium" | "high",
     tags: [] as string[],
     teamMembersToNotify: [] as string[],
   });
@@ -27,9 +43,42 @@ export default function CreateCAPA() {
   const [isRecording, setIsRecording] = useState(false);
   const [inputMode, setInputMode] = useState<"voice" | "type">("voice");
 
+  const locations = flattenLocations(mockLocationHierarchy);
+  const activeUsers = mockUsers.filter(u => u.status === "active");
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    console.log("Form submitted:", formData);
+    
+    // Find owner name from ID
+    const owner = mockUsers.find(u => u.id === formData.ownerId);
+    const location = locations.find(l => l.id === formData.locationId);
+    
+    if (!owner || !formData.title || !formData.rcaFindings || !formData.actionsToAddress) {
+      alert("Please fill in all required fields: Title, Owner, RCA Findings, and Proposed Actions");
+      return;
+    }
+    
+    addCAPA({
+      title: formData.title,
+      type: formData.type,
+      status: "open",
+      priority: formData.priority,
+      linkedSafetyEventId: formData.eventId || undefined,
+      locationId: formData.locationId || undefined,
+      locationName: location?.name || undefined,
+      assetId: formData.assetId || undefined,
+      rcaMethod: formData.rcaMethod,
+      rcaFindings: formData.rcaFindings,
+      rootCauseCategories: formData.rootCauseCategories,
+      proposedActions: formData.actionsToAddress,
+      ownerId: formData.ownerId,
+      ownerName: `${owner.firstName} ${owner.lastName}`,
+      dueDate: formData.dueDate || undefined,
+      tags: formData.tags,
+      teamMembersToNotify: formData.teamMembersToNotify,
+      createdBy: formData.ownerId,
+    });
+    
     router.push("/capas");
   };
 
@@ -129,13 +178,18 @@ export default function CreateCAPA() {
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     Location
                   </label>
-                  <input
-                    type="text"
+                  <select
                     value={formData.locationId}
                     onChange={(e) => setFormData({ ...formData, locationId: e.target.value })}
-                    placeholder="Select a location"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900"
-                  />
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900 bg-white"
+                  >
+                    <option value="">Select a location</option>
+                    {locations.map((location) => (
+                      <option key={location.id} value={location.id}>
+                        {"  ".repeat(location.level - 1)}{location.name}
+                      </option>
+                    ))}
+                  </select>
                   <p className="text-xs text-gray-500 mt-1">
                     Specific area where the CAPA will be implemented
                   </p>
@@ -445,14 +499,19 @@ export default function CreateCAPA() {
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     Owner <span className="text-red-500">*</span>
                   </label>
-                  <input
-                    type="text"
+                  <select
                     value={formData.ownerId}
                     onChange={(e) => setFormData({ ...formData, ownerId: e.target.value })}
-                    placeholder="Select an owner"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900 bg-white"
                     required
-                  />
+                  >
+                    <option value="">Select an owner</option>
+                    {activeUsers.map((user) => (
+                      <option key={user.id} value={user.id}>
+                        {user.firstName} {user.lastName} - {user.roleName}
+                      </option>
+                    ))}
+                  </select>
                 </div>
 
                 <div>
