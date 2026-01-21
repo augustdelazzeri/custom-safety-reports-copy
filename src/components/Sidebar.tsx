@@ -12,7 +12,7 @@ export default function Sidebar() {
     { id: "safety-management", label: "SAFETY MANAGEMENT", items: [
       { label: "Access Points", icon: "grid", href: "/access-points" },
       { label: "Safety Events", icon: "warning", href: "/" },
-      { label: "CAPAs", icon: "checklist", href: "#" },
+      { label: "CAPAs", icon: "checklist", href: "/capas" },
     ]},
     { id: "osha", label: "OSHA", items: [
       { label: "OSHA Log (Form 300)", icon: "document", href: "#" },
