@@ -70,7 +70,27 @@ const initialCAPAs: CAPA[] = [
 ];
 
 export function CAPAProvider({ children }: { children: ReactNode }) {
-  const [capas, setCapas] = useState<CAPA[]>(initialCAPAs);
+  const [capas, setCapas] = useState<CAPA[]>(() => {
+    // Load from localStorage on initial mount
+    if (typeof window !== "undefined") {
+      const stored = localStorage.getItem("capas");
+      if (stored) {
+        try {
+          return JSON.parse(stored);
+        } catch (e) {
+          console.error("Error loading CAPAs from localStorage:", e);
+        }
+      }
+    }
+    return initialCAPAs;
+  });
+
+  // Save to localStorage whenever capas change
+  React.useEffect(() => {
+    if (typeof window !== "undefined") {
+      localStorage.setItem("capas", JSON.stringify(capas));
+    }
+  }, [capas]);
 
   const addCAPA = (capaData: Omit<CAPA, "id" | "createdDate" | "updatedDate">) => {
     const newId = `CAPA-${String(capas.length + 1).padStart(4, "0")}`;

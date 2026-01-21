@@ -17,9 +17,9 @@ export default function CAPADetailsPage() {
   
   if (!capaData) {
     return (
-      <div className="h-screen flex flex-row bg-gray-50">
+      <div className="flex h-screen bg-gray-50">
         <Sidebar />
-        <div className="flex-1 flex flex-col overflow-hidden h-full">
+        <div className="flex-1 flex flex-col ml-64">
           <Header title="CAPA Details" />
           <div className="flex-1 flex items-center justify-center">
             <div className="text-center">
@@ -92,9 +92,9 @@ export default function CAPADetailsPage() {
   };
 
   return (
-    <div className="h-screen flex flex-row bg-gray-50">
+    <div className="flex h-screen bg-gray-50">
       <Sidebar />
-      <div className="flex-1 flex flex-col overflow-hidden h-full">
+      <div className="flex-1 flex flex-col ml-64">
         <Header title="CAPA Details" />
         <div className="relative flex-1 overflow-hidden">
           <main className="absolute inset-0 bg-gray-50 overflow-y-auto">
