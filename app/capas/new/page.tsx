@@ -128,7 +128,7 @@ export default function CreateCAPA() {
                   </label>
                   <select
                     value={formData.type}
-                    onChange={(e) => setFormData({ ...formData, type: e.target.value })}
+                    onChange={(e) => setFormData({ ...formData, type: e.target.value as "corrective" | "preventive" | "both" })}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900"
                   >
                     <option value="corrective">Corrective</option>
@@ -498,7 +498,7 @@ export default function CreateCAPA() {
                           name="priority"
                           value={priority}
                           checked={formData.priority === priority}
-                          onChange={(e) => setFormData({ ...formData, priority: e.target.value })}
+                          onChange={(e) => setFormData({ ...formData, priority: e.target.value as "low" | "medium" | "high" })}
                           className="w-4 h-4 text-blue-600 border-gray-300 focus:ring-blue-500"
                         />
                         <span className="text-sm text-gray-700 capitalize">{priority}</span>
