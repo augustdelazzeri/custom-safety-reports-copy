@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Sidebar from "../../src/components/Sidebar";
 import { AccessPointProvider, useAccessPoint } from "../../src/contexts/AccessPointContext";
 import { TemplateProvider } from "../../src/contexts/TemplateContext";
@@ -14,24 +14,28 @@ function AccessPointsListContent() {
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [selectedAccessPoint, setSelectedAccessPoint] = useState<string | null>(null);
   const [openMenuId, setOpenMenuId] = useState<string | null>(null);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const accessPoints = getAllAccessPoints();
 
   // Filter access points
   const filteredAccessPoints = accessPoints.filter(ap => {
     const matchesSearch = ap.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         ap.location.toLowerCase().includes(searchQuery.toLowerCase());
+                         ap.location.fullPath.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesStatus = statusFilter === "all" || ap.status === statusFilter;
     return matchesSearch && matchesStatus;
   });
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
-    return date.toLocaleDateString("en-US", { 
-      month: "short", 
-      day: "numeric", 
-      year: "numeric"
-    });
+    const month = date.toLocaleString('en-US', { month: 'short' });
+    const day = date.getDate();
+    const year = date.getFullYear();
+    return `${month} ${day}, ${year}`;
   };
 
   const getStatusBadgeColor = (status: string) => {
@@ -105,7 +109,7 @@ function AccessPointsListContent() {
               placeholder="Search access points..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-96 pl-10 pr-4 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              className="w-96 pl-10 pr-4 py-2 text-sm text-gray-900 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
             />
           </div>
           <div className="flex items-center gap-3">
@@ -206,7 +210,13 @@ function AccessPointsListContent() {
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
-              {filteredAccessPoints.length === 0 ? (
+              {!mounted ? (
+                <tr>
+                  <td colSpan={7} className="px-6 py-12 text-center text-sm text-gray-500">
+                    Loading...
+                  </td>
+                </tr>
+              ) : filteredAccessPoints.length === 0 ? (
                 <tr>
                   <td colSpan={7} className="px-6 py-12 text-center text-sm text-gray-500">
                     No access points found
@@ -223,7 +233,7 @@ function AccessPointsListContent() {
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
                       </svg>
-                      {ap.location}
+                      {ap.location.fullPath}
                     </td>
                     <td className="px-6 py-4 text-sm text-gray-700">
                       {ap.asset || <span className="text-gray-400">—</span>}

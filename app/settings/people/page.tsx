@@ -695,7 +695,7 @@ function PeopleContent() {
                       placeholder="Search roles..."
                       value={roleSearchQuery}
                       onChange={(e) => setRoleSearchQuery(e.target.value)}
-                      className="w-full pl-9 pr-4 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      className="w-full pl-9 pr-4 py-2 border border-gray-300 rounded-md text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                     />
                   </div>
                   
@@ -1031,7 +1031,7 @@ function PeopleContent() {
                       placeholder="Search teams..."
                       value={teamSearchQuery}
                       onChange={(e) => setTeamSearchQuery(e.target.value)}
-                      className="pl-10 pr-4 py-2 border border-gray-300 rounded-md text-sm w-64 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      className="pl-10 pr-4 py-2 border border-gray-300 rounded-md text-sm text-gray-900 w-64 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                     />
                   </div>
 

@@ -1,11 +1,12 @@
 "use client";
 
 import React, { createContext, useContext, useState, ReactNode } from "react";
+import { LocationSelection } from "../schemas/locations";
 
 export interface AccessPoint {
   id: string;
   name: string;
-  location: string;
+  location: LocationSelection;
   asset?: string;
   templateIds: string[]; // Array of 1-5 template IDs
   createdBy: string;
@@ -16,7 +17,7 @@ export interface AccessPoint {
 
 interface AccessPointContextValue {
   accessPoints: AccessPoint[];
-  createAccessPoint: (name: string, location: string, asset: string | undefined, templateIds: string[]) => string;
+  createAccessPoint: (name: string, location: LocationSelection, asset: string | undefined, templateIds: string[]) => string;
   getAccessPoint: (id: string) => AccessPoint | undefined;
   getAllAccessPoints: () => AccessPoint[];
   updateAccessPoint: (id: string, updates: Partial<AccessPoint>) => void;
@@ -33,112 +34,172 @@ function createDefaultAccessPoints(): AccessPoint[] {
     {
       id: "access-point-1",
       name: "Line 30",
-      location: "Joty's Manufacturing Plant",
+      location: {
+        selectedLevel: 4,
+        locationId: "loc_chicago",
+        locationName: "Chicago Plant",
+        fullPath: "Global Operations > North America > United States > Chicago Plant",
+        parentIds: ["loc_global", "loc_na", "loc_usa"],
+      },
       asset: undefined,
       templateIds: ["injury-report"],
       createdBy: "Joty Grewal",
       createdAt: "2025-07-15T14:53:00.000Z",
       status: "active",
-      qrCodeUrl: "/safety-events/template-form?templateId=injury-report&accessPointId=access-point-1&location=Joty's%20Manufacturing%20Plant"
+      qrCodeUrl: "/safety-events/template-form?templateId=injury-report&accessPointId=access-point-1&location=Global%20Operations%20%3E%20North%20America%20%3E%20United%20States%20%3E%20Chicago%20Plant"
     },
     {
       id: "access-point-2",
       name: "Test Access Point 3",
-      location: "Joty's Manufacturing Plant",
+      location: {
+        selectedLevel: 5,
+        locationId: "loc_chicago_prod",
+        locationName: "Production",
+        fullPath: "Global Operations > North America > United States > Chicago Plant > Production",
+        parentIds: ["loc_global", "loc_na", "loc_usa", "loc_chicago"],
+      },
       asset: undefined,
       templateIds: ["injury-report"],
       createdBy: "Joty Grewal",
       createdAt: "2025-07-15T14:53:00.000Z",
       status: "active",
-      qrCodeUrl: "/safety-events/template-form?templateId=injury-report&accessPointId=access-point-2&location=Joty's%20Manufacturing%20Plant"
+      qrCodeUrl: "/safety-events/template-form?templateId=injury-report&accessPointId=access-point-2&location=Global%20Operations%20%3E%20North%20America%20%3E%20United%20States%20%3E%20Chicago%20Plant%20%3E%20Production"
     },
     {
       id: "access-point-3",
       name: "Floor 3",
-      location: "Willy Wonka's Chocolate Factory",
+      location: {
+        selectedLevel: 4,
+        locationId: "loc_berlin",
+        locationName: "Berlin Factory",
+        fullPath: "Global Operations > Europe > Germany > Berlin Factory",
+        parentIds: ["loc_global", "loc_eu", "loc_germany"],
+      },
       asset: undefined,
       templateIds: ["injury-report"],
       createdBy: "Joty Grewal",
       createdAt: "2025-07-17T09:00:00.000Z",
       status: "active",
-      qrCodeUrl: "/safety-events/template-form?templateId=injury-report&accessPointId=access-point-3&location=Willy%20Wonka's%20Chocolate%20Factory"
+      qrCodeUrl: "/safety-events/template-form?templateId=injury-report&accessPointId=access-point-3&location=Global%20Operations%20%3E%20Europe%20%3E%20Germany%20%3E%20Berlin%20Factory"
     },
     {
       id: "access-point-4",
       name: "Manufacturing Plant 3",
-      location: "UpKeep HQ",
+      location: {
+        selectedLevel: 4,
+        locationId: "loc_austin",
+        locationName: "Austin Facility",
+        fullPath: "Global Operations > North America > United States > Austin Facility",
+        parentIds: ["loc_global", "loc_na", "loc_usa"],
+      },
       asset: undefined,
       templateIds: ["near-miss"],
       createdBy: "Joty Grewal",
       createdAt: "2025-07-18T10:30:00.000Z",
       status: "active",
-      qrCodeUrl: "/safety-events/template-form?templateId=near-miss&accessPointId=access-point-4&location=UpKeep%20HQ"
+      qrCodeUrl: "/safety-events/template-form?templateId=near-miss&accessPointId=access-point-4&location=Global%20Operations%20%3E%20North%20America%20%3E%20United%20States%20%3E%20Austin%20Facility"
     },
     {
       id: "access-point-5",
       name: "Manufacturing Plant 3",
-      location: "Willy Wonka's Chocolate Factory",
+      location: {
+        selectedLevel: 5,
+        locationId: "loc_berlin_manufacturing",
+        locationName: "Manufacturing",
+        fullPath: "Global Operations > Europe > Germany > Berlin Factory > Manufacturing",
+        parentIds: ["loc_global", "loc_eu", "loc_germany", "loc_berlin"],
+      },
       asset: undefined,
       templateIds: ["injury-report"],
       createdBy: "Joty Grewal",
       createdAt: "2025-07-25T08:45:00.000Z",
       status: "active",
-      qrCodeUrl: "/safety-events/template-form?templateId=injury-report&accessPointId=access-point-5&location=Willy%20Wonka's%20Chocolate%20Factory"
+      qrCodeUrl: "/safety-events/template-form?templateId=injury-report&accessPointId=access-point-5&location=Global%20Operations%20%3E%20Europe%20%3E%20Germany%20%3E%20Berlin%20Factory%20%3E%20Manufacturing"
     },
     {
       id: "access-point-6",
       name: "John Doe",
-      location: "Joty's Manufacturing Plant",
+      location: {
+        selectedLevel: 6,
+        locationId: "loc_chicago_prod_line1",
+        locationName: "Line 1",
+        fullPath: "Global Operations > North America > United States > Chicago Plant > Production > Line 1",
+        parentIds: ["loc_global", "loc_na", "loc_usa", "loc_chicago", "loc_chicago_prod"],
+      },
       asset: undefined,
       templateIds: ["injury-report"],
       createdBy: "Joty Grewal",
       createdAt: "2025-07-25T11:20:00.000Z",
       status: "active",
-      qrCodeUrl: "/safety-events/template-form?templateId=injury-report&accessPointId=access-point-6&location=Joty's%20Manufacturing%20Plant"
+      qrCodeUrl: "/safety-events/template-form?templateId=injury-report&accessPointId=access-point-6&location=Global%20Operations%20%3E%20North%20America%20%3E%20United%20States%20%3E%20Chicago%20Plant%20%3E%20Production%20%3E%20Line%201"
     },
     {
       id: "access-point-7",
       name: "Manufacturing Plant 3",
-      location: "Office Area",
+      location: {
+        selectedLevel: 5,
+        locationId: "loc_toronto_office",
+        locationName: "Office",
+        fullPath: "Global Operations > North America > Canada > Toronto Distribution Center > Office",
+        parentIds: ["loc_global", "loc_na", "loc_canada", "loc_toronto"],
+      },
       asset: undefined,
       templateIds: ["injury-report"],
       createdBy: "Joty Grewal",
       createdAt: "2025-09-05T15:00:00.000Z",
       status: "active",
-      qrCodeUrl: "/safety-events/template-form?templateId=injury-report&accessPointId=access-point-7&location=Office%20Area"
+      qrCodeUrl: "/safety-events/template-form?templateId=injury-report&accessPointId=access-point-7&location=Global%20Operations%20%3E%20North%20America%20%3E%20Canada%20%3E%20Toronto%20Distribution%20Center%20%3E%20Office"
     },
     {
       id: "access-point-8",
       name: "Office Area 1",
-      location: "Office Area",
+      location: {
+        selectedLevel: 5,
+        locationId: "loc_austin_qa",
+        locationName: "Quality Assurance",
+        fullPath: "Global Operations > North America > United States > Austin Facility > Quality Assurance",
+        parentIds: ["loc_global", "loc_na", "loc_usa", "loc_austin"],
+      },
       asset: undefined,
       templateIds: ["injury-report"],
       createdBy: "Joty Grewal",
       createdAt: "2025-09-09T13:30:00.000Z",
       status: "active",
-      qrCodeUrl: "/safety-events/template-form?templateId=injury-report&accessPointId=access-point-8&location=Office%20Area"
+      qrCodeUrl: "/safety-events/template-form?templateId=injury-report&accessPointId=access-point-8&location=Global%20Operations%20%3E%20North%20America%20%3E%20United%20States%20%3E%20Austin%20Facility%20%3E%20Quality%20Assurance"
     },
     {
       id: "access-point-9",
       name: "Shipping Yard",
-      location: "Loading Dock",
+      location: {
+        selectedLevel: 6,
+        locationId: "loc_chicago_warehouse_shipping",
+        locationName: "Shipping",
+        fullPath: "Global Operations > North America > United States > Chicago Plant > Warehouse > Shipping",
+        parentIds: ["loc_global", "loc_na", "loc_usa", "loc_chicago", "loc_chicago_warehouse"],
+      },
       asset: "Forklift FLT-12",
       templateIds: ["injury-report"],
       createdBy: "Joty Grewal",
       createdAt: "2025-09-16T09:15:00.000Z",
       status: "active",
-      qrCodeUrl: "/safety-events/template-form?templateId=injury-report&accessPointId=access-point-9&location=Loading%20Dock&asset=Forklift%20FLT-12"
+      qrCodeUrl: "/safety-events/template-form?templateId=injury-report&accessPointId=access-point-9&location=Global%20Operations%20%3E%20North%20America%20%3E%20United%20States%20%3E%20Chicago%20Plant%20%3E%20Warehouse%20%3E%20Shipping&asset=Forklift%20FLT-12"
     },
     {
       id: "access-point-10",
       name: "Manufacturing Plant 5",
-      location: "Willy Wonka's Chocolate Factory",
+      location: {
+        selectedLevel: 6,
+        locationId: "loc_berlin_manufacturing_floor1",
+        locationName: "Floor 1",
+        fullPath: "Global Operations > Europe > Germany > Berlin Factory > Manufacturing > Floor 1",
+        parentIds: ["loc_global", "loc_eu", "loc_germany", "loc_berlin", "loc_berlin_manufacturing"],
+      },
       asset: "Chocolate Mixer 2",
       templateIds: ["injury-report"],
       createdBy: "Joty Grewal",
       createdAt: "2025-09-17T14:00:00.000Z",
       status: "active",
-      qrCodeUrl: "/safety-events/template-form?templateId=injury-report&accessPointId=access-point-10&location=Willy%20Wonka's%20Chocolate%20Factory&asset=Chocolate%20Mixer%202"
+      qrCodeUrl: "/safety-events/template-form?templateId=injury-report&accessPointId=access-point-10&location=Global%20Operations%20%3E%20Europe%20%3E%20Germany%20%3E%20Berlin%20Factory%20%3E%20Manufacturing%20%3E%20Floor%201&asset=Chocolate%20Mixer%202"
     }
   ];
 }
@@ -183,7 +244,7 @@ export function AccessPointProvider({ children }: AccessPointProviderProps) {
 
   const createAccessPoint = (
     name: string,
-    location: string,
+    location: LocationSelection,
     asset: string | undefined,
     templateIds: string[]
   ): string => {
@@ -194,7 +255,7 @@ export function AccessPointProvider({ children }: AccessPointProviderProps) {
     const templateIdsParam = templateIds.length === 1 
       ? `templateId=${templateIds[0]}`
       : `templateIds=${templateIds.join(',')}`;
-    const qrCodeUrl = `/safety-events/template-form?${templateIdsParam}&accessPointId=${newId}&location=${encodeURIComponent(location)}${asset ? `&asset=${encodeURIComponent(asset)}` : ''}`;
+    const qrCodeUrl = `/safety-events/template-form?${templateIdsParam}&accessPointId=${newId}&location=${encodeURIComponent(location.fullPath)}${asset ? `&asset=${encodeURIComponent(asset)}` : ''}`;
     
     const newAccessPoint: AccessPoint = {
       id: newId,
