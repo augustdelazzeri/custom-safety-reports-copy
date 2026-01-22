@@ -10,6 +10,7 @@ import RoleBuilderMatrix from "./RoleBuilderMatrix";
 import { createDefaultPermissions, countEnabledPermissions } from "../schemas/roles";
 import type { CustomRole, RolePermissions } from "../schemas/roles";
 import { useRole } from "../contexts/RoleContext";
+import { getVisibleModules } from "../data/permissionsMock";
 
 interface CreateRoleModalProps {
   isOpen: boolean;
@@ -17,6 +18,7 @@ interface CreateRoleModalProps {
   onSubmit: (name: string, permissions: RolePermissions) => void;
   existingRole?: CustomRole; // For edit mode
   checkDuplicateName: (name: string, excludeId?: string) => boolean;
+  initialAdvancedMode?: boolean; // Initial state for advanced mode toggle
 }
 
 export default function CreateRoleModal({ 
@@ -24,12 +26,13 @@ export default function CreateRoleModal({
   onClose, 
   onSubmit, 
   existingRole,
-  checkDuplicateName 
+  checkDuplicateName,
+  initialAdvancedMode = false
 }: CreateRoleModalProps) {
   const [roleName, setRoleName] = useState("");
   const [permissions, setPermissions] = useState<RolePermissions>(createDefaultPermissions());
   const [error, setError] = useState("");
-  const [advancedMode, setAdvancedMode] = useState(false);
+  const [advancedMode, setAdvancedMode] = useState(initialAdvancedMode);
   const [baseRoleId, setBaseRoleId] = useState("");
 
   const { getRolesList } = useRole();
@@ -49,8 +52,10 @@ export default function CreateRoleModal({
         setBaseRoleId("");
       }
       setError("");
+      // Sync with parent's advanced mode state
+      setAdvancedMode(initialAdvancedMode);
     }
-  }, [isOpen, existingRole]);
+  }, [isOpen, existingRole, initialAdvancedMode]);
   
   const handleBaseRoleChange = (roleId: string) => {
     setBaseRoleId(roleId);
@@ -64,6 +69,29 @@ export default function CreateRoleModal({
       // Reset to default if no base role selected
       setPermissions(createDefaultPermissions());
     }
+  };
+
+  // Count permissions based on current mode (only visible modules)
+  const countVisiblePermissions = (perms: RolePermissions) => {
+    const visibleModules = getVisibleModules(advancedMode);
+    const visibleModuleIds = new Set(visibleModules.map(m => m.moduleId));
+    
+    let count = 0;
+    for (const moduleId in perms) {
+      // Only count if module is visible in current mode
+      if (!visibleModuleIds.has(moduleId)) continue;
+      
+      const modulePerms = perms[moduleId];
+      for (const entityName in modulePerms) {
+        const entityPerms = modulePerms[entityName];
+        for (const actionKey in entityPerms) {
+          if (entityPerms[actionKey] === true) {
+            count++;
+          }
+        }
+      }
+    }
+    return count;
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -119,6 +147,21 @@ export default function CreateRoleModal({
         {/* Header */}
         <div className="px-6 py-4 border-b border-gray-200 flex items-center justify-between flex-shrink-0">
           <div className="flex items-center gap-3">
+            {/* Back Button */}
+            <button
+              type="button"
+              onClick={handleCancel}
+              className="flex items-center gap-2 px-3 py-2 text-gray-700 hover:bg-gray-100 rounded-md transition-colors text-sm font-medium"
+              title="Go back to roles list"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+              </svg>
+              Back
+            </button>
+            
+            <div className="h-8 w-px bg-gray-300" />
+            
             <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
               <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
@@ -136,6 +179,7 @@ export default function CreateRoleModal({
           <button
             onClick={handleCancel}
             className="text-gray-400 hover:text-gray-600 transition-colors"
+            title="Close"
           >
             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -192,14 +236,14 @@ export default function CreateRoleModal({
                   <optgroup label="System Roles">
                     {roles.filter(r => r.isSystemRole).map(role => (
                       <option key={role.id} value={role.id}>
-                        {role.name} ({countEnabledPermissions(role.permissions)} permissions)
+                        {role.name} ({countVisiblePermissions(role.permissions)} permissions)
                       </option>
                     ))}
                   </optgroup>
                   <optgroup label="Custom Roles">
                     {roles.filter(r => !r.isSystemRole).map(role => (
                       <option key={role.id} value={role.id}>
-                        {role.name} ({countEnabledPermissions(role.permissions)} permissions)
+                        {role.name} ({countVisiblePermissions(role.permissions)} permissions)
                       </option>
                     ))}
                   </optgroup>
@@ -227,8 +271,10 @@ export default function CreateRoleModal({
                 </label>
                 
                 {/* Advanced Mode Toggle */}
-                <div className="flex items-center gap-2">
-                  <span className="text-xs text-gray-600">Simple</span>
+                <div className="flex items-center gap-3 bg-gray-50 border border-gray-200 rounded-lg px-3 py-2">
+                  <span className={`text-xs font-medium transition-colors ${!advancedMode ? 'text-gray-900' : 'text-gray-500'}`}>
+                    Simple
+                  </span>
                   <button
                     type="button"
                     onClick={() => setAdvancedMode(!advancedMode)}
@@ -243,10 +289,25 @@ export default function CreateRoleModal({
                       }`}
                     />
                   </button>
-                  <span className={`text-xs font-medium ${advancedMode ? "text-blue-600" : "text-gray-600"}`}>
+                  <span className={`text-xs font-medium transition-colors ${advancedMode ? 'text-blue-600' : 'text-gray-500'}`}>
                     Advanced
                   </span>
                 </div>
+              </div>
+              
+              {/* Mode Description Banner */}
+              <div className="mb-3 bg-blue-50 border border-blue-200 rounded-lg px-3 py-2">
+                <p className="text-xs text-blue-800">
+                  {advancedMode ? (
+                    <>
+                      <span className="font-semibold">Advanced Mode:</span> All 9 EHS modules with individual action controls (Events, CAPA, OSHA, Access Points, LOTO, PTW, JHA, SOP, Audit)
+                    </>
+                  ) : (
+                    <>
+                      <span className="font-semibold">Simple Mode:</span> 5 core modules with grouped permissions by category (View, Create & Edit, Approvals, Collaboration, Archive & Delete, Reporting)
+                    </>
+                  )}
+                </p>
               </div>
               
               <RoleBuilderMatrix 

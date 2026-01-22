@@ -3,6 +3,8 @@
  * 
  * Predefined system roles to help administrators understand permission patterns.
  * These roles are marked as system roles and cannot be deleted.
+ * 
+ * Structure: Module → Entity → Actions (3-level nested)
  */
 
 import type { CustomRole } from "../schemas/roles";
@@ -13,284 +15,687 @@ export const mockRoles: CustomRole[] = [
     name: "Safety Administrator",
     isSystemRole: true,
     permissions: {
-      safetyEvents: {
-        create: true,
-        viewAll: true,
-        editOwn: true,
-        editAll: true,
-        delete: true,
-        addWitness: true,
-        markOSHAReportable: true,
-        exportPDF: true,
+      // Incident Management
+      event: {
+        "Safety Event": {
+          create: true,
+          view: true,
+          "view-list": true,
+          edit: true,
+          archive: true,
+          delete: true,
+          export: true,
+          comment: true,
+          "view-comments": true,
+          "delete-comment": true
+        }
       },
-      capas: {
-        create: true,
-        assign: true,
-        approveClose: true,
-        viewAll: true,
-        updateStatus: true,
-        createWorkOrder: true,
-        exportPDF: true,
+      // CAPA
+      capa: {
+        "CAPA": {
+          create: true,
+          view: true,
+          "view-list": true,
+          edit: true,
+          duplicate: true,
+          archive: true,
+          delete: true,
+          export: true,
+          comment: true,
+          "view-comments": true,
+          "delete-comment": true
+        }
       },
-      compliance: {
-        accessOSHALogs: true,
-        exportPII: true,
-        signLogs: true,
-        generateOSHAForms: true,
-        markPrivacyCases: true,
+      // OSHA Compliance
+      osha: {
+        "OSHA Report (300/301)": {
+          create: true,
+          view: true,
+          "view-list": true,
+          edit: true,
+          archive: true,
+          delete: true,
+          export: true
+        },
+        "OSHA 300A Summary": {
+          "view-cases": true,
+          "view-establishment": true,
+          "upsert-establishment": true,
+          certify: true,
+          archive: true,
+          "view-archived": true
+        },
+        "OSHA Agency Report": {
+          create: true,
+          view: true,
+          "view-list": true,
+          edit: true,
+          archive: true,
+          export: true
+        },
+        "OSHA Location": {
+          create: true,
+          view: true,
+          "view-list": true,
+          archive: true,
+          export: true
+        },
+        "OSHA Audit Trail": {
+          view: true,
+          create: true
+        }
       },
-      documentation: {
-        createJHASOP: true,
-        editTemplates: true,
-        viewOnly: false,
-        approveDocuments: true,
-        createSOP: true,
-        createJHA: true,
-        createLOTO: true,
-        createPTW: true,
-        submitForReview: true,
-        digitalSignOff: true,
-        markAsPublic: true,
-        versionControl: true,
-        exportPDF: true,
+      // Access Points
+      "access-point": {
+        "Access Point": {
+          create: true,
+          "create-bulk": true,
+          view: true,
+          "view-list": true,
+          edit: true,
+          archive: true,
+          delete: true,
+          export: true
+        }
       },
-      accessPoints: {
-        createQRCodes: true,
-        editQRCodes: true,
-        deleteQRCodes: true,
-        scanQRCodes: true,
+      // LOTO
+      loto: {
+        "LOTO Procedure": {
+          create: true,
+          view: true,
+          "view-list": true,
+          edit: true,
+          duplicate: true,
+          "submit-review": true,
+          approve: true,
+          reject: true,
+          archive: true,
+          delete: true,
+          export: true
+        }
       },
-      checklists: {
-        create: true,
-        edit: true,
-        complete: true,
-        configureConditionalLogic: true,
-        attachToWorkOrders: true,
+      // PTW (Advanced)
+      ptw: {
+        "Work Permit": {
+          create: true,
+          view: true,
+          "view-list": true,
+          edit: true,
+          duplicate: true,
+          "submit-review": true,
+          approve: true,
+          reject: true,
+          archive: true,
+          delete: true,
+          export: true
+        }
       },
-      auditExport: {
-        viewAuditTrail: true,
-        exportCSV: true,
-        exportPDF: true,
+      // JHA (Advanced)
+      jha: {
+        "JHA": {
+          create: true,
+          view: true,
+          "view-list": true,
+          edit: true,
+          "submit-review": true,
+          approve: true,
+          reject: true,
+          archive: true,
+          delete: true,
+          export: true
+        }
       },
-      cmmsBridge: {
-        safetyOverride: true,
+      // SOP (Advanced)
+      sop: {
+        "SOP": {
+          create: true,
+          view: true,
+          "view-list": true,
+          edit: true,
+          duplicate: true,
+          "submit-review": true,
+          approve: true,
+          reject: true,
+          archive: true,
+          delete: true,
+          export: true
+        }
       },
+      // Audit (Advanced)
+      audit: {
+        "Audit": {
+          create: true,
+          view: true,
+          "view-list": true,
+          edit: true,
+          duplicate: true,
+          "submit-review": true,
+          approve: true,
+          reject: true,
+          archive: true,
+          delete: true,
+          export: true
+        }
+      }
     },
     createdAt: new Date('2025-01-01T10:00:00Z').toISOString(),
     updatedAt: new Date('2025-01-01T10:00:00Z').toISOString(),
     createdBy: "system",
   },
+  
   {
     id: "role_safety_manager",
     name: "Safety Manager",
     isSystemRole: true,
     permissions: {
-      safetyEvents: {
-        create: true,
-        viewAll: true,
-        editOwn: true,
-        editAll: true,
-        delete: false,
-        addWitness: true,
-        markOSHAReportable: true,
-        exportPDF: true,
+      // Incident Management
+      event: {
+        "Safety Event": {
+          create: true,
+          view: true,
+          "view-list": true,
+          edit: true,
+          archive: true,
+          delete: false,
+          export: true,
+          comment: true,
+          "view-comments": true,
+          "delete-comment": false
+        }
       },
-      capas: {
-        create: true,
-        assign: true,
-        approveClose: true,
-        viewAll: true,
-        updateStatus: true,
-        createWorkOrder: true,
-        exportPDF: true,
+      // CAPA
+      capa: {
+        "CAPA": {
+          create: true,
+          view: true,
+          "view-list": true,
+          edit: true,
+          duplicate: true,
+          archive: true,
+          delete: false,
+          export: true,
+          comment: true,
+          "view-comments": true,
+          "delete-comment": false
+        }
       },
-      compliance: {
-        accessOSHALogs: true,
-        exportPII: false,
-        signLogs: false,
-        generateOSHAForms: true,
-        markPrivacyCases: false,
+      // OSHA Compliance
+      osha: {
+        "OSHA Report (300/301)": {
+          create: true,
+          view: true,
+          "view-list": true,
+          edit: true,
+          archive: false,
+          delete: false,
+          export: true
+        },
+        "OSHA 300A Summary": {
+          "view-cases": true,
+          "view-establishment": true,
+          "upsert-establishment": true,
+          certify: false,
+          archive: false,
+          "view-archived": true
+        },
+        "OSHA Agency Report": {
+          create: true,
+          view: true,
+          "view-list": true,
+          edit: true,
+          archive: false,
+          export: true
+        },
+        "OSHA Location": {
+          create: true,
+          view: true,
+          "view-list": true,
+          archive: false,
+          export: true
+        },
+        "OSHA Audit Trail": {
+          view: true,
+          create: false
+        }
       },
-      documentation: {
-        createJHASOP: true,
-        editTemplates: false,
-        viewOnly: false,
-        approveDocuments: true,
-        createSOP: true,
-        createJHA: true,
-        createLOTO: true,
-        createPTW: true,
-        submitForReview: true,
-        digitalSignOff: false,
-        markAsPublic: false,
-        versionControl: true,
-        exportPDF: true,
+      // Access Points
+      "access-point": {
+        "Access Point": {
+          create: true,
+          "create-bulk": true,
+          view: true,
+          "view-list": true,
+          edit: true,
+          archive: false,
+          delete: false,
+          export: true
+        }
       },
-      accessPoints: {
-        createQRCodes: true,
-        editQRCodes: true,
-        deleteQRCodes: false,
-        scanQRCodes: true,
+      // LOTO
+      loto: {
+        "LOTO Procedure": {
+          create: true,
+          view: true,
+          "view-list": true,
+          edit: true,
+          duplicate: true,
+          "submit-review": true,
+          approve: true,
+          reject: true,
+          archive: true,
+          delete: false,
+          export: true
+        }
       },
-      checklists: {
-        create: true,
-        edit: true,
-        complete: true,
-        configureConditionalLogic: true,
-        attachToWorkOrders: true,
+      // PTW (Advanced)
+      ptw: {
+        "Work Permit": {
+          create: true,
+          view: true,
+          "view-list": true,
+          edit: true,
+          duplicate: true,
+          "submit-review": true,
+          approve: true,
+          reject: true,
+          archive: true,
+          delete: false,
+          export: true
+        }
       },
-      auditExport: {
-        viewAuditTrail: true,
-        exportCSV: true,
-        exportPDF: true,
+      // JHA (Advanced)
+      jha: {
+        "JHA": {
+          create: true,
+          view: true,
+          "view-list": true,
+          edit: true,
+          "submit-review": true,
+          approve: true,
+          reject: true,
+          archive: true,
+          delete: false,
+          export: true
+        }
       },
-      cmmsBridge: {
-        safetyOverride: true,
+      // SOP (Advanced)
+      sop: {
+        "SOP": {
+          create: true,
+          view: true,
+          "view-list": true,
+          edit: true,
+          duplicate: true,
+          "submit-review": true,
+          approve: true,
+          reject: true,
+          archive: true,
+          delete: false,
+          export: true
+        }
       },
+      // Audit (Advanced)
+      audit: {
+        "Audit": {
+          create: true,
+          view: true,
+          "view-list": true,
+          edit: true,
+          duplicate: true,
+          "submit-review": true,
+          approve: true,
+          reject: true,
+          archive: true,
+          delete: false,
+          export: true
+        }
+      }
     },
     createdAt: new Date('2025-01-01T10:00:00Z').toISOString(),
     updatedAt: new Date('2025-01-01T10:00:00Z').toISOString(),
     createdBy: "system",
   },
+  
   {
     id: "role_field_tech",
     name: "Field Technician",
     isSystemRole: true,
     permissions: {
-      safetyEvents: {
-        create: true,
-        viewAll: false,
-        editOwn: true,
-        editAll: false,
-        delete: false,
-        addWitness: false,
-        markOSHAReportable: false,
-        exportPDF: false,
+      // Incident Management
+      event: {
+        "Safety Event": {
+          create: true,
+          view: true,
+          "view-list": true,
+          edit: false,
+          archive: false,
+          delete: false,
+          export: false,
+          comment: true,
+          "view-comments": true,
+          "delete-comment": false
+        }
       },
-      capas: {
-        create: false,
-        assign: false,
-        approveClose: false,
-        viewAll: true,
-        updateStatus: false,
-        createWorkOrder: false,
-        exportPDF: false,
+      // CAPA
+      capa: {
+        "CAPA": {
+          create: false,
+          view: true,
+          "view-list": true,
+          edit: false,
+          duplicate: false,
+          archive: false,
+          delete: false,
+          export: false,
+          comment: true,
+          "view-comments": true,
+          "delete-comment": false
+        }
       },
-      compliance: {
-        accessOSHALogs: false,
-        exportPII: false,
-        signLogs: false,
-        generateOSHAForms: false,
-        markPrivacyCases: false,
+      // OSHA Compliance
+      osha: {
+        "OSHA Report (300/301)": {
+          create: false,
+          view: false,
+          "view-list": false,
+          edit: false,
+          archive: false,
+          delete: false,
+          export: false
+        },
+        "OSHA 300A Summary": {
+          "view-cases": false,
+          "view-establishment": false,
+          "upsert-establishment": false,
+          certify: false,
+          archive: false,
+          "view-archived": false
+        },
+        "OSHA Agency Report": {
+          create: false,
+          view: false,
+          "view-list": false,
+          edit: false,
+          archive: false,
+          export: false
+        },
+        "OSHA Location": {
+          create: false,
+          view: false,
+          "view-list": false,
+          archive: false,
+          export: false
+        },
+        "OSHA Audit Trail": {
+          view: false,
+          create: false
+        }
       },
-      documentation: {
-        createJHASOP: false,
-        editTemplates: false,
-        viewOnly: true,
-        approveDocuments: false,
-        createSOP: false,
-        createJHA: false,
-        createLOTO: false,
-        createPTW: false,
-        submitForReview: false,
-        digitalSignOff: false,
-        markAsPublic: false,
-        versionControl: false,
-        exportPDF: false,
+      // Access Points
+      "access-point": {
+        "Access Point": {
+          create: false,
+          "create-bulk": false,
+          view: true,
+          "view-list": true,
+          edit: false,
+          archive: false,
+          delete: false,
+          export: false
+        }
       },
-      accessPoints: {
-        createQRCodes: false,
-        editQRCodes: false,
-        deleteQRCodes: false,
-        scanQRCodes: true,
+      // LOTO
+      loto: {
+        "LOTO Procedure": {
+          create: false,
+          view: true,
+          "view-list": true,
+          edit: false,
+          duplicate: false,
+          "submit-review": false,
+          approve: false,
+          reject: false,
+          archive: false,
+          delete: false,
+          export: false
+        }
       },
-      checklists: {
-        create: false,
-        edit: false,
-        complete: true,
-        configureConditionalLogic: false,
-        attachToWorkOrders: false,
+      // PTW (Advanced)
+      ptw: {
+        "Work Permit": {
+          create: false,
+          view: true,
+          "view-list": true,
+          edit: false,
+          duplicate: false,
+          "submit-review": false,
+          approve: false,
+          reject: false,
+          archive: false,
+          delete: false,
+          export: false
+        }
       },
-      auditExport: {
-        viewAuditTrail: false,
-        exportCSV: false,
-        exportPDF: false,
+      // JHA (Advanced)
+      jha: {
+        "JHA": {
+          create: false,
+          view: true,
+          "view-list": true,
+          edit: false,
+          "submit-review": false,
+          approve: false,
+          reject: false,
+          archive: false,
+          delete: false,
+          export: false
+        }
       },
-      cmmsBridge: {
-        safetyOverride: true,
+      // SOP (Advanced)
+      sop: {
+        "SOP": {
+          create: false,
+          view: true,
+          "view-list": true,
+          edit: false,
+          duplicate: false,
+          "submit-review": false,
+          approve: false,
+          reject: false,
+          archive: false,
+          delete: false,
+          export: false
+        }
       },
+      // Audit (Advanced)
+      audit: {
+        "Audit": {
+          create: false,
+          view: true,
+          "view-list": true,
+          edit: false,
+          duplicate: false,
+          "submit-review": false,
+          approve: false,
+          reject: false,
+          archive: false,
+          delete: false,
+          export: false
+        }
+      }
     },
     createdAt: new Date('2025-01-01T10:00:00Z').toISOString(),
     updatedAt: new Date('2025-01-01T10:00:00Z').toISOString(),
     createdBy: "system",
   },
+  
   {
     id: "role_view_only",
     name: "View Only",
     isSystemRole: true,
     permissions: {
-      safetyEvents: {
-        create: false,
-        viewAll: true,
-        editOwn: false,
-        editAll: false,
-        delete: false,
-        addWitness: false,
-        markOSHAReportable: false,
-        exportPDF: false,
+      // Incident Management
+      event: {
+        "Safety Event": {
+          create: false,
+          view: true,
+          "view-list": true,
+          edit: false,
+          archive: false,
+          delete: false,
+          export: false,
+          comment: false,
+          "view-comments": true,
+          "delete-comment": false
+        }
       },
-      capas: {
-        create: false,
-        assign: false,
-        approveClose: false,
-        viewAll: true,
-        updateStatus: false,
-        createWorkOrder: false,
-        exportPDF: false,
+      // CAPA
+      capa: {
+        "CAPA": {
+          create: false,
+          view: true,
+          "view-list": true,
+          edit: false,
+          duplicate: false,
+          archive: false,
+          delete: false,
+          export: false,
+          comment: false,
+          "view-comments": true,
+          "delete-comment": false
+        }
       },
-      compliance: {
-        accessOSHALogs: false,
-        exportPII: false,
-        signLogs: false,
-        generateOSHAForms: false,
-        markPrivacyCases: false,
+      // OSHA Compliance
+      osha: {
+        "OSHA Report (300/301)": {
+          create: false,
+          view: false,
+          "view-list": false,
+          edit: false,
+          archive: false,
+          delete: false,
+          export: false
+        },
+        "OSHA 300A Summary": {
+          "view-cases": false,
+          "view-establishment": false,
+          "upsert-establishment": false,
+          certify: false,
+          archive: false,
+          "view-archived": false
+        },
+        "OSHA Agency Report": {
+          create: false,
+          view: false,
+          "view-list": false,
+          edit: false,
+          archive: false,
+          export: false
+        },
+        "OSHA Location": {
+          create: false,
+          view: false,
+          "view-list": false,
+          archive: false,
+          export: false
+        },
+        "OSHA Audit Trail": {
+          view: false,
+          create: false
+        }
       },
-      documentation: {
-        createJHASOP: false,
-        editTemplates: false,
-        viewOnly: true,
-        approveDocuments: false,
-        createSOP: false,
-        createJHA: false,
-        createLOTO: false,
-        createPTW: false,
-        submitForReview: false,
-        digitalSignOff: false,
-        markAsPublic: false,
-        versionControl: false,
-        exportPDF: false,
+      // Access Points
+      "access-point": {
+        "Access Point": {
+          create: false,
+          "create-bulk": false,
+          view: true,
+          "view-list": true,
+          edit: false,
+          archive: false,
+          delete: false,
+          export: false
+        }
       },
-      accessPoints: {
-        createQRCodes: false,
-        editQRCodes: false,
-        deleteQRCodes: false,
-        scanQRCodes: true,
+      // LOTO
+      loto: {
+        "LOTO Procedure": {
+          create: false,
+          view: true,
+          "view-list": true,
+          edit: false,
+          duplicate: false,
+          "submit-review": false,
+          approve: false,
+          reject: false,
+          archive: false,
+          delete: false,
+          export: false
+        }
       },
-      checklists: {
-        create: false,
-        edit: false,
-        complete: false,
-        configureConditionalLogic: false,
-        attachToWorkOrders: false,
+      // PTW (Advanced)
+      ptw: {
+        "Work Permit": {
+          create: false,
+          view: true,
+          "view-list": true,
+          edit: false,
+          duplicate: false,
+          "submit-review": false,
+          approve: false,
+          reject: false,
+          archive: false,
+          delete: false,
+          export: false
+        }
       },
-      auditExport: {
-        viewAuditTrail: false,
-        exportCSV: false,
-        exportPDF: false,
+      // JHA (Advanced)
+      jha: {
+        "JHA": {
+          create: false,
+          view: true,
+          "view-list": true,
+          edit: false,
+          "submit-review": false,
+          approve: false,
+          reject: false,
+          archive: false,
+          delete: false,
+          export: false
+        }
       },
-      cmmsBridge: {
-        safetyOverride: false,
+      // SOP (Advanced)
+      sop: {
+        "SOP": {
+          create: false,
+          view: true,
+          "view-list": true,
+          edit: false,
+          duplicate: false,
+          "submit-review": false,
+          approve: false,
+          reject: false,
+          archive: false,
+          delete: false,
+          export: false
+        }
       },
+      // Audit (Advanced)
+      audit: {
+        "Audit": {
+          create: false,
+          view: true,
+          "view-list": true,
+          edit: false,
+          duplicate: false,
+          "submit-review": false,
+          approve: false,
+          reject: false,
+          archive: false,
+          delete: false,
+          export: false
+        }
+      }
     },
     createdAt: new Date('2025-01-01T10:00:00Z').toISOString(),
     updatedAt: new Date('2025-01-01T10:00:00Z').toISOString(),

@@ -13,6 +13,7 @@ import Sidebar from "../../../src/components/Sidebar";
 import CreateRoleModal from "../../../src/components/CreateRoleModal";
 import { RoleProvider, useRole } from "../../../src/contexts/RoleContext";
 import { countEnabledPermissions } from "../../../src/schemas/roles";
+import { getVisibleModules } from "../../../src/data/permissionsMock";
 
 function CustomRolesContent() {
   const router = useRouter();
@@ -21,8 +22,32 @@ function CustomRolesContent() {
   const [openMenuId, setOpenMenuId] = useState<string | null>(null);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [editingRole, setEditingRole] = useState<string | null>(null);
+  const [advancedMode, setAdvancedMode] = useState(false);
 
   const roles = getRolesList();
+
+  // Count permissions based on current mode (only visible modules)
+  const countVisiblePermissions = (permissions: typeof roles[0]['permissions']) => {
+    const visibleModules = getVisibleModules(advancedMode);
+    const visibleModuleIds = new Set(visibleModules.map(m => m.moduleId));
+    
+    let count = 0;
+    for (const moduleId in permissions) {
+      // Only count if module is visible in current mode
+      if (!visibleModuleIds.has(moduleId)) continue;
+      
+      const modulePerms = permissions[moduleId];
+      for (const entityName in modulePerms) {
+        const entityPerms = modulePerms[entityName];
+        for (const actionKey in entityPerms) {
+          if (entityPerms[actionKey] === true) {
+            count++;
+          }
+        }
+      }
+    }
+    return count;
+  };
 
   // Filter roles by search
   const filteredRoles = roles.filter(role =>
@@ -109,10 +134,52 @@ function CustomRolesContent() {
       <main className="ml-64 p-8 pt-20">
         {/* Page Header */}
         <div className="mb-6">
-          <h1 className="text-2xl font-bold text-gray-900">Custom Roles</h1>
-          <p className="text-sm text-gray-600 mt-1">
-            Create and manage custom roles with granular permissions for your EHS team
-          </p>
+          <div className="flex items-start justify-between">
+            <div className="flex-1">
+              <h1 className="text-2xl font-bold text-gray-900">Custom Roles</h1>
+              <p className="text-sm text-gray-600 mt-1">
+                Create and manage custom roles with granular permissions for your EHS team
+              </p>
+            </div>
+            
+            {/* Simple/Advanced Mode Toggle */}
+            <div className="flex items-center gap-3 bg-white border border-gray-200 rounded-lg px-4 py-2.5">
+              <span className={`text-sm font-medium transition-colors ${!advancedMode ? 'text-gray-900' : 'text-gray-500'}`}>
+                Simple Mode
+              </span>
+              <button
+                type="button"
+                onClick={() => setAdvancedMode(!advancedMode)}
+                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+                  advancedMode ? "bg-blue-600" : "bg-gray-300"
+                }`}
+              >
+                <span
+                  className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                    advancedMode ? "translate-x-6" : "translate-x-1"
+                  }`}
+                />
+              </button>
+              <span className={`text-sm font-medium transition-colors ${advancedMode ? 'text-blue-600' : 'text-gray-500'}`}>
+                Advanced Mode
+              </span>
+            </div>
+          </div>
+          
+          {/* Mode Description */}
+          <div className="mt-3 bg-blue-50 border border-blue-200 rounded-lg px-4 py-2.5">
+            <p className="text-sm text-blue-800">
+              {advancedMode ? (
+                <>
+                  <span className="font-semibold">Advanced Mode:</span> Shows all 9 EHS modules with individual action controls including PTW, JHA, SOP, and Audit for comprehensive permission control.
+                </>
+              ) : (
+                <>
+                  <span className="font-semibold">Simple Mode:</span> Shows 5 core modules with permissions grouped by category (View, Create & Edit, Approvals, Collaboration, etc.) for streamlined role creation.
+                </>
+              )}
+            </p>
+          </div>
         </div>
 
         {/* Search & Actions */}
@@ -165,7 +232,7 @@ function CustomRolesContent() {
               </thead>
               <tbody className="divide-y divide-gray-200">
                 {filteredRoles.map((role) => {
-                  const permissionCount = countEnabledPermissions(role.permissions);
+                  const permissionCount = countVisiblePermissions(role.permissions);
                   return (
                     <tr key={role.id} className="hover:bg-gray-50 transition-colors">
                       <td className="px-6 py-4">
@@ -290,6 +357,7 @@ function CustomRolesContent() {
         onSubmit={handleSubmitRole}
         existingRole={editingRole ? roles.find(r => r.id === editingRole) : undefined}
         checkDuplicateName={checkDuplicateName}
+        initialAdvancedMode={advancedMode}
       />
     </div>
   );

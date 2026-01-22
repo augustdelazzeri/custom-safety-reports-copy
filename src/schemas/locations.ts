@@ -23,6 +23,7 @@ export interface LocationSelection {
   locationName: string;        // Name of the final selected node
   fullPath: string;            // Complete path (ex: "Global Operations > North America > United States")
   parentIds: string[];         // Array of parent IDs for easier queries [level1, level2, ..., level(n-1)]
+  childrenIds?: string[];      // Array of all children IDs (for filter mode)
 }
 
 /**
@@ -173,6 +174,29 @@ export function buildLocationSelectionFromId(
     locationName: node.name,
     fullPath,
     parentIds,
+  };
+}
+
+// Utility function to build LocationSelection for filtering (includes children)
+export function buildLocationSelectionForFilter(
+  nodeId: string,
+  nodes: LocationNode[],
+  includeChildren: boolean = true
+): LocationSelection | null {
+  const node = findNodeById(nodeId, nodes);
+  if (!node) return null;
+
+  const parentIds = getParentIds(nodeId, nodes);
+  const fullPath = buildLocationPath(nodeId, nodes);
+  const childrenIds = includeChildren ? getAllChildNodeIds(nodeId, nodes) : [nodeId];
+
+  return {
+    selectedLevel: node.level,
+    locationId: node.id,
+    locationName: node.name,
+    fullPath,
+    parentIds,
+    childrenIds,
   };
 }
 

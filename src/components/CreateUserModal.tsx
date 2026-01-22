@@ -9,12 +9,12 @@
  */
 
 import React, { useState, useEffect } from "react";
-import LocationNodeSelector from "./LocationNodeSelector";
+import LocationFilterDropdown from "./LocationFilterDropdown";
 import { useRole } from "../contexts/RoleContext";
 import { useUser } from "../contexts/UserContext";
 import type { CreateUserFormData, EHSUser } from "../schemas/users";
 import { isValidEmail } from "../schemas/users";
-import type { LocationNode } from "../schemas/locations";
+import type { LocationNode, LocationSelection } from "../schemas/locations";
 
 interface CreateUserModalProps {
   isOpen: boolean;
@@ -42,7 +42,7 @@ export default function CreateUserModal({
   const [roleId, setRoleId] = useState("");
   const [locationNodeId, setLocationNodeId] = useState("");
   const [locationPath, setLocationPath] = useState("");
-  const [showLocationSelector, setShowLocationSelector] = useState(false);
+  const [locationSelection, setLocationSelection] = useState<LocationSelection | null>(null);
   const [error, setError] = useState("");
   const [attemptedSubmit, setAttemptedSubmit] = useState(false);
   const [copyFromUserId, setCopyFromUserId] = useState("");
@@ -162,12 +162,6 @@ export default function CreateUserModal({
     onSubmit(formData, locationPath);
   };
 
-  const handleLocationSelect = (nodeId: string, path: string) => {
-    setLocationNodeId(nodeId);
-    setLocationPath(path);
-    setShowLocationSelector(false);
-    setError(""); // Clear error when location is selected
-  };
 
   const handleCancel = () => {
     setError("");
@@ -333,34 +327,27 @@ export default function CreateUserModal({
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Assigned Location <span className="text-red-500">*</span>
                 </label>
-                <button
-                  type="button"
-                  onClick={() => setShowLocationSelector(true)}
-                  className={`w-full px-3 py-2 border rounded-md text-sm text-left flex items-center justify-between transition-colors ${
-                    showLocationWarning
-                      ? "border-amber-300 bg-amber-50"
-                      : "border-gray-300 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  }`}
-                >
-                  {locationPath ? (
-                    <span className="text-gray-900 flex items-center gap-2">
-                      <svg className="w-4 h-4 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
-                        <path fillRule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clipRule="evenodd" />
-                      </svg>
-                      {locationPath}
-                    </span>
-                  ) : (
-                    <span className="text-gray-500">Select location...</span>
-                  )}
-                  <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                  </svg>
-                </button>
+                <LocationFilterDropdown
+                  initialSelection={locationSelection}
+                  locationTree={locationNodes}
+                  onChange={(selection) => {
+                    setLocationSelection(selection);
+                    if (selection) {
+                      setLocationNodeId(selection.locationId);
+                      setLocationPath(selection.fullPath);
+                    } else {
+                      setLocationNodeId("");
+                      setLocationPath("");
+                    }
+                    setError("");
+                  }}
+                  alwaysIncludeChildren={true}
+                />
                 <p className="text-xs text-gray-500 mt-1 flex items-center gap-1">
                   <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20">
                     <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
                   </svg>
-                  User will have access to this location and all child locations
+                  User will have access to this location and all child locations automatically
                 </p>
               </div>
 
@@ -411,15 +398,6 @@ export default function CreateUserModal({
 
         </div>
       </div>
-
-      {/* Location Selector Modal */}
-      <LocationNodeSelector
-        isOpen={showLocationSelector}
-        onClose={() => setShowLocationSelector(false)}
-        onSelect={handleLocationSelect}
-        currentSelection={locationNodeId}
-        nodes={locationNodes}
-      />
     </>
   );
 }

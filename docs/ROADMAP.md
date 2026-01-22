@@ -62,7 +62,7 @@
 
 ### 2. Custom Roles - Review and Alignment
 
-**Status**: Not Started 📋
+**Status**: In Progress 🔄
 
 **Objectives**:
 - Compare current implementation against `FUNCTIONAL_SPECS.md` (baseline)
@@ -73,14 +73,40 @@
 - Validate role management workflows (create, edit, duplicate, delete)
 
 **Audit Checklist**:
-- [ ] Review existing permission structure vs. documented structure
-- [ ] Verify all 8 permission categories are correctly implemented
-- [ ] Check Simple vs. Advanced mode toggle functionality
+- [x] Review existing permission structure vs. documented structure
+- [x] Verify all 8 permission categories are correctly implemented
+- [x] Check Simple vs. Advanced mode toggle functionality
 - [ ] Validate role duplication behavior (system roles vs. custom roles)
 - [ ] Test duplicate name detection and validation rules
 - [ ] Confirm base role selection works as expected
-- [ ] Review RoleBuilderMatrix component completeness
+- [x] Review RoleBuilderMatrix component completeness
 - [ ] Test all CRUD operations with proper error handling
+
+**Recent Updates** (Jan 22, 2026):
+
+**Module Ordering & Organization**:
+- ✅ **Reordered modules to match sidebar structure**:
+  1. Access Points
+  2. Safety Events
+  3. CAPAs
+  4. OSHA Compliance
+  5. Job Hazard Analysis (moved to Simple Mode)
+  6. Standard Operating Procedures (moved to Simple Mode)
+  7. Lockout/Tagout
+  8. Permit to Work (moved to Simple Mode)
+  9. Safety Audits (Advanced Only)
+- ✅ **Documentation section expansion**: All 4 documentation types now have individual permission controls
+- ✅ **Simple Mode now includes 8 modules** (vs. 5 previously): Added JHA, SOP, and PTW to Simple Mode for better coverage
+
+**UI/UX Improvements**:
+- ✅ **OSHA warning redesign**: 
+  - Removed prominent yellow/amber background that was too alarming
+  - Replaced large warning icon with subtle 🔒 emoji
+  - Changed to simple gray text: "Contains PII - Handle with care"
+  - Maintains awareness without causing anxiety
+- ✅ **Consistent module styling**: All modules now use the same visual style (no special colors for OSHA)
+- ✅ **2-column layout for permissions**: Reduced vertical scroll by displaying permissions in a grid
+- ✅ **Full-row clickability**: Entire permission row is now clickable, not just the toggle
 
 **Reference Documents**:
 - `docs/Features review/FUNCTIONAL_SPECS.md` - Current state
