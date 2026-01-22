@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Sidebar from "../../src/components/Sidebar";
 import { AccessPointProvider, useAccessPoint } from "../../src/contexts/AccessPointContext";
 import { TemplateProvider } from "../../src/contexts/TemplateContext";
@@ -14,6 +14,11 @@ function AccessPointsListContent() {
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [selectedAccessPoint, setSelectedAccessPoint] = useState<string | null>(null);
   const [openMenuId, setOpenMenuId] = useState<string | null>(null);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const accessPoints = getAllAccessPoints();
 
@@ -27,11 +32,10 @@ function AccessPointsListContent() {
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
-    return date.toLocaleDateString("en-US", { 
-      month: "short", 
-      day: "numeric", 
-      year: "numeric"
-    });
+    const month = date.toLocaleString('en-US', { month: 'short' });
+    const day = date.getDate();
+    const year = date.getFullYear();
+    return `${month} ${day}, ${year}`;
   };
 
   const getStatusBadgeColor = (status: string) => {
@@ -105,7 +109,7 @@ function AccessPointsListContent() {
               placeholder="Search access points..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-96 pl-10 pr-4 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              className="w-96 pl-10 pr-4 py-2 text-sm text-gray-900 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
             />
           </div>
           <div className="flex items-center gap-3">
@@ -206,7 +210,13 @@ function AccessPointsListContent() {
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
-              {filteredAccessPoints.length === 0 ? (
+              {!mounted ? (
+                <tr>
+                  <td colSpan={7} className="px-6 py-12 text-center text-sm text-gray-500">
+                    Loading...
+                  </td>
+                </tr>
+              ) : filteredAccessPoints.length === 0 ? (
                 <tr>
                   <td colSpan={7} className="px-6 py-12 text-center text-sm text-gray-500">
                     No access points found

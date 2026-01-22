@@ -7,7 +7,7 @@ import Header from "../../../src/components/Header";
 import { useCAPAs } from "../../../src/contexts/CAPAContext";
 import { mockUsers } from "../../../src/samples/mockUsers";
 import { mockLocationHierarchy } from "../../../src/samples/locationHierarchy";
-import LocationHierarchySelector from "../../../src/components/LocationHierarchySelector";
+import LocationSelector from "../../../src/components/LocationSelector";
 import { LocationSelection } from "../../../src/schemas/locations";
 
 export default function CreateCAPA() {
@@ -159,14 +159,13 @@ export default function CreateCAPA() {
 
               {/* Location */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Location
-                </label>
-                <LocationHierarchySelector
+                <LocationSelector
                   initialSelection={formData.location}
                   onChange={(selection) => setFormData({ ...formData, location: selection })}
                   locationTree={mockLocationHierarchy}
                   required={false}
+                  storageKey="ehs-capa-location-mode"
+                  label="Location"
                 />
                 <p className="text-xs text-gray-500 mt-1">
                   Specific area where the CAPA will be implemented
