@@ -23,7 +23,10 @@ import { UserProvider, useUser } from "../../../src/contexts/UserContext";
 import { TeamProvider, useTeam } from "../../../src/contexts/TeamContext";
 import { mockLocationHierarchy } from "../../../src/samples/locationHierarchy";
 import { buildLocationPath } from "../../../src/schemas/locations";
+import type { LocationSelection } from "../../../src/schemas/locations";
+import LocationFilterDropdown from "../../../src/components/LocationFilterDropdown";
 import { countEnabledPermissions, createDefaultPermissions } from "../../../src/schemas/roles";
+import { getVisibleModules } from "../../../src/data/permissionsMock";
 import type { CreateUserFormData } from "../../../src/schemas/users";
 import type { RolePermissions } from "../../../src/schemas/roles";
 import type { CreateTeamFormData } from "../../../src/schemas/teams";
@@ -58,12 +61,12 @@ function PeopleContent() {
       localStorage.setItem('ehs_role_creation_mode', newMode);
     }
   };
-  
+
   // Users tab state
   const [searchQuery, setSearchQuery] = useState("");
   const [roleFilter, setRoleFilter] = useState("all");
   const [statusFilter, setStatusFilter] = useState("all");
-  const [locationFilter, setLocationFilter] = useState("all");
+  const [locationSelection, setLocationSelection] = useState<LocationSelection | null>(null);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [editingUserId, setEditingUserId] = useState<string | null>(null);
   const [openMenuId, setOpenMenuId] = useState<string | null>(null);
@@ -80,6 +83,7 @@ function PeopleContent() {
   const [fullscreenPermissions, setFullscreenPermissions] = useState<RolePermissions>(createDefaultPermissions());
   const [fullscreenErrors, setFullscreenErrors] = useState<{name?: string; permissions?: string}>({});
   const [baseRoleId, setBaseRoleId] = useState<string>("");
+  const [advancedMode, setAdvancedMode] = useState(false);
 
   // Teams tab state
   const [teamSearchQuery, setTeamSearchQuery] = useState("");
@@ -94,6 +98,29 @@ function PeopleContent() {
   const roles = getRolesList();
   const teams = getTeamsList();
 
+  // Count permissions based on current mode (only visible modules)
+  const countVisiblePermissions = (permissions: RolePermissions) => {
+    const visibleModules = getVisibleModules(advancedMode);
+    const visibleModuleIds = new Set(visibleModules.map(m => m.moduleId));
+    
+    let count = 0;
+    for (const moduleId in permissions) {
+      // Only count if module is visible in current mode
+      if (!visibleModuleIds.has(moduleId)) continue;
+      
+      const modulePerms = permissions[moduleId];
+      for (const entityName in modulePerms) {
+        const entityPerms = modulePerms[entityName];
+        for (const actionKey in entityPerms) {
+          if (entityPerms[actionKey] === true) {
+            count++;
+          }
+        }
+      }
+    }
+    return count;
+  };
+
   // Get unique locations for filter (filter out empty/null values)
   const uniqueLocations = Array.from(new Set(users.map(u => u.locationPath).filter(Boolean))).sort();
 
@@ -106,7 +133,7 @@ function PeopleContent() {
     
     const matchesRole = roleFilter === "all" || user.roleId === roleFilter;
     const matchesStatus = statusFilter === "all" || user.status === statusFilter;
-    const matchesLocation = locationFilter === "all" || user.locationPath === locationFilter;
+    const matchesLocation = !locationSelection || user.locationPath?.startsWith(locationSelection.fullPath);
     
     return matchesSearch && matchesRole && matchesStatus && matchesLocation;
   });
@@ -506,18 +533,12 @@ function PeopleContent() {
                 </div>
 
                 {/* Location Filter */}
-                <div className="flex items-center gap-2">
-                  <span className="text-sm text-gray-700 font-medium">Location:</span>
-                  <select
-                    value={locationFilter}
-                    onChange={(e) => setLocationFilter(e.target.value)}
-                    className="px-3 py-2 bg-white border border-gray-300 rounded-md text-sm text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer max-w-xs"
-                  >
-                    <option value="all">All Locations</option>
-                    {uniqueLocations.map(location => (
-                      <option key={location} value={location}>{location}</option>
-                    ))}
-                  </select>
+                <div className="flex items-center gap-2 border-l border-gray-300 pl-4 ml-2">
+                  <LocationFilterDropdown
+                    initialSelection={locationSelection}
+                    locationTree={mockLocationHierarchy}
+                    onChange={setLocationSelection}
+                  />
                 </div>
               </div>
 
@@ -656,15 +677,15 @@ function PeopleContent() {
                 </svg>
               </div>
               <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                {searchQuery || roleFilter !== "all" || statusFilter !== "all" || locationFilter !== "all" ? "No users found" : "No users yet"}
+                {searchQuery || roleFilter !== "all" || statusFilter !== "all" || locationSelection ? "No users found" : "No users yet"}
               </h3>
               <p className="text-sm text-gray-600 mb-6 max-w-md">
-                {searchQuery || roleFilter !== "all" || statusFilter !== "all" || locationFilter !== "all"
+                {searchQuery || roleFilter !== "all" || statusFilter !== "all" || locationSelection
                   ? "Try adjusting your filters or search query"
                   : "Add your first EHS user to get started"
                 }
               </p>
-              {!searchQuery && roleFilter === "all" && statusFilter === "all" && locationFilter === "all" && (
+              {!searchQuery && roleFilter === "all" && statusFilter === "all" && !locationSelection && (
                 <button
                   onClick={handleAddUser}
                   className="px-4 py-2 bg-blue-600 text-white rounded-md text-sm font-medium hover:bg-blue-700 transition-colors"
@@ -945,14 +966,14 @@ function PeopleContent() {
                       <optgroup label="System Roles">
                         {roles.filter(r => r.isSystemRole).map(role => (
                           <option key={role.id} value={role.id}>
-                            {role.name} ({countEnabledPermissions(role.permissions)} permissions)
+                            {role.name} ({countVisiblePermissions(role.permissions)} permissions)
                           </option>
                         ))}
                       </optgroup>
                       <optgroup label="Custom Roles">
                         {roles.filter(r => !r.isSystemRole).map(role => (
                           <option key={role.id} value={role.id}>
-                            {role.name} ({countEnabledPermissions(role.permissions)} permissions)
+                            {role.name} ({countVisiblePermissions(role.permissions)} permissions)
                           </option>
                         ))}
                       </optgroup>
@@ -974,9 +995,50 @@ function PeopleContent() {
 
                 {/* Permissions Matrix */}
                 <div className="mb-6">
-                  <h3 className="text-sm font-medium text-gray-900 mb-3">
-                    Permissions <span className="text-red-500">*</span>
-                  </h3>
+                  <div className="flex items-center justify-between mb-3">
+                    <h3 className="text-sm font-medium text-gray-900">
+                      Permissions <span className="text-red-500">*</span>
+                    </h3>
+                    
+                    {/* Advanced Mode Toggle */}
+                    <div className="flex items-center gap-3 bg-gray-50 border border-gray-200 rounded-lg px-3 py-2">
+                      <span className={`text-xs font-medium transition-colors ${!advancedMode ? 'text-gray-900' : 'text-gray-500'}`}>
+                        Simple
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => setAdvancedMode(!advancedMode)}
+                        className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors ${
+                          advancedMode ? "bg-blue-600" : "bg-gray-300"
+                        }`}
+                      >
+                        <span
+                          className={`inline-block h-3.5 w-3.5 transform rounded-full bg-white transition-transform ${
+                            advancedMode ? "translate-x-5" : "translate-x-1"
+                          }`}
+                        />
+                      </button>
+                      <span className={`text-xs font-medium transition-colors ${advancedMode ? 'text-blue-600' : 'text-gray-500'}`}>
+                        Advanced
+                      </span>
+                    </div>
+                  </div>
+                  
+                  {/* Mode Description Banner */}
+                  <div className="mb-3 bg-blue-50 border border-blue-200 rounded-lg px-3 py-2">
+                    <p className="text-xs text-blue-800">
+                      {advancedMode ? (
+                        <>
+                          <span className="font-semibold">Advanced Mode:</span> All 9 EHS modules (Events, CAPA, OSHA, Access Points, LOTO, PTW, JHA, SOP, Audit)
+                        </>
+                      ) : (
+                        <>
+                          <span className="font-semibold">Simple Mode:</span> 5 core modules (Events, CAPA, OSHA, Access Points, LOTO)
+                        </>
+                      )}
+                    </p>
+                  </div>
+                  
                   {fullscreenErrors.permissions && (
                     <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-md">
                       <p className="text-sm text-red-600">{fullscreenErrors.permissions}</p>
@@ -991,6 +1053,7 @@ function PeopleContent() {
                       }
                     }}
                     disabled={editingRoleId ? roles.find(r => r.id === editingRoleId)?.isSystemRole : false}
+                    advancedMode={advancedMode}
                   />
                 </div>
 

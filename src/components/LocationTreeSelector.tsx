@@ -123,9 +123,17 @@ export default function LocationTreeSelector({
     return node.children ? node.children.length : 0;
   };
 
+  // Check if a node is a parent of the selected node
+  const isParentOfSelected = (nodeId: string): boolean => {
+    if (!selectedNodeId) return false;
+    const selection = buildLocationSelectionFromId(selectedNodeId, locationTree);
+    return selection?.parentIds?.includes(nodeId) || false;
+  };
+
   const renderNode = (node: LocationNode, depth: number = 0): React.ReactNode => {
     const isExpanded = expandedNodes.has(node.id);
     const isSelected = selectedNodeId === node.id;
+    const isParent = isParentOfSelected(node.id);
     const hasChildren = node.children && node.children.length > 0;
     const childCount = countChildren(node);
 
@@ -136,7 +144,7 @@ export default function LocationTreeSelector({
       <div key={node.id}>
         <div
           className={`flex items-center py-2 px-2 hover:bg-gray-50 rounded ${
-            isSelected ? "bg-blue-50" : ""
+            isSelected ? "bg-blue-50" : isParent ? "bg-blue-50/30" : ""
           }`}
           style={{ paddingLeft: `${paddingLeft + 8}px` }}
         >
@@ -183,19 +191,38 @@ export default function LocationTreeSelector({
           )}
 
           {/* Checkbox with Label */}
-          <label className="flex items-center flex-1 cursor-pointer min-w-0">
-            <input
-              type="checkbox"
-              checked={isSelected}
-              onChange={() => handleCheckboxChange(node)}
-              disabled={disabled}
-              className="mr-3 h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 flex-shrink-0"
-            />
+          <label className="flex items-center flex-1 cursor-pointer min-w-0" onClick={(e) => {
+            // Allow clicking on parent nodes to select them
+            if (isParent && !isSelected) {
+              e.preventDefault();
+              handleCheckboxChange(node);
+            }
+          }}>
+            {/* Checkbox - show checked for selected, indeterminate-style for parents */}
+            {isParent && !isSelected ? (
+              <div className="mr-3 h-4 w-4 rounded border-2 border-blue-400 bg-blue-100 flex items-center justify-center flex-shrink-0 cursor-pointer">
+                <svg className="w-3 h-3 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 16 16" strokeWidth="3">
+                  <path d="M3 8h10" />
+                </svg>
+              </div>
+            ) : (
+              <input
+                type="checkbox"
+                checked={isSelected}
+                onChange={() => handleCheckboxChange(node)}
+                disabled={disabled}
+                className="mr-3 h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 flex-shrink-0"
+              />
+            )}
 
             {/* Node Name */}
             <span
               className={`text-sm truncate ${
-                isSelected ? "font-medium text-blue-700" : "text-gray-900"
+                isSelected 
+                  ? "font-medium text-blue-700" 
+                  : isParent 
+                  ? "font-medium text-blue-600" 
+                  : "text-gray-900"
               }`}
             >
               {node.name}

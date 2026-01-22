@@ -10,6 +10,7 @@ import RoleBuilderMatrix from "./RoleBuilderMatrix";
 import { createDefaultPermissions, countEnabledPermissions } from "../schemas/roles";
 import type { CustomRole, RolePermissions } from "../schemas/roles";
 import { useRole } from "../contexts/RoleContext";
+import { getVisibleModules } from "../data/permissionsMock";
 
 interface CreateRoleModalProps {
   isOpen: boolean;
@@ -64,6 +65,29 @@ export default function CreateRoleModal({
       // Reset to default if no base role selected
       setPermissions(createDefaultPermissions());
     }
+  };
+
+  // Count permissions based on current mode (only visible modules)
+  const countVisiblePermissions = (perms: RolePermissions) => {
+    const visibleModules = getVisibleModules(advancedMode);
+    const visibleModuleIds = new Set(visibleModules.map(m => m.moduleId));
+    
+    let count = 0;
+    for (const moduleId in perms) {
+      // Only count if module is visible in current mode
+      if (!visibleModuleIds.has(moduleId)) continue;
+      
+      const modulePerms = perms[moduleId];
+      for (const entityName in modulePerms) {
+        const entityPerms = modulePerms[entityName];
+        for (const actionKey in entityPerms) {
+          if (entityPerms[actionKey] === true) {
+            count++;
+          }
+        }
+      }
+    }
+    return count;
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -192,14 +216,14 @@ export default function CreateRoleModal({
                   <optgroup label="System Roles">
                     {roles.filter(r => r.isSystemRole).map(role => (
                       <option key={role.id} value={role.id}>
-                        {role.name} ({countEnabledPermissions(role.permissions)} permissions)
+                        {role.name} ({countVisiblePermissions(role.permissions)} permissions)
                       </option>
                     ))}
                   </optgroup>
                   <optgroup label="Custom Roles">
                     {roles.filter(r => !r.isSystemRole).map(role => (
                       <option key={role.id} value={role.id}>
-                        {role.name} ({countEnabledPermissions(role.permissions)} permissions)
+                        {role.name} ({countVisiblePermissions(role.permissions)} permissions)
                       </option>
                     ))}
                   </optgroup>
@@ -227,8 +251,10 @@ export default function CreateRoleModal({
                 </label>
                 
                 {/* Advanced Mode Toggle */}
-                <div className="flex items-center gap-2">
-                  <span className="text-xs text-gray-600">Simple</span>
+                <div className="flex items-center gap-3 bg-gray-50 border border-gray-200 rounded-lg px-3 py-2">
+                  <span className={`text-xs font-medium transition-colors ${!advancedMode ? 'text-gray-900' : 'text-gray-500'}`}>
+                    Simple
+                  </span>
                   <button
                     type="button"
                     onClick={() => setAdvancedMode(!advancedMode)}
@@ -243,10 +269,25 @@ export default function CreateRoleModal({
                       }`}
                     />
                   </button>
-                  <span className={`text-xs font-medium ${advancedMode ? "text-blue-600" : "text-gray-600"}`}>
+                  <span className={`text-xs font-medium transition-colors ${advancedMode ? 'text-blue-600' : 'text-gray-500'}`}>
                     Advanced
                   </span>
                 </div>
+              </div>
+              
+              {/* Mode Description Banner */}
+              <div className="mb-3 bg-blue-50 border border-blue-200 rounded-lg px-3 py-2">
+                <p className="text-xs text-blue-800">
+                  {advancedMode ? (
+                    <>
+                      <span className="font-semibold">Advanced Mode:</span> All 9 EHS modules (Events, CAPA, OSHA, Access Points, LOTO, PTW, JHA, SOP, Audit)
+                    </>
+                  ) : (
+                    <>
+                      <span className="font-semibold">Simple Mode:</span> 5 core modules (Events, CAPA, OSHA, Access Points, LOTO)
+                    </>
+                  )}
+                </p>
               </div>
               
               <RoleBuilderMatrix 

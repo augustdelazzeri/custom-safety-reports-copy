@@ -27,6 +27,8 @@ interface RoleContextType {
 const RoleContext = createContext<RoleContextType | undefined>(undefined);
 
 const STORAGE_KEY = "ehs_custom_roles";
+const STORAGE_VERSION_KEY = "ehs_custom_roles_version";
+const CURRENT_VERSION = "2.0"; // Updated for 3-level permission structure
 
 export function RoleProvider({ children }: { children: ReactNode }) {
   const [roles, setRoles] = useState<Record<string, CustomRole>>({});
@@ -42,7 +44,17 @@ export function RoleProvider({ children }: { children: ReactNode }) {
 
   const loadRoles = () => {
     if (typeof window !== "undefined") {
+      const storedVersion = localStorage.getItem(STORAGE_VERSION_KEY);
       const stored = localStorage.getItem(STORAGE_KEY);
+      
+      // Force re-initialization if version mismatch or no stored data
+      if (storedVersion !== CURRENT_VERSION || !stored) {
+        console.log("🔄 Migrating to new permission structure v2.0...");
+        initializeDefaultRoles();
+        return;
+      }
+      
+      // Load existing data
       if (stored) {
         try {
           const parsed = JSON.parse(stored);
@@ -64,9 +76,11 @@ export function RoleProvider({ children }: { children: ReactNode }) {
     });
     setRoles(rolesMap);
     
-    // Save to localStorage
+    // Save to localStorage with version
     if (typeof window !== "undefined") {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(rolesMap));
+      localStorage.setItem(STORAGE_VERSION_KEY, CURRENT_VERSION);
+      console.log("✅ Roles initialized with", Object.keys(rolesMap).length, "system roles");
     }
   };
 
