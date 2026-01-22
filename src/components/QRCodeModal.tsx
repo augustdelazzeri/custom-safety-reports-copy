@@ -29,7 +29,7 @@ export default function QRCodeModal({
   const templateIdsParam = accessPoint.templateIds.length === 1
     ? `templateId=${accessPoint.templateIds[0]}`
     : `templateIds=${accessPoint.templateIds.join(',')}`;
-  const fullUrl = `${baseUrl}/safety-events/template-form?${templateIdsParam}&accessPointId=${accessPoint.id}&location=${encodeURIComponent(accessPoint.location)}${accessPoint.asset ? `&asset=${encodeURIComponent(accessPoint.asset)}` : ''}`;
+  const fullUrl = `${baseUrl}/safety-events/template-form?${templateIdsParam}&accessPointId=${accessPoint.id}&location=${encodeURIComponent(accessPoint.location.fullPath)}`;
   
   // Get template names for display
   const templateNames = accessPoint.templateIds
@@ -55,7 +55,7 @@ export default function QRCodeModal({
         <div className="px-6 py-4 border-b border-gray-200">
           <h2 className="text-xl font-semibold text-gray-900">{accessPoint.name} QR Code</h2>
           <p className="text-sm text-gray-600 mt-1">
-            Scan this QR code to report a safety event at this location{accessPoint.asset ? ` and asset` : ''}.
+            Scan this QR code to report a safety event at this location.
             {accessPoint.templateIds.length > 1 && (
               <span className="block mt-1 font-medium">
                 {accessPoint.templateIds.length} templates available
@@ -154,18 +154,10 @@ export default function QRCodeModal({
               </div>
             </div>
 
-            {/* Location and Asset */}
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <p className="text-xs font-medium text-gray-500">Location:</p>
-                <p className="text-sm text-gray-900 mt-0.5">{accessPoint.location}</p>
-              </div>
-              {accessPoint.asset && (
-                <div>
-                  <p className="text-xs font-medium text-gray-500">Asset:</p>
-                  <p className="text-sm text-gray-900 mt-0.5">{accessPoint.asset}</p>
-                </div>
-              )}
+            {/* Location */}
+            <div>
+              <p className="text-xs font-medium text-gray-500">Location:</p>
+              <p className="text-sm text-gray-900 mt-0.5">{accessPoint.location.fullPath}</p>
             </div>
 
             {/* Success message */}
