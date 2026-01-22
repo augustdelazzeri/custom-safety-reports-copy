@@ -299,7 +299,6 @@ export default function CreateRoleModal({
                 onChange={setPermissions}
                 disabled={existingRole?.isSystemRole}
                 advancedMode={advancedMode}
-                simpleMode={!advancedMode}
               />
               {existingRole?.isSystemRole && (
                 <p className="text-xs text-amber-600 mt-3 flex items-center gap-1">

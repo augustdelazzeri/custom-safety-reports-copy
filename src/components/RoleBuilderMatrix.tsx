@@ -39,16 +39,17 @@ interface RoleBuilderMatrixProps {
   onChange: (permissions: RolePermissions) => void;
   disabled?: boolean;
   advancedMode?: boolean;
-  simpleMode?: boolean;  // NEW: Enable category grouping
 }
 
 export default function RoleBuilderMatrix({ 
   permissions, 
   onChange, 
   disabled = false,
-  advancedMode = false,
-  simpleMode = false  // Default to advanced view (granular)
+  advancedMode = false
 }: RoleBuilderMatrixProps) {
+  
+  // Calculate simpleMode internally based on advancedMode
+  const simpleMode = !advancedMode;
   
   // Filter modules based on advanced mode
   const visibleModules = getVisibleModules(advancedMode);
