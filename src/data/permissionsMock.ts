@@ -38,11 +38,34 @@ export interface PermissionModule {
 }
 
 export const EHS_PERMISSIONS: PermissionModule[] = [
-  // === SIMPLE MODE MODULES (5) ===
+  // === Modules ordered following the Sidebar structure ===
+  // Simple Mode includes all modules except "audit" (which is Advanced Only)
+  
+  // SAFETY MANAGEMENT Section
+  {
+    moduleId: "access-point",
+    moduleName: "Access Points (QR Codes)",
+    description: "QR code generation for locations",
+    features: [
+      {
+        entity: "Access Point",
+        actions: [
+          { id: "access-point:create", label: "Create", description: "Generate QR code", permission: "CREATE", category: "editor" },
+          { id: "access-point:create-bulk", label: "Bulk Create", description: "Import with AI matching", permission: "CREATE", category: "advanced" },
+          { id: "access-point:view", label: "View", description: "Access details", permission: "VIEW", category: "view" },
+          { id: "access-point:view-list", label: "Browse", description: "List all QR codes", permission: "VIEW", category: "view" },
+          { id: "access-point:edit", label: "Update", description: "Modify assignment", permission: "EDIT", category: "editor" },
+          { id: "access-point:archive", label: "Archive", description: "Deactivate", permission: "EDIT", category: "data_cleanup" },
+          { id: "access-point:delete", label: "Delete", description: "Hard delete", permission: "DELETE", category: "data_cleanup" },
+          { id: "access-point:export", label: "Export", description: "Download CSV", permission: "EXPORT", category: "reporting" }
+        ]
+      }
+    ]
+  },
   
   {
     moduleId: "event",
-    moduleName: "Incident Management",
+    moduleName: "Safety Events",
     description: "Safety event reporting and tracking",
     features: [
       {
@@ -65,7 +88,7 @@ export const EHS_PERMISSIONS: PermissionModule[] = [
   
   {
     moduleId: "capa",
-    moduleName: "Corrective & Preventive Actions",
+    moduleName: "CAPAs",
     description: "CAPA management with ownership tracking",
     features: [
       {
@@ -86,6 +109,8 @@ export const EHS_PERMISSIONS: PermissionModule[] = [
       }
     ]
   },
+  
+  // OSHA Section
   
   {
     moduleId: "osha",
@@ -146,22 +171,49 @@ export const EHS_PERMISSIONS: PermissionModule[] = [
     ]
   },
   
+  // DOCUMENTATION Section
   {
-    moduleId: "access-point",
-    moduleName: "Access Points (QR Codes)",
-    description: "QR code generation for locations",
+    moduleId: "jha",
+    moduleName: "Job Hazard Analysis",
+    description: "Task risk assessment",
     features: [
       {
-        entity: "Access Point",
+        entity: "JHA",
         actions: [
-          { id: "access-point:create", label: "Create", description: "Generate QR code", permission: "CREATE", category: "editor" },
-          { id: "access-point:create-bulk", label: "Bulk Create", description: "Import with AI matching", permission: "CREATE", category: "advanced" },
-          { id: "access-point:view", label: "View", description: "Access details", permission: "VIEW", category: "view" },
-          { id: "access-point:view-list", label: "Browse", description: "List all QR codes", permission: "VIEW", category: "view" },
-          { id: "access-point:edit", label: "Update", description: "Modify assignment", permission: "EDIT", category: "editor" },
-          { id: "access-point:archive", label: "Archive", description: "Deactivate", permission: "EDIT", category: "data_cleanup" },
-          { id: "access-point:delete", label: "Delete", description: "Hard delete", permission: "DELETE", category: "data_cleanup" },
-          { id: "access-point:export", label: "Export", description: "Download CSV", permission: "EXPORT", category: "reporting" }
+          { id: "jha:create", label: "Create JHA", description: "Draft analysis", permission: "CREATE", category: "editor" },
+          { id: "jha:view", label: "View JHA", description: "Access details", permission: "VIEW", category: "view" },
+          { id: "jha:view-list", label: "Browse Library", description: "List all JHAs", permission: "VIEW", category: "view" },
+          { id: "jha:edit", label: "Update", description: "Modify JHA", permission: "EDIT", category: "editor" },
+          { id: "jha:submit-review", label: "Submit", description: "Send to approvers", permission: "UPDATE_STATUS", category: "management" },
+          { id: "jha:approve", label: "Approve", description: "Sign off", permission: "UPDATE_STATUS", category: "management" },
+          { id: "jha:reject", label: "Reject", description: "Send back", permission: "UPDATE_STATUS", category: "management" },
+          { id: "jha:archive", label: "Archive", description: "Soft-delete", permission: "EDIT", category: "data_cleanup" },
+          { id: "jha:delete", label: "Delete", description: "Hard delete", permission: "DELETE", category: "data_cleanup" },
+          { id: "jha:export", label: "Export", description: "Download CSV", permission: "EXPORT", category: "reporting" }
+        ]
+      }
+    ]
+  },
+  
+  {
+    moduleId: "sop",
+    moduleName: "Standard Operating Procedures",
+    description: "SOP documentation and approval",
+    features: [
+      {
+        entity: "SOP",
+        actions: [
+          { id: "sop:create", label: "Create SOP", description: "Draft procedure", permission: "CREATE", category: "editor" },
+          { id: "sop:view", label: "View SOP", description: "Access details", permission: "VIEW", category: "view" },
+          { id: "sop:view-list", label: "Browse Library", description: "List all SOPs", permission: "VIEW", category: "view" },
+          { id: "sop:edit", label: "Update", description: "Modify SOP", permission: "EDIT", category: "editor" },
+          { id: "sop:duplicate", label: "Duplicate", description: "Copy SOP", permission: "CREATE", category: "editor" },
+          { id: "sop:submit-review", label: "Submit", description: "Send to approvers", permission: "UPDATE_STATUS", category: "management" },
+          { id: "sop:approve", label: "Approve", description: "Sign off", permission: "UPDATE_STATUS", category: "management" },
+          { id: "sop:reject", label: "Reject", description: "Send back", permission: "UPDATE_STATUS", category: "management" },
+          { id: "sop:archive", label: "Archive", description: "Soft-delete", permission: "EDIT", category: "data_cleanup" },
+          { id: "sop:delete", label: "Delete", description: "Hard delete", permission: "DELETE", category: "data_cleanup" },
+          { id: "sop:export", label: "Export", description: "Download CSV", permission: "EXPORT", category: "reporting" }
         ]
       }
     ]
@@ -191,13 +243,10 @@ export const EHS_PERMISSIONS: PermissionModule[] = [
     ]
   },
   
-  // === ADVANCED MODE MODULES (4) ===
-  
   {
     moduleId: "ptw",
     moduleName: "Permit to Work",
     description: "High-risk work authorization",
-    advancedOnly: true,
     features: [
       {
         entity: "Work Permit",
@@ -218,55 +267,7 @@ export const EHS_PERMISSIONS: PermissionModule[] = [
     ]
   },
   
-  {
-    moduleId: "jha",
-    moduleName: "Job Hazard Analysis",
-    description: "Task risk assessment",
-    advancedOnly: true,
-    features: [
-      {
-        entity: "JHA",
-        actions: [
-          { id: "jha:create", label: "Create JHA", description: "Draft analysis", permission: "CREATE", category: "editor" },
-          { id: "jha:view", label: "View JHA", description: "Access details", permission: "VIEW", category: "view" },
-          { id: "jha:view-list", label: "Browse Library", description: "List all JHAs", permission: "VIEW", category: "view" },
-          { id: "jha:edit", label: "Update", description: "Modify JHA", permission: "EDIT", category: "editor" },
-          { id: "jha:submit-review", label: "Submit", description: "Send to approvers", permission: "UPDATE_STATUS", category: "management" },
-          { id: "jha:approve", label: "Approve", description: "Sign off", permission: "UPDATE_STATUS", category: "management" },
-          { id: "jha:reject", label: "Reject", description: "Send back", permission: "UPDATE_STATUS", category: "management" },
-          { id: "jha:archive", label: "Archive", description: "Soft-delete", permission: "EDIT", category: "data_cleanup" },
-          { id: "jha:delete", label: "Delete", description: "Hard delete", permission: "DELETE", category: "data_cleanup" },
-          { id: "jha:export", label: "Export", description: "Download CSV", permission: "EXPORT", category: "reporting" }
-        ]
-      }
-    ]
-  },
-  
-  {
-    moduleId: "sop",
-    moduleName: "Standard Operating Procedures",
-    description: "SOP documentation and approval",
-    advancedOnly: true,
-    features: [
-      {
-        entity: "SOP",
-        actions: [
-          { id: "sop:create", label: "Create SOP", description: "Draft procedure", permission: "CREATE", category: "editor" },
-          { id: "sop:view", label: "View SOP", description: "Access details", permission: "VIEW", category: "view" },
-          { id: "sop:view-list", label: "Browse Library", description: "List all SOPs", permission: "VIEW", category: "view" },
-          { id: "sop:edit", label: "Update", description: "Modify SOP", permission: "EDIT", category: "editor" },
-          { id: "sop:duplicate", label: "Duplicate", description: "Copy SOP", permission: "CREATE", category: "editor" },
-          { id: "sop:submit-review", label: "Submit", description: "Send to approvers", permission: "UPDATE_STATUS", category: "management" },
-          { id: "sop:approve", label: "Approve", description: "Sign off", permission: "UPDATE_STATUS", category: "management" },
-          { id: "sop:reject", label: "Reject", description: "Send back", permission: "UPDATE_STATUS", category: "management" },
-          { id: "sop:archive", label: "Archive", description: "Soft-delete", permission: "EDIT", category: "data_cleanup" },
-          { id: "sop:delete", label: "Delete", description: "Hard delete", permission: "DELETE", category: "data_cleanup" },
-          { id: "sop:export", label: "Export", description: "Download CSV", permission: "EXPORT", category: "reporting" }
-        ]
-      }
-    ]
-  },
-  
+  // === ADVANCED MODE ONLY ===
   {
     moduleId: "audit",
     moduleName: "Safety Audits",

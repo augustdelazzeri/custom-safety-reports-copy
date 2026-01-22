@@ -216,30 +216,24 @@ export default function RoleBuilderMatrix({
         return (
           <div
             key={module.moduleId}
-            className={`border rounded-lg overflow-hidden ${
-              isOSHA ? 'border-amber-300 bg-amber-50' : 'border-gray-200'
-            }`}
+            className="border border-gray-200 rounded-lg overflow-hidden"
           >
             {/* Module Header */}
-            <div className={`px-4 py-3 border-b ${
-              isOSHA ? 'bg-amber-100 border-amber-300' : 'bg-gray-50 border-gray-200'
-            }`}>
+            <div className="px-4 py-3 border-b bg-gray-50 border-gray-200">
               <div className="flex items-center justify-between">
-                <div className="flex-1 flex items-start gap-2">
+                <div className="flex-1">
+                  <h3 className="text-sm font-semibold text-gray-900">
+                    {module.moduleName}
+                  </h3>
+                  <p className="text-xs mt-0.5 text-gray-600">
+                    {module.description}
+                  </p>
                   {isOSHA && (
-                    <svg className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
-                      <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
-                    </svg>
+                    <div className="mt-1.5 text-xs text-gray-500 flex items-center gap-1">
+                      <span>🔒</span>
+                      <span>Contains PII - Handle with care</span>
+                    </div>
                   )}
-                  <div className="flex-1">
-                    <h3 className={`text-sm font-semibold ${isOSHA ? 'text-amber-900' : 'text-gray-900'}`}>
-                      {module.moduleName}
-                    </h3>
-                    <p className={`text-xs mt-0.5 ${isOSHA ? 'text-amber-700' : 'text-gray-600'}`}>
-                      {module.description}
-                      {isOSHA && <span className="font-medium"> ⚠️ Contains PII</span>}
-                    </p>
-                  </div>
                 </div>
                 <button
                   type="button"
@@ -249,22 +243,18 @@ export default function RoleBuilderMatrix({
                     disabled
                       ? "bg-gray-200 text-gray-400 cursor-not-allowed"
                       : moduleFullySelected
-                        ? isOSHA
-                          ? "bg-amber-200 text-amber-800 hover:bg-amber-300"
-                          : "bg-blue-100 text-blue-700 hover:bg-blue-200"
-                        : isOSHA
-                          ? "bg-amber-50 text-amber-800 hover:bg-amber-100 border border-amber-300"
-                          : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                        ? "bg-blue-100 text-blue-700 hover:bg-blue-200"
+                        : "bg-gray-100 text-gray-700 hover:bg-gray-200"
                   }`}
                 >
                   <div className={`relative inline-flex h-4 w-4 flex-shrink-0 items-center justify-center rounded border-2 transition-colors ${
                     disabled 
                       ? "bg-gray-200 border-gray-300" 
                       : moduleFullySelected
-                        ? isOSHA ? "bg-amber-600 border-amber-600" : "bg-blue-600 border-blue-600"
+                        ? "bg-blue-600 border-blue-600"
                         : modulePartiallySelected
-                          ? isOSHA ? "bg-amber-600 border-amber-600" : "bg-blue-600 border-blue-600"
-                          : isOSHA ? "bg-white border-amber-500" : "bg-white border-gray-400"
+                          ? "bg-blue-600 border-blue-600"
+                          : "bg-white border-gray-400"
                   }`}>
                     {moduleFullySelected ? (
                       <svg className="w-2.5 h-2.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -353,7 +343,6 @@ export default function RoleBuilderMatrix({
                         {feature.actions.map((action) => {
                           const actionKey = getActionKey(action.id);
                           const checked = getPermissionValue(permissions, module.moduleId, feature.entity, actionKey);
-                          const isWarning = isOSHA && (actionKey.includes('export') || actionKey.includes('pii'));
                           
                           return (
                             <PermissionToggle
@@ -363,7 +352,6 @@ export default function RoleBuilderMatrix({
                               checked={checked}
                               onChange={() => handleToggleAction(module.moduleId, feature.entity, action.id)}
                               disabled={disabled}
-                              warning={isWarning}
                             />
                           );
                         })}
@@ -449,7 +437,6 @@ interface PermissionToggleProps {
   checked: boolean;
   onChange: () => void;
   disabled?: boolean;
-  warning?: boolean;
 }
 
 function PermissionToggle({ 
@@ -457,8 +444,7 @@ function PermissionToggle({
   description, 
   checked, 
   onChange, 
-  disabled = false,
-  warning = false
+  disabled = false
 }: PermissionToggleProps) {
   return (
     <button
@@ -485,15 +471,10 @@ function PermissionToggle({
         />
       </div>
       <div className="flex-1 min-w-0">
-        <div className="flex items-center gap-2">
-          <div className={`text-sm font-medium ${
-            disabled ? "text-gray-400" : "text-gray-900"
-          }`}>
-            {label}
-          </div>
-          {warning && (
-            <span className="text-amber-600">⚠️</span>
-          )}
+        <div className={`text-sm font-medium ${
+          disabled ? "text-gray-400" : "text-gray-900"
+        }`}>
+          {label}
         </div>
         <p className={`text-xs mt-0.5 ${
           disabled ? "text-gray-400" : "text-gray-600"
