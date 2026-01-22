@@ -55,8 +55,19 @@ export default function LocationHierarchySelector({
       newState[finalLevelKey] = initialSelection.locationId;
 
       setSelectionState(newState);
+    } else if (!initialSelection) {
+      // Reset state when initialSelection is null
+      setSelectionState({
+        level1: null,
+        level2: null,
+        level3: null,
+        level4: null,
+        level5: null,
+        level6: null,
+      });
     }
-  }, [initialSelection]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [initialSelection?.locationId, initialSelection?.selectedLevel]);
 
   // Get options for a specific level
   const getOptionsForLevel = (level: number): LocationNode[] => {

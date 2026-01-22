@@ -3,7 +3,7 @@
 import React, { useState } from "react";
 import { useAccessPoint } from "../contexts/AccessPointContext";
 import { useTemplate } from "../contexts/TemplateContext";
-import LocationHierarchySelector from "./LocationHierarchySelector";
+import LocationSelector from "./LocationSelector";
 import { LocationSelection } from "../schemas/locations";
 import { mockLocationHierarchy } from "../samples/locationHierarchy";
 
@@ -12,11 +12,6 @@ interface CreateAccessPointModalProps {
   onClose: () => void;
   onSuccess: (id: string) => void;
 }
-
-const ASSETS = [
-  "Forklift FLT-12",
-  "Chocolate Mixer 2"
-];
 
 export default function CreateAccessPointModal({
   isOpen,
@@ -28,7 +23,6 @@ export default function CreateAccessPointModal({
   
   const [name, setName] = useState("");
   const [location, setLocation] = useState<LocationSelection | null>(null);
-  const [asset, setAsset] = useState("");
   const [selectedTemplateIds, setSelectedTemplateIds] = useState<string[]>([]);
   const [lastOpenState, setLastOpenState] = useState(isOpen);
 
@@ -36,7 +30,6 @@ export default function CreateAccessPointModal({
   if (isOpen && !lastOpenState) {
     setName("");
     setLocation(null);
-    setAsset("");
     setSelectedTemplateIds([]);
   }
   if (isOpen !== lastOpenState) {
@@ -55,7 +48,7 @@ export default function CreateAccessPointModal({
     const newId = createAccessPoint(
       name.trim(),
       location,
-      asset || undefined,
+      undefined,
       selectedTemplateIds
     );
     
@@ -65,7 +58,6 @@ export default function CreateAccessPointModal({
   const handleCancel = () => {
     setName("");
     setLocation(null);
-    setAsset("");
     setSelectedTemplateIds([]);
     onClose();
   };
@@ -97,9 +89,9 @@ export default function CreateAccessPointModal({
       />
       
       {/* Modal */}
-      <div className="relative bg-white rounded-lg shadow-2xl max-w-md w-full mx-4">
+      <div className="relative bg-white rounded-lg shadow-2xl max-w-2xl w-full mx-4 max-h-[90vh] flex flex-col">
         {/* Header */}
-        <div className="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
+        <div className="px-6 py-4 border-b border-gray-200 flex items-center justify-between flex-shrink-0">
           <div className="flex items-center gap-3">
             <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z" />
@@ -120,8 +112,8 @@ export default function CreateAccessPointModal({
         </div>
 
         {/* Content */}
-        <form onSubmit={handleSubmit}>
-          <div className="px-6 py-4 space-y-4">
+        <form onSubmit={handleSubmit} className="flex flex-col flex-1 min-h-0">
+          <div className="px-6 py-4 space-y-4 overflow-y-auto flex-1">
             {/* Name */}
             <div>
               <label htmlFor="accessPointName" className="block text-sm font-medium text-gray-700 mb-2">
@@ -134,41 +126,20 @@ export default function CreateAccessPointModal({
                 onChange={(e) => setName(e.target.value)}
                 placeholder="Enter access point name"
                 autoFocus
-                className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:border-blue-500 focus:ring-blue-500 transition-colors"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm text-gray-900 focus:outline-none focus:ring-2 focus:border-blue-500 focus:ring-blue-500 transition-colors"
               />
             </div>
 
             {/* Location */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Location
-              </label>
-              <LocationHierarchySelector
+              <LocationSelector
                 initialSelection={location}
                 onChange={setLocation}
                 locationTree={mockLocationHierarchy}
                 required={true}
+                storageKey="ehs-access-point-location-mode"
+                label="Location"
               />
-            </div>
-
-            {/* Asset (Optional) */}
-            <div>
-              <label htmlFor="asset" className="block text-sm font-medium text-gray-700 mb-2">
-                Asset (Optional)
-              </label>
-              <select
-                id="asset"
-                value={asset}
-                onChange={(e) => setAsset(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:border-blue-500 focus:ring-blue-500 transition-colors"
-              >
-                <option value="">Select an asset</option>
-                {ASSETS.map((a) => (
-                  <option key={a} value={a}>
-                    {a}
-                  </option>
-                ))}
-              </select>
             </div>
 
             {/* Templates */}
@@ -223,7 +194,7 @@ export default function CreateAccessPointModal({
           </div>
 
           {/* Footer */}
-          <div className="px-6 py-4 border-t border-gray-200 flex justify-end gap-3">
+          <div className="px-6 py-4 border-t border-gray-200 flex justify-end gap-3 flex-shrink-0">
             <button
               type="button"
               onClick={handleCancel}
