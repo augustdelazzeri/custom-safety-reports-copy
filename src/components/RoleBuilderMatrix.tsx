@@ -281,7 +281,7 @@ export default function RoleBuilderMatrix({
             
             {/* SIMPLE MODE: Show Categories */}
             {simpleMode ? (
-              <div className="bg-white px-4 py-3 space-y-3">
+              <div className="bg-white px-4 py-3 grid grid-cols-2 gap-3">
                 {getModuleCategories(module).map((category) => {
                   const categoryFullySelected = isCategoryFullySelected(module.moduleId, category);
                   const categoryPartiallySelected = isCategoryPartiallySelected(module.moduleId, category);
@@ -399,21 +399,25 @@ function CategoryToggle({
   disabled = false
 }: CategoryToggleProps) {
   return (
-    <div className="flex items-start gap-3 p-3 rounded-lg border border-gray-200 hover:border-blue-300 hover:bg-blue-50 transition-colors">
-      <button
-        type="button"
-        onClick={onChange}
-        disabled={disabled}
-        className={`mt-0.5 relative inline-flex h-5 w-5 flex-shrink-0 items-center justify-center rounded border-2 transition-colors ${
-          disabled 
-            ? "bg-gray-200 border-gray-300 cursor-not-allowed" 
-            : checked
+    <button
+      type="button"
+      onClick={onChange}
+      disabled={disabled}
+      className={`flex items-start gap-3 p-3 rounded-lg border transition-colors text-left w-full ${
+        disabled
+          ? "bg-gray-50 border-gray-200 cursor-not-allowed"
+          : "border-gray-200 hover:border-blue-300 hover:bg-blue-50 cursor-pointer"
+      }`}
+    >
+      <div className={`mt-0.5 relative inline-flex h-5 w-5 flex-shrink-0 items-center justify-center rounded border-2 transition-colors ${
+        disabled 
+          ? "bg-gray-200 border-gray-300" 
+          : checked
+            ? "bg-blue-600 border-blue-600"
+            : partial
               ? "bg-blue-600 border-blue-600"
-              : partial
-                ? "bg-blue-600 border-blue-600"
-                : "bg-white border-gray-300 hover:border-blue-400"
-        }`}
-      >
+              : "bg-white border-gray-300"
+      }`}>
         {checked ? (
           <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
@@ -421,20 +425,20 @@ function CategoryToggle({
         ) : partial ? (
           <div className="w-2 h-0.5 bg-white rounded" />
         ) : null}
-      </button>
+      </div>
       <div className="flex-1 min-w-0">
-        <label className={`text-sm font-semibold ${
+        <div className={`text-sm font-semibold ${
           disabled ? "text-gray-400" : "text-gray-900"
         }`}>
           {label}
-        </label>
+        </div>
         <p className={`text-xs mt-0.5 ${
           disabled ? "text-gray-400" : "text-gray-600"
         }`}>
           {description}
         </p>
       </div>
-    </div>
+    </button>
   );
 }
 
@@ -457,32 +461,36 @@ function PermissionToggle({
   warning = false
 }: PermissionToggleProps) {
   return (
-    <div className="flex items-start gap-3">
-      <button
-        type="button"
-        onClick={onChange}
-        disabled={disabled}
-        className={`mt-0.5 relative inline-flex h-5 w-9 flex-shrink-0 items-center rounded-full transition-colors ${
-          disabled 
-            ? "bg-gray-200 cursor-not-allowed" 
-            : checked 
-              ? "bg-blue-600" 
-              : "bg-gray-300"
-        }`}
-      >
+    <button
+      type="button"
+      onClick={onChange}
+      disabled={disabled}
+      className={`flex items-start gap-3 p-2 -m-2 rounded-md transition-colors text-left w-full ${
+        disabled
+          ? "cursor-not-allowed"
+          : "hover:bg-gray-50 cursor-pointer"
+      }`}
+    >
+      <div className={`mt-0.5 relative inline-flex h-5 w-9 flex-shrink-0 items-center rounded-full transition-colors ${
+        disabled 
+          ? "bg-gray-200" 
+          : checked 
+            ? "bg-blue-600" 
+            : "bg-gray-300"
+      }`}>
         <span
           className={`inline-block h-3.5 w-3.5 transform rounded-full bg-white transition-transform ${
             checked ? "translate-x-5" : "translate-x-1"
           }`}
         />
-      </button>
+      </div>
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2">
-          <label className={`text-sm font-medium ${
+          <div className={`text-sm font-medium ${
             disabled ? "text-gray-400" : "text-gray-900"
           }`}>
             {label}
-          </label>
+          </div>
           {warning && (
             <span className="text-amber-600">⚠️</span>
           )}
@@ -493,6 +501,6 @@ function PermissionToggle({
           {description}
         </p>
       </div>
-    </div>
+    </button>
   );
 }
