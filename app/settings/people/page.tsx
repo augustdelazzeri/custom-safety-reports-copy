@@ -920,6 +920,20 @@ function PeopleContent() {
               <div className="bg-white rounded-lg border border-gray-200 p-6">
                 {/* Header */}
                 <div className="mb-6 pb-4 border-b border-gray-200">
+                  <div className="flex items-center gap-3 mb-3">
+                    {/* Back Button */}
+                    <button
+                      type="button"
+                      onClick={handleFullscreenCancelRole}
+                      className="flex items-center gap-2 px-3 py-2 text-gray-700 hover:bg-gray-100 rounded-md transition-colors text-sm font-medium"
+                      title="Back to roles list"
+                    >
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                      </svg>
+                      Back to Roles
+                    </button>
+                  </div>
                   <h2 className="text-xl font-semibold text-gray-900">
                     {roleViewMode === 'create' ? 'Create Custom Role' : 'Edit Role'}
                   </h2>
@@ -944,7 +958,7 @@ function PeopleContent() {
                       }
                     }}
                     placeholder="e.g., Safety Inspector"
-                    className={`w-full max-w-md px-4 py-2 border rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                    className={`w-full max-w-md px-4 py-2 border rounded-md text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 ${
                       fullscreenErrors.name ? 'border-red-300 focus:ring-red-500' : 'border-gray-300'
                     }`}
                   />
@@ -963,7 +977,7 @@ function PeopleContent() {
                       id="baseRole"
                       value={baseRoleId}
                       onChange={(e) => handleBaseRoleChange(e.target.value)}
-                      className="w-full max-w-md px-4 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+                      className="w-full max-w-md px-4 py-2 border border-gray-300 rounded-md text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
                     >
                       <option value="">Create from scratch</option>
                       <optgroup label="System Roles">

@@ -13,12 +13,14 @@ interface LocationFilterDropdownProps {
   initialSelection?: LocationSelection | null;
   onChange: (selection: LocationSelection | null) => void;
   locationTree: LocationNode[];
+  alwaysIncludeChildren?: boolean; // When true, hides toggle and always includes children
 }
 
 export default function LocationFilterDropdown({
   initialSelection,
   onChange,
   locationTree,
+  alwaysIncludeChildren = false,
 }: LocationFilterDropdownProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [expandedNodes, setExpandedNodes] = useState<Set<string>>(new Set());
@@ -27,6 +29,9 @@ export default function LocationFilterDropdown({
   const [searchTerm, setSearchTerm] = useState("");
   const [includeSubLocations, setIncludeSubLocations] = useState(true);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  
+  // When alwaysIncludeChildren is true, always use includeSubLocations=true
+  const effectiveIncludeSubLocations = alwaysIncludeChildren ? true : includeSubLocations;
 
   // Expand all nodes by default
   useEffect(() => {
@@ -122,7 +127,7 @@ export default function LocationFilterDropdown({
   const handleSave = () => {
     setSelectedNodeId(tempSelectedNodeId);
     if (tempSelectedNodeId) {
-      const selection = buildLocationSelectionForFilter(tempSelectedNodeId, locationTree, includeSubLocations);
+      const selection = buildLocationSelectionForFilter(tempSelectedNodeId, locationTree, effectiveIncludeSubLocations);
       onChange(selection);
     } else {
       onChange(null);
@@ -141,7 +146,7 @@ export default function LocationFilterDropdown({
 
   // Check if a node is a child of the temp selected node
   const isChildOfSelected = (nodeId: string): boolean => {
-    if (!tempSelectedNodeId || !includeSubLocations) return false;
+    if (!tempSelectedNodeId || !effectiveIncludeSubLocations) return false;
     const allChildren = getAllChildNodeIds(tempSelectedNodeId, locationTree);
     // allChildren includes the parent node itself, so filter it out
     return allChildren.includes(nodeId) && nodeId !== tempSelectedNodeId;
@@ -232,7 +237,7 @@ export default function LocationFilterDropdown({
   // Get display text
   const getDisplayText = () => {
     if (!selectedNodeId) return "Select Location";
-    const selection = buildLocationSelectionForFilter(selectedNodeId, locationTree, includeSubLocations);
+    const selection = buildLocationSelectionForFilter(selectedNodeId, locationTree, effectiveIncludeSubLocations);
     return selection?.fullPath || "Select Location";
   };
 
@@ -284,18 +289,20 @@ export default function LocationFilterDropdown({
             </div>
           </div>
 
-          {/* Toggle Include Sub-locations */}
-          <div className="px-4 pb-2">
-            <label className="flex items-center cursor-pointer">
-              <input
-                type="checkbox"
-                checked={includeSubLocations}
-                onChange={(e) => setIncludeSubLocations(e.target.checked)}
-                className="mr-2 h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-              />
-              <span className="text-sm text-gray-700">Include sub-locations in selection</span>
-            </label>
-          </div>
+          {/* Toggle Include Sub-locations - Only show if not alwaysIncludeChildren */}
+          {!alwaysIncludeChildren && (
+            <div className="px-4 pb-2">
+              <label className="flex items-center cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={includeSubLocations}
+                  onChange={(e) => setIncludeSubLocations(e.target.checked)}
+                  className="mr-2 h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                />
+                <span className="text-sm text-gray-700">Include sub-locations in selection</span>
+              </label>
+            </div>
+          )}
 
           {/* Tree Container */}
           <div className="px-4 py-2 max-h-[400px] overflow-y-auto">
@@ -314,7 +321,7 @@ export default function LocationFilterDropdown({
           <div className="px-4 py-3 border-t border-gray-200 flex items-center justify-between">
             <span className="text-sm text-gray-600">
               {tempSelectedNodeId 
-                ? includeSubLocations 
+                ? effectiveIncludeSubLocations 
                   ? `${getAllChildNodeIds(tempSelectedNodeId, locationTree).length} selected (with sub-locations)`
                   : "1 selected"
                 : "0 selected"
