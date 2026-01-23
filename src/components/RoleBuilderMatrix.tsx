@@ -9,7 +9,7 @@
  */
 
 import React from "react";
-import type { RolePermissions } from "../schemas/roles";
+import type { RolePermissions, OSHALocationPermissions } from "../schemas/roles";
 import {
   getPermissionValue,
   setPermissionValue,
@@ -33,17 +33,22 @@ import {
   PERMISSION_CATEGORIES,
   type PermissionCategory
 } from "../data/permissionsMock";
+import OSHALocationSelector from "./OSHALocationSelector";
 
 interface RoleBuilderMatrixProps {
   permissions: RolePermissions;
   onChange: (permissions: RolePermissions) => void;
+  oshaLocationPermissions?: OSHALocationPermissions;
+  onOSHAPermissionsChange?: (perms: OSHALocationPermissions) => void;
   disabled?: boolean;
   advancedMode?: boolean;
 }
 
 export default function RoleBuilderMatrix({ 
   permissions, 
-  onChange, 
+  onChange,
+  oshaLocationPermissions = {},
+  onOSHAPermissionsChange,
   disabled = false,
   advancedMode = false
 }: RoleBuilderMatrixProps) {
@@ -269,97 +274,114 @@ export default function RoleBuilderMatrix({
               </div>
             </div>
             
-            {/* SIMPLE MODE: Show Categories */}
-            {simpleMode ? (
-              <div className="bg-white px-4 py-3 grid grid-cols-2 gap-3">
-                {getModuleCategories(module).map((category) => {
-                  const categoryFullySelected = isCategoryFullySelected(module.moduleId, category);
-                  const categoryPartiallySelected = isCategoryPartiallySelected(module.moduleId, category);
-                  const categoryInfo = PERMISSION_CATEGORIES.find(c => c.id === category);
-                  
-                  return (
-                    <CategoryToggle
-                      key={category}
-                      label={categoryInfo?.label || category}
-                      description={categoryInfo?.description || ''}
-                      checked={categoryFullySelected}
-                      partial={categoryPartiallySelected}
-                      onChange={() => handleToggleCategory(module.moduleId, category)}
-                      disabled={disabled}
-                    />
-                  );
-                })}
-              </div>
-            ) : (
-              // ADVANCED MODE: Show Individual Actions
+            {/* OSHA module: Skip regular permissions, only show location-based permissions below */}
+            {module.moduleId !== 'osha' && (
               <>
-                {module.features.map((feature, featureIndex) => {
-                  const showEntityHeader = module.features.length > 1;
-                  const entityFullySelected = isEntityFullySelected(permissions, module.moduleId, feature.entity);
-                  const entityPartiallySelected = isEntityPartiallySelected(permissions, module.moduleId, feature.entity);
-                  
-                  return (
-                    <div key={feature.entity} className="bg-white">
-                      {/* Entity Sub-header (only if module has multiple entities) */}
-                      {showEntityHeader && (
-                        <div className="px-4 py-2 bg-gray-50 border-b border-gray-200 flex items-center justify-between">
-                          <h4 className="text-xs font-semibold text-gray-700">{feature.entity}</h4>
-                          <button
-                            type="button"
-                            onClick={() => handleSelectAllEntity(module.moduleId, feature.entity)}
-                            disabled={disabled}
-                            className={`flex items-center gap-1.5 px-2 py-1 rounded text-xs font-medium transition-colors ${
-                              disabled
-                                ? "bg-gray-200 text-gray-400 cursor-not-allowed"
-                                : entityFullySelected
-                                  ? "bg-blue-100 text-blue-700 hover:bg-blue-200"
-                                  : "bg-gray-100 text-gray-600 hover:bg-gray-200"
-                            }`}
-                          >
-                            <div className={`relative inline-flex h-3 w-3 flex-shrink-0 items-center justify-center rounded border-2 transition-colors ${
-                              disabled 
-                                ? "bg-gray-200 border-gray-300" 
-                                : entityFullySelected
-                                  ? "bg-blue-600 border-blue-600"
-                                  : entityPartiallySelected
-                                    ? "bg-blue-600 border-blue-600"
-                                    : "bg-white border-gray-400"
-                            }`}>
-                              {entityFullySelected ? (
-                                <svg className="w-2 h-2 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
-                                </svg>
-                              ) : entityPartiallySelected ? (
-                                <div className="w-1 h-0.5 bg-white rounded" />
-                              ) : null}
-                            </div>
-                            <span>Select All</span>
-                          </button>
-                        </div>
-                      )}
+                {/* SIMPLE MODE: Show Categories */}
+                {simpleMode ? (
+                  <div className="bg-white px-4 py-3 grid grid-cols-2 gap-3">
+                    {getModuleCategories(module).map((category) => {
+                      const categoryFullySelected = isCategoryFullySelected(module.moduleId, category);
+                      const categoryPartiallySelected = isCategoryPartiallySelected(module.moduleId, category);
+                      const categoryInfo = PERMISSION_CATEGORIES.find(c => c.id === category);
                       
-                      {/* Actions Grid */}
-                      <div className={`px-4 py-3 grid grid-cols-2 gap-x-6 gap-y-2.5 ${featureIndex < module.features.length - 1 ? 'border-b border-gray-200' : ''}`}>
-                        {feature.actions.map((action) => {
-                          const actionKey = getActionKey(action.id);
-                          const checked = getPermissionValue(permissions, module.moduleId, feature.entity, actionKey);
+                      return (
+                        <CategoryToggle
+                          key={category}
+                          label={categoryInfo?.label || category}
+                          description={categoryInfo?.description || ''}
+                          checked={categoryFullySelected}
+                          partial={categoryPartiallySelected}
+                          onChange={() => handleToggleCategory(module.moduleId, category)}
+                          disabled={disabled}
+                        />
+                      );
+                    })}
+                  </div>
+                ) : (
+                  // ADVANCED MODE: Show Individual Actions
+                  <>
+                    {module.features.map((feature, featureIndex) => {
+                      const showEntityHeader = module.features.length > 1;
+                      const entityFullySelected = isEntityFullySelected(permissions, module.moduleId, feature.entity);
+                      const entityPartiallySelected = isEntityPartiallySelected(permissions, module.moduleId, feature.entity);
+                      
+                      return (
+                        <div key={feature.entity} className="bg-white">
+                          {/* Entity Sub-header (only if module has multiple entities) */}
+                          {showEntityHeader && (
+                            <div className="px-4 py-2 bg-gray-50 border-b border-gray-200 flex items-center justify-between">
+                              <h4 className="text-xs font-semibold text-gray-700">{feature.entity}</h4>
+                              <button
+                                type="button"
+                                onClick={() => handleSelectAllEntity(module.moduleId, feature.entity)}
+                                disabled={disabled}
+                                className={`flex items-center gap-1.5 px-2 py-1 rounded text-xs font-medium transition-colors ${
+                                  disabled
+                                    ? "bg-gray-200 text-gray-400 cursor-not-allowed"
+                                    : entityFullySelected
+                                      ? "bg-blue-100 text-blue-700 hover:bg-blue-200"
+                                      : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                                }`}
+                              >
+                                <div className={`relative inline-flex h-3 w-3 flex-shrink-0 items-center justify-center rounded border-2 transition-colors ${
+                                  disabled 
+                                    ? "bg-gray-200 border-gray-300" 
+                                    : entityFullySelected
+                                      ? "bg-blue-600 border-blue-600"
+                                      : entityPartiallySelected
+                                        ? "bg-blue-600 border-blue-600"
+                                        : "bg-white border-gray-400"
+                                }`}>
+                                  {entityFullySelected ? (
+                                    <svg className="w-2 h-2 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                                    </svg>
+                                  ) : entityPartiallySelected ? (
+                                    <div className="w-1 h-0.5 bg-white rounded" />
+                                  ) : null}
+                                </div>
+                                <span>Select All</span>
+                              </button>
+                            </div>
+                          )}
                           
-                          return (
-                            <PermissionToggle
-                              key={action.id}
-                              label={action.label}
-                              description={action.description}
-                              checked={checked}
-                              onChange={() => handleToggleAction(module.moduleId, feature.entity, action.id)}
-                              disabled={disabled}
-                            />
-                          );
-                        })}
-                      </div>
-                    </div>
-                  );
-                })}
+                          {/* Actions Grid */}
+                          <div className={`px-4 py-3 grid grid-cols-2 gap-x-6 gap-y-2.5 ${featureIndex < module.features.length - 1 ? 'border-b border-gray-200' : ''}`}>
+                            {feature.actions.map((action) => {
+                              const actionKey = getActionKey(action.id);
+                              const checked = getPermissionValue(permissions, module.moduleId, feature.entity, actionKey);
+                              
+                              return (
+                                <PermissionToggle
+                                  key={action.id}
+                                  label={action.label}
+                                  description={action.description}
+                                  checked={checked}
+                                  onChange={() => handleToggleAction(module.moduleId, feature.entity, action.id)}
+                                  disabled={disabled}
+                                />
+                              );
+                            })}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </>
+                )}
               </>
+            )}
+            
+            {/* OSHA Location Permissions (appears for OSHA module only) */}
+            {module.moduleId === 'osha' && onOSHAPermissionsChange && (
+              <div className="px-4 py-4 bg-blue-50/50 border-t border-gray-200">
+                <OSHALocationSelector
+                  permissions={oshaLocationPermissions}
+                  onChange={onOSHAPermissionsChange}
+                  disabled={disabled}
+                  simpleMode={simpleMode}
+                />
+              </div>
             )}
           </div>
         );

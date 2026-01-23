@@ -171,11 +171,11 @@ function CustomRolesContent() {
             <p className="text-sm text-blue-800">
               {advancedMode ? (
                 <>
-                  <span className="font-semibold">Advanced Mode:</span> Shows all 9 EHS modules with individual action controls including PTW, JHA, SOP, and Audit for comprehensive permission control.
+                  <span className="font-semibold">Advanced Mode:</span> Shows all 10 EHS modules with individual action controls including Work Orders, PTW, JHA, SOP, and Audit for comprehensive permission control.
                 </>
               ) : (
                 <>
-                  <span className="font-semibold">Simple Mode:</span> Shows 5 core modules with permissions grouped by category (View, Create & Edit, Approvals, Collaboration, etc.) for streamlined role creation.
+                  <span className="font-semibold">Simple Mode:</span> Shows 6 core modules (Events, CAPA, OSHA, Work Orders, Access Points, LOTO) with permissions grouped by category for streamlined role creation.
                 </>
               )}
             </p>
