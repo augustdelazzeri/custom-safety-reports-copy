@@ -38,6 +38,7 @@ export interface CustomRole {
   id: string;
   name: string;
   permissions: RolePermissions;
+  oshaLocationIds?: string[];  // Array of OSHA establishment IDs for scoped access
   isSystemRole?: boolean;     // True for non-deletable template roles
   createdAt: string;
   updatedAt: string;
@@ -52,6 +53,7 @@ export type PermissionModuleId =
   | 'event'
   | 'capa'
   | 'osha'
+  | 'work-order'
   | 'access-point'
   | 'loto'
   | 'ptw'

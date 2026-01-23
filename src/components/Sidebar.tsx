@@ -25,6 +25,9 @@ export default function Sidebar() {
       { label: "Lockout/Tagout", icon: "padlock", href: "#" },
       { label: "Permit to Work", icon: "document", href: "#" },
     ]},
+    { id: "safety-actions", label: "SAFETY ACTIONS", items: [
+      { label: "Safety Work Orders", icon: "clipboard-list", href: "/work-orders" },
+    ]},
     { id: "people-permissions", label: "PEOPLE & PERMISSIONS", items: [
       { label: "User Management", icon: "users-cog", href: "/settings/people" },
     ]},
@@ -71,6 +74,11 @@ export default function Sidebar() {
       padlock: (
         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+        </svg>
+      ),
+      "clipboard-list": (
+        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
         </svg>
       ),
       shield: (

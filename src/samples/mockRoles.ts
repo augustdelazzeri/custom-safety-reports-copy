@@ -14,6 +14,7 @@ export const mockRoles: CustomRole[] = [
     id: "role_safety_admin",
     name: "Safety Administrator",
     isSystemRole: true,
+    oshaLocationIds: ["osha_toronto", "osha_atlanta", "osha_chicago", "osha_houston", "osha_austin", "osha_seattle", "osha_phoenix"],
     permissions: {
       // Incident Management
       event: {
@@ -83,6 +84,20 @@ export const mockRoles: CustomRole[] = [
         "OSHA Audit Trail": {
           view: true,
           create: true
+        }
+      },
+      // Work Orders
+      "work-order": {
+        "Work Order": {
+          search: true,
+          view: true,
+          create: true,
+          "create-from-entity": true,
+          link: true,
+          unlink: true,
+          "get-by-capa": true,
+          "count-by-capa": true,
+          "enqueue-analysis": true
         }
       },
       // Access Points
@@ -187,6 +202,7 @@ export const mockRoles: CustomRole[] = [
     id: "role_safety_manager",
     name: "Safety Manager",
     isSystemRole: true,
+    oshaLocationIds: ["osha_chicago"],
     permissions: {
       // Incident Management
       event: {
@@ -256,6 +272,20 @@ export const mockRoles: CustomRole[] = [
         "OSHA Audit Trail": {
           view: true,
           create: false
+        }
+      },
+      // Work Orders
+      "work-order": {
+        "Work Order": {
+          search: true,
+          view: true,
+          create: true,
+          "create-from-entity": true,
+          link: true,
+          unlink: true,
+          "get-by-capa": true,
+          "count-by-capa": true,
+          "enqueue-analysis": false
         }
       },
       // Access Points
@@ -431,6 +461,20 @@ export const mockRoles: CustomRole[] = [
           create: false
         }
       },
+      // Work Orders
+      "work-order": {
+        "Work Order": {
+          search: true,
+          view: true,
+          create: false,
+          "create-from-entity": false,
+          link: true,
+          unlink: false,
+          "get-by-capa": false,
+          "count-by-capa": false,
+          "enqueue-analysis": false
+        }
+      },
       // Access Points
       "access-point": {
         "Access Point": {
@@ -602,6 +646,20 @@ export const mockRoles: CustomRole[] = [
         "OSHA Audit Trail": {
           view: false,
           create: false
+        }
+      },
+      // Work Orders
+      "work-order": {
+        "Work Order": {
+          search: true,
+          view: true,
+          create: false,
+          "create-from-entity": false,
+          link: false,
+          unlink: false,
+          "get-by-capa": false,
+          "count-by-capa": false,
+          "enqueue-analysis": false
         }
       },
       // Access Points

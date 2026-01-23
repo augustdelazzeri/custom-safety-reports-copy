@@ -81,7 +81,8 @@ function PeopleContent() {
   const [roleViewMode, setRoleViewMode] = useState<RoleViewMode>('list');
   const [fullscreenRoleName, setFullscreenRoleName] = useState("");
   const [fullscreenPermissions, setFullscreenPermissions] = useState<RolePermissions>(createDefaultPermissions());
-  const [fullscreenErrors, setFullscreenErrors] = useState<{name?: string; permissions?: string}>({});
+  const [fullscreenOshaLocationIds, setFullscreenOshaLocationIds] = useState<string[]>([]);
+  const [fullscreenErrors, setFullscreenErrors] = useState<{name?: string; permissions?: string; oshaLocations?: string}>({});
   const [baseRoleId, setBaseRoleId] = useState<string>("");
   const [advancedMode, setAdvancedMode] = useState(false);
 
@@ -207,6 +208,7 @@ function PeopleContent() {
       // Fullscreen mode: switch view and reset form
       setFullscreenRoleName("");
       setFullscreenPermissions(createDefaultPermissions());
+      setFullscreenOshaLocationIds([]);
       setFullscreenErrors({});
       setEditingRoleId(null);
       setBaseRoleId("");
@@ -226,10 +228,12 @@ function PeopleContent() {
       const baseRole = roles.find(r => r.id === roleId);
       if (baseRole) {
         setFullscreenPermissions({...baseRole.permissions});
+        setFullscreenOshaLocationIds(baseRole.oshaLocationIds || []);
       }
     } else {
       // Reset to default if no base role selected
       setFullscreenPermissions(createDefaultPermissions());
+      setFullscreenOshaLocationIds([]);
     }
   };
 
@@ -241,6 +245,7 @@ function PeopleContent() {
       // Fullscreen mode: populate form and switch view
       setFullscreenRoleName(role.name);
       setFullscreenPermissions(role.permissions);
+      setFullscreenOshaLocationIds(role.oshaLocationIds || []);
       setFullscreenErrors({});
       setEditingRoleId(roleId);
       setRoleViewMode('edit');
@@ -252,11 +257,11 @@ function PeopleContent() {
     setOpenRoleMenuId(null);
   };
 
-  const handleSubmitRole = (name: string, permissions: typeof roles[0]['permissions']) => {
+  const handleSubmitRole = (name: string, permissions: typeof roles[0]['permissions'], oshaLocationIds?: string[]) => {
     if (editingRoleId) {
-      updateRole(editingRoleId, name, permissions);
+      updateRole(editingRoleId, name, permissions, oshaLocationIds);
     } else {
-      createRole(name, permissions);
+      createRole(name, permissions, oshaLocationIds);
     }
     setShowCreateRoleModal(false);
     setEditingRoleId(null);
@@ -264,7 +269,7 @@ function PeopleContent() {
   
   const handleFullscreenSaveRole = () => {
     // Validate
-    const errors: {name?: string; permissions?: string} = {};
+    const errors: {name?: string; permissions?: string; oshaLocations?: string} = {};
     
     if (!fullscreenRoleName.trim()) {
       errors.name = "Role name is required";
@@ -279,6 +284,16 @@ function PeopleContent() {
       errors.permissions = "At least one permission must be enabled";
     }
     
+    // Validate OSHA locations if OSHA permissions are enabled
+    const hasOSHAPermissions = fullscreenPermissions.osha && Object.keys(fullscreenPermissions.osha).some(entityName => {
+      const entityPerms = fullscreenPermissions.osha[entityName];
+      return Object.values(entityPerms).some(val => val === true);
+    });
+    
+    if (hasOSHAPermissions && fullscreenOshaLocationIds.length === 0) {
+      errors.oshaLocations = "At least one OSHA establishment must be selected when OSHA permissions are enabled";
+    }
+    
     if (Object.keys(errors).length > 0) {
       setFullscreenErrors(errors);
       return;
@@ -286,22 +301,23 @@ function PeopleContent() {
     
     // Save
     if (editingRoleId) {
-      updateRole(editingRoleId, fullscreenRoleName.trim(), fullscreenPermissions);
+      updateRole(editingRoleId, fullscreenRoleName.trim(), fullscreenPermissions, fullscreenOshaLocationIds);
     } else {
-      createRole(fullscreenRoleName.trim(), fullscreenPermissions);
+      createRole(fullscreenRoleName.trim(), fullscreenPermissions, fullscreenOshaLocationIds);
     }
     
     // Reset and return to list
     setRoleViewMode('list');
     setFullscreenRoleName("");
     setFullscreenPermissions(createDefaultPermissions());
+    setFullscreenOshaLocationIds([]);
     setEditingRoleId(null);
     setFullscreenErrors({});
   };
   
   const handleFullscreenCancelRole = () => {
     // Confirm if there are unsaved changes
-    const hasChanges = fullscreenRoleName.trim() !== "" || countEnabledPermissions(fullscreenPermissions) > 0;
+    const hasChanges = fullscreenRoleName.trim() !== "" || countEnabledPermissions(fullscreenPermissions) > 0 || fullscreenOshaLocationIds.length > 0;
     
     if (hasChanges) {
       if (!confirm("You have unsaved changes. Are you sure you want to cancel?")) {
@@ -313,7 +329,9 @@ function PeopleContent() {
     setRoleViewMode('list');
     setFullscreenRoleName("");
     setFullscreenPermissions(createDefaultPermissions());
+    setFullscreenOshaLocationIds([]);
     setEditingRoleId(null);
+    setBaseRoleId("");
     setFullscreenErrors({});
   };
 
@@ -1061,12 +1079,24 @@ function PeopleContent() {
                       <p className="text-sm text-red-600">{fullscreenErrors.permissions}</p>
                     </div>
                   )}
+                  {fullscreenErrors.oshaLocations && (
+                    <div className="mb-4 p-3 bg-amber-50 border border-amber-200 rounded-md">
+                      <p className="text-sm text-amber-700">{fullscreenErrors.oshaLocations}</p>
+                    </div>
+                  )}
                   <RoleBuilderMatrix
                     permissions={fullscreenPermissions}
                     onChange={(newPermissions) => {
                       setFullscreenPermissions(newPermissions);
                       if (fullscreenErrors.permissions) {
                         setFullscreenErrors({...fullscreenErrors, permissions: undefined});
+                      }
+                    }}
+                    oshaLocationIds={fullscreenOshaLocationIds}
+                    onOSHALocationsChange={(ids) => {
+                      setFullscreenOshaLocationIds(ids);
+                      if (fullscreenErrors.oshaLocations) {
+                        setFullscreenErrors({...fullscreenErrors, oshaLocations: undefined});
                       }
                     }}
                     disabled={editingRoleId ? roles.find(r => r.id === editingRoleId)?.isSystemRole : false}

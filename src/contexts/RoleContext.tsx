@@ -13,8 +13,8 @@ import { mockRoles } from "../samples/mockRoles";
 
 interface RoleContextType {
   roles: Record<string, CustomRole>;
-  createRole: (name: string, permissions: RolePermissions) => string;
-  updateRole: (id: string, name: string, permissions: RolePermissions) => boolean;
+  createRole: (name: string, permissions: RolePermissions, oshaLocationIds?: string[]) => string;
+  updateRole: (id: string, name: string, permissions: RolePermissions, oshaLocationIds?: string[]) => boolean;
   deleteRole: (id: string) => boolean;
   duplicateRole: (id: string) => string;
   getRoleById: (id: string) => CustomRole | undefined;
@@ -90,7 +90,7 @@ export function RoleProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  const createRole = (name: string, permissions: RolePermissions): string => {
+  const createRole = (name: string, permissions: RolePermissions, oshaLocationIds?: string[]): string => {
     const newId = `role_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
     const now = new Date().toISOString();
     
@@ -98,6 +98,7 @@ export function RoleProvider({ children }: { children: ReactNode }) {
       id: newId,
       name: name.trim(),
       permissions,
+      oshaLocationIds: oshaLocationIds || [],
       isSystemRole: false,
       createdAt: now,
       updatedAt: now,
@@ -118,7 +119,7 @@ export function RoleProvider({ children }: { children: ReactNode }) {
     return newId;
   };
 
-  const updateRole = (id: string, name: string, permissions: RolePermissions): boolean => {
+  const updateRole = (id: string, name: string, permissions: RolePermissions, oshaLocationIds?: string[]): boolean => {
     const role = roles[id];
     if (!role) return false;
 
@@ -129,6 +130,7 @@ export function RoleProvider({ children }: { children: ReactNode }) {
       ...role,
       name: name.trim(),
       permissions,
+      oshaLocationIds: oshaLocationIds !== undefined ? oshaLocationIds : role.oshaLocationIds,
       updatedAt: new Date().toISOString(),
     };
 

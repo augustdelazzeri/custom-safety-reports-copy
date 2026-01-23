@@ -33,17 +33,22 @@ import {
   PERMISSION_CATEGORIES,
   type PermissionCategory
 } from "../data/permissionsMock";
+import OSHALocationSelector from "./OSHALocationSelector";
 
 interface RoleBuilderMatrixProps {
   permissions: RolePermissions;
   onChange: (permissions: RolePermissions) => void;
+  oshaLocationIds?: string[];
+  onOSHALocationsChange?: (ids: string[]) => void;
   disabled?: boolean;
   advancedMode?: boolean;
 }
 
 export default function RoleBuilderMatrix({ 
   permissions, 
-  onChange, 
+  onChange,
+  oshaLocationIds = [],
+  onOSHALocationsChange,
   disabled = false,
   advancedMode = false
 }: RoleBuilderMatrixProps) {
@@ -360,6 +365,27 @@ export default function RoleBuilderMatrix({
                   );
                 })}
               </>
+            )}
+            
+            {/* OSHA Location Selector (appears for OSHA module only) */}
+            {module.moduleId === 'osha' && onOSHALocationsChange && (
+              <div className="px-4 py-4 bg-blue-50 border-t border-blue-100">
+                <div className="mb-3">
+                  <h4 className="text-sm font-semibold text-gray-900 flex items-center gap-2">
+                    <span>🔒</span>
+                    <span>OSHA Establishment Access</span>
+                  </h4>
+                  <p className="text-xs text-gray-600 mt-1">
+                    Select which OSHA-registered establishments this role can access.
+                    At least one location must be selected if OSHA permissions are enabled.
+                  </p>
+                </div>
+                <OSHALocationSelector
+                  selectedIds={oshaLocationIds}
+                  onChange={onOSHALocationsChange}
+                  disabled={disabled}
+                />
+              </div>
             )}
           </div>
         );
