@@ -148,16 +148,107 @@ export default function OSHALocationSelector({
     return permissions[activeTab] || {};
   };
 
+  const isAllSelected = (establishmentId: string): boolean => {
+    const estPerms = permissions[establishmentId] || {};
+    
+    // Check if all actions in all entities are enabled
+    for (const feature of oshaModule.features) {
+      for (const action of feature.actions) {
+        const actionKey = action.id.split(":")[1];
+        if (!getPermissionValue({ osha: estPerms }, "osha", feature.entity, actionKey)) {
+          return false;
+        }
+      }
+    }
+    return true;
+  };
+
+  const isPartiallySelected = (establishmentId: string): boolean => {
+    const estPerms = permissions[establishmentId] || {};
+    let someEnabled = false;
+    let allEnabled = true;
+    
+    for (const feature of oshaModule.features) {
+      for (const action of feature.actions) {
+        const actionKey = action.id.split(":")[1];
+        const enabled = getPermissionValue({ osha: estPerms }, "osha", feature.entity, actionKey);
+        if (enabled) someEnabled = true;
+        if (!enabled) allEnabled = false;
+      }
+    }
+    
+    return someEnabled && !allEnabled;
+  };
+
+  const handleSelectAll = (establishmentId: string) => {
+    if (disabled) return;
+    
+    const allSelected = isAllSelected(establishmentId);
+    let updatedEstablishmentPerms = permissions[establishmentId] || {};
+    
+    // Toggle all actions
+    for (const feature of oshaModule.features) {
+      for (const action of feature.actions) {
+        const actionKey = action.id.split(":")[1];
+        updatedEstablishmentPerms = setPermissionValue(
+          { osha: updatedEstablishmentPerms },
+          "osha",
+          feature.entity,
+          actionKey,
+          !allSelected
+        ).osha;
+      }
+    }
+    
+    onChange({
+      ...permissions,
+      [establishmentId]: updatedEstablishmentPerms
+    });
+  };
+
   return (
     <div className="space-y-3">
-      <div className="mb-3">
-        <h4 className="text-sm font-semibold text-gray-900 flex items-center gap-2">
-          <span>🔒</span>
-          <span>OSHA Establishment Access</span>
-        </h4>
-        <p className="text-xs text-gray-600 mt-1">
-          Configure which OSHA actions this role can perform at each establishment
-        </p>
+      <div className="mb-3 flex items-start justify-between">
+        <div>
+          <h4 className="text-sm font-semibold text-gray-900 flex items-center gap-2">
+            <span>🔒</span>
+            <span>OSHA Establishment Access</span>
+          </h4>
+          <p className="text-xs text-gray-600 mt-1">
+            Configure which OSHA actions this role can perform at each establishment
+          </p>
+        </div>
+        <button
+          type="button"
+          onClick={() => handleSelectAll(activeTab)}
+          disabled={disabled}
+          className={`ml-4 flex items-center gap-2 px-3 py-1.5 rounded-md text-xs font-medium transition-colors ${
+            disabled
+              ? "bg-gray-200 text-gray-400 cursor-not-allowed"
+              : isAllSelected(activeTab)
+                ? "bg-blue-100 text-blue-700 hover:bg-blue-200"
+                : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+          }`}
+        >
+          <div className={`relative inline-flex h-4 w-4 flex-shrink-0 items-center justify-center rounded border-2 transition-colors ${
+            disabled 
+              ? "bg-gray-200 border-gray-300" 
+              : isAllSelected(activeTab)
+                ? "bg-blue-600 border-blue-600"
+                : isPartiallySelected(activeTab)
+                  ? "bg-blue-600 border-blue-600"
+                  : "bg-white border-gray-400"
+          }`}>
+            {isAllSelected(activeTab) ? (
+              <svg className="w-2.5 h-2.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+              </svg>
+            ) : isPartiallySelected(activeTab) ? (
+              <div className="w-1.5 h-0.5 bg-white rounded" />
+            ) : null}
+          </div>
+          Select All
+        </button>
       </div>
 
       {/* Tab Navigation */}

@@ -3,8 +3,10 @@
  * 
  * Extracted from FUNCTIONAL_SPECS.md - Core EHS modules for Custom Roles
  * 
- * Simple Mode (6 modules): Event, CAPA, OSHA, Work Orders, Access Points, LOTO
- * Advanced Mode (10 modules): Adds PTW, JHA, SOP, Audit
+ * Simple Mode (6 modules): Access Point, Event, CAPA, OSHA, LOTO, Work Orders
+ * Advanced Mode (10 modules): Adds JHA, SOP, PTW, Audit
+ * 
+ * Order matches sidebar: Access Point → Event → CAPA → OSHA → Documentation (JHA, SOP, LOTO, PTW) → Work Orders → Audit
  */
 
 export type PermissionCategory = 
@@ -171,30 +173,6 @@ export const EHS_PERMISSIONS: PermissionModule[] = [
     ]
   },
   
-  // Safety Work Orders (CMMS Integration)
-  {
-    moduleId: "work-order",
-    moduleName: "Safety Work Orders",
-    description: "CMMS integration for corrective maintenance",
-    // NO advancedOnly flag - visible in Simple AND Advanced modes
-    features: [
-      {
-        entity: "Work Order",
-        actions: [
-          { id: "work-order:search", label: "Search Work Orders", description: "Find WOs from CMMS", permission: "VIEW", category: "view" },
-          { id: "work-order:view", label: "View Details", description: "Access WO with analysis", permission: "VIEW", category: "view" },
-          { id: "work-order:create", label: "Create WO", description: "Generic work order", permission: "CREATE", category: "editor" },
-          { id: "work-order:create-from-entity", label: "Create from CAPA/Event", description: "Link to entity", permission: "CREATE", category: "editor" },
-          { id: "work-order:link", label: "Link Existing WO", description: "Associate WO", permission: "EDIT", category: "editor" },
-          { id: "work-order:unlink", label: "Unlink WO", description: "Remove association", permission: "EDIT", category: "editor" },
-          { id: "work-order:get-by-capa", label: "List by CAPA", description: "View CAPA WOs", permission: "VIEW", category: "view" },
-          { id: "work-order:count-by-capa", label: "Count by CAPA", description: "WO count", permission: "VIEW", category: "view" },
-          { id: "work-order:enqueue-analysis", label: "Queue AI Analysis", description: "Analyze completed WO", permission: "CREATE", category: "advanced" }
-        ]
-      }
-    ]
-  },
-  
   // DOCUMENTATION Section
   {
     moduleId: "jha",
@@ -286,6 +264,30 @@ export const EHS_PERMISSIONS: PermissionModule[] = [
           { id: "ptw:archive", label: "Archive", description: "Soft-delete", permission: "EDIT", category: "data_cleanup" },
           { id: "ptw:delete", label: "Delete", description: "Hard delete", permission: "DELETE", category: "data_cleanup" },
           { id: "ptw:export", label: "Export", description: "Download CSV", permission: "EXPORT", category: "reporting" }
+        ]
+      }
+    ]
+  },
+  
+  // Safety Work Orders (CMMS Integration)
+  {
+    moduleId: "work-order",
+    moduleName: "Safety Work Orders",
+    description: "CMMS integration for corrective maintenance",
+    // NO advancedOnly flag - visible in Simple AND Advanced modes
+    features: [
+      {
+        entity: "Work Order",
+        actions: [
+          { id: "work-order:search", label: "Search Work Orders", description: "Find WOs from CMMS", permission: "VIEW", category: "view" },
+          { id: "work-order:view", label: "View Details", description: "Access WO with analysis", permission: "VIEW", category: "view" },
+          { id: "work-order:create", label: "Create WO", description: "Generic work order", permission: "CREATE", category: "editor" },
+          { id: "work-order:create-from-entity", label: "Create from CAPA/Event", description: "Link to entity", permission: "CREATE", category: "editor" },
+          { id: "work-order:link", label: "Link Existing WO", description: "Associate WO", permission: "EDIT", category: "editor" },
+          { id: "work-order:unlink", label: "Unlink WO", description: "Remove association", permission: "EDIT", category: "editor" },
+          { id: "work-order:get-by-capa", label: "List by CAPA", description: "View CAPA WOs", permission: "VIEW", category: "view" },
+          { id: "work-order:count-by-capa", label: "Count by CAPA", description: "WO count", permission: "VIEW", category: "view" },
+          { id: "work-order:enqueue-analysis", label: "Queue AI Analysis", description: "Analyze completed WO", permission: "CREATE", category: "advanced" }
         ]
       }
     ]
