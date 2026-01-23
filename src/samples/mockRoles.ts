@@ -14,7 +14,6 @@ export const mockRoles: CustomRole[] = [
     id: "role_safety_admin",
     name: "Safety Administrator",
     isSystemRole: true,
-    oshaLocationIds: ["osha_toronto", "osha_atlanta", "osha_chicago", "osha_houston", "osha_austin", "osha_seattle", "osha_phoenix"],
     permissions: {
       // Incident Management
       event: {
@@ -202,7 +201,6 @@ export const mockRoles: CustomRole[] = [
     id: "role_safety_manager",
     name: "Safety Manager",
     isSystemRole: true,
-    oshaLocationIds: ["osha_chicago"],
     permissions: {
       // Incident Management
       event: {

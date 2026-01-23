@@ -9,7 +9,7 @@
  */
 
 import React from "react";
-import type { RolePermissions } from "../schemas/roles";
+import type { RolePermissions, OSHALocationPermissions } from "../schemas/roles";
 import {
   getPermissionValue,
   setPermissionValue,
@@ -38,8 +38,8 @@ import OSHALocationSelector from "./OSHALocationSelector";
 interface RoleBuilderMatrixProps {
   permissions: RolePermissions;
   onChange: (permissions: RolePermissions) => void;
-  oshaLocationIds?: string[];
-  onOSHALocationsChange?: (ids: string[]) => void;
+  oshaLocationPermissions?: OSHALocationPermissions;
+  onOSHAPermissionsChange?: (perms: OSHALocationPermissions) => void;
   disabled?: boolean;
   advancedMode?: boolean;
 }
@@ -47,8 +47,8 @@ interface RoleBuilderMatrixProps {
 export default function RoleBuilderMatrix({ 
   permissions, 
   onChange,
-  oshaLocationIds = [],
-  onOSHALocationsChange,
+  oshaLocationPermissions = {},
+  onOSHAPermissionsChange,
   disabled = false,
   advancedMode = false
 }: RoleBuilderMatrixProps) {
@@ -367,23 +367,14 @@ export default function RoleBuilderMatrix({
               </>
             )}
             
-            {/* OSHA Location Selector (appears for OSHA module only) */}
-            {module.moduleId === 'osha' && onOSHALocationsChange && (
-              <div className="px-4 py-4 bg-blue-50 border-t border-blue-100">
-                <div className="mb-3">
-                  <h4 className="text-sm font-semibold text-gray-900 flex items-center gap-2">
-                    <span>🔒</span>
-                    <span>OSHA Establishment Access</span>
-                  </h4>
-                  <p className="text-xs text-gray-600 mt-1">
-                    Select which OSHA-registered establishments this role can access.
-                    At least one location must be selected if OSHA permissions are enabled.
-                  </p>
-                </div>
+            {/* OSHA Location Permissions (appears for OSHA module only) */}
+            {module.moduleId === 'osha' && onOSHAPermissionsChange && (
+              <div className="px-4 py-4 bg-blue-50/50 border-t border-gray-200">
                 <OSHALocationSelector
-                  selectedIds={oshaLocationIds}
-                  onChange={onOSHALocationsChange}
+                  permissions={oshaLocationPermissions}
+                  onChange={onOSHAPermissionsChange}
                   disabled={disabled}
+                  simpleMode={simpleMode}
                 />
               </div>
             )}

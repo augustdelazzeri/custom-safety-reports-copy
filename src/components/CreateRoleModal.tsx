@@ -8,14 +8,14 @@
 import React, { useState, useEffect } from "react";
 import RoleBuilderMatrix from "./RoleBuilderMatrix";
 import { createDefaultPermissions, countEnabledPermissions } from "../schemas/roles";
-import type { CustomRole, RolePermissions } from "../schemas/roles";
+import type { CustomRole, RolePermissions, OSHALocationPermissions } from "../schemas/roles";
 import { useRole } from "../contexts/RoleContext";
 import { getVisibleModules } from "../data/permissionsMock";
 
 interface CreateRoleModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSubmit: (name: string, permissions: RolePermissions, oshaLocationIds?: string[]) => void;
+  onSubmit: (name: string, permissions: RolePermissions, oshaLocationPermissions?: OSHALocationPermissions) => void;
   existingRole?: CustomRole; // For edit mode
   checkDuplicateName: (name: string, excludeId?: string) => boolean;
   initialAdvancedMode?: boolean; // Initial state for advanced mode toggle
@@ -31,7 +31,7 @@ export default function CreateRoleModal({
 }: CreateRoleModalProps) {
   const [roleName, setRoleName] = useState("");
   const [permissions, setPermissions] = useState<RolePermissions>(createDefaultPermissions());
-  const [oshaLocationIds, setOshaLocationIds] = useState<string[]>([]);
+  const [oshaLocationPermissions, setOshaLocationPermissions] = useState<OSHALocationPermissions>({});
   const [error, setError] = useState("");
   const [advancedMode, setAdvancedMode] = useState(initialAdvancedMode);
   const [baseRoleId, setBaseRoleId] = useState("");
@@ -46,12 +46,12 @@ export default function CreateRoleModal({
       if (existingRole) {
         setRoleName(existingRole.name);
         setPermissions(existingRole.permissions);
-        setOshaLocationIds(existingRole.oshaLocationIds || []);
+        setOshaLocationPermissions(existingRole.oshaLocationPermissions || {});
         setBaseRoleId("");
       } else {
         setRoleName("");
         setPermissions(createDefaultPermissions());
-        setOshaLocationIds([]);
+        setOshaLocationPermissions({});
         setBaseRoleId("");
       }
       setError("");
@@ -67,12 +67,12 @@ export default function CreateRoleModal({
       const baseRole = roles.find(r => r.id === roleId);
       if (baseRole) {
         setPermissions({...baseRole.permissions});
-        setOshaLocationIds(baseRole.oshaLocationIds || []);
+        setOshaLocationPermissions(baseRole.oshaLocationPermissions || {});
       }
     } else {
       // Reset to default if no base role selected
       setPermissions(createDefaultPermissions());
-      setOshaLocationIds([]);
+      setOshaLocationPermissions({});
     }
   };
 
@@ -128,18 +128,27 @@ export default function CreateRoleModal({
       return;
     }
     
-    // Validate OSHA locations if OSHA permissions are enabled
+    // Validate OSHA location permissions if global OSHA permissions are enabled
     const hasOSHAPermissions = permissions.osha && Object.keys(permissions.osha).some(entityName => {
       const entityPerms = permissions.osha[entityName];
       return Object.values(entityPerms).some(val => val === true);
     });
     
-    if (hasOSHAPermissions && oshaLocationIds.length === 0) {
-      setError("At least one OSHA establishment must be selected when OSHA permissions are enabled");
-      return;
+    if (hasOSHAPermissions) {
+      const hasLocationPerms = Object.keys(oshaLocationPermissions).length > 0 &&
+        Object.values(oshaLocationPermissions).some(estPerms =>
+          Object.values(estPerms).some(entity =>
+            Object.values(entity).some(val => val === true)
+          )
+        );
+      
+      if (!hasLocationPerms) {
+        setError("At least one OSHA permission must be configured for at least one establishment when OSHA module is enabled");
+        return;
+      }
     }
 
-    onSubmit(trimmedName, permissions, oshaLocationIds);
+    onSubmit(trimmedName, permissions, oshaLocationPermissions);
   };
 
   const handleCancel = () => {
@@ -329,8 +338,8 @@ export default function CreateRoleModal({
               <RoleBuilderMatrix 
                 permissions={permissions} 
                 onChange={setPermissions}
-                oshaLocationIds={oshaLocationIds}
-                onOSHALocationsChange={setOshaLocationIds}
+                oshaLocationPermissions={oshaLocationPermissions}
+                onOSHAPermissionsChange={setOshaLocationPermissions}
                 disabled={existingRole?.isSystemRole}
                 advancedMode={advancedMode}
               />

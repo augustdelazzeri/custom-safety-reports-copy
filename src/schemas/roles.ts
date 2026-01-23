@@ -32,13 +32,21 @@ export interface RolePermissions {
 }
 
 /**
+ * OSHA Location-specific permissions
+ * Maps establishment ID to OSHA entity permissions for that location
+ */
+export interface OSHALocationPermissions {
+  [establishmentId: string]: ModulePermissions; // OSHA permissions for this establishment
+}
+
+/**
  * Custom Role interface
  */
 export interface CustomRole {
   id: string;
   name: string;
   permissions: RolePermissions;
-  oshaLocationIds?: string[];  // Array of OSHA establishment IDs for scoped access
+  oshaLocationPermissions?: OSHALocationPermissions;  // OSHA permissions per establishment
   isSystemRole?: boolean;     // True for non-deletable template roles
   createdAt: string;
   updatedAt: string;

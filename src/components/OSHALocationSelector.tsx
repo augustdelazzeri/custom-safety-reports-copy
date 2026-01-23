@@ -1,126 +1,312 @@
 /**
  * OSHA Location Selector Component
  * 
- * Multi-select checkbox interface for OSHA establishment access scoping.
- * Used in Custom Roles to restrict which OSHA establishments a role can access.
+ * Tab-based interface for configuring OSHA permissions per establishment.
+ * Each tab represents an OSHA-registered establishment where users can
+ * enable/disable specific OSHA permissions for that location.
  */
 
-import React from "react";
-import { mockOSHAEstablishments, type OSHAEstablishment } from "../samples/oshaEstablishments";
+import React, { useState } from "react";
+import { mockOSHAEstablishments } from "../samples/oshaEstablishments";
+import type { OSHALocationPermissions, ModulePermissions } from "../schemas/roles";
+import { EHS_PERMISSIONS, PERMISSION_CATEGORIES, getModuleCategories, getCategoryLabel, getActionsByCategory, type PermissionCategory } from "../data/permissionsMock";
+import { getPermissionValue, setPermissionValue } from "../schemas/roles";
 
 interface OSHALocationSelectorProps {
-  selectedIds: string[];
-  onChange: (ids: string[]) => void;
+  permissions: OSHALocationPermissions;
+  onChange: (permissions: OSHALocationPermissions) => void;
   disabled?: boolean;
+  simpleMode?: boolean;
 }
 
 export default function OSHALocationSelector({
-  selectedIds,
+  permissions,
   onChange,
-  disabled = false
+  disabled = false,
+  simpleMode = false
 }: OSHALocationSelectorProps) {
   
-  const handleToggle = (establishmentId: string) => {
+  const [activeTab, setActiveTab] = useState(mockOSHAEstablishments[0]?.id || "");
+  
+  // Get OSHA module structure
+  const oshaModule = EHS_PERMISSIONS.find(m => m.moduleId === "osha");
+  if (!oshaModule) return null;
+
+  const handleTogglePermission = (establishmentId: string, entityName: string, actionId: string) => {
     if (disabled) return;
     
-    if (selectedIds.includes(establishmentId)) {
-      // Remove from selection
-      onChange(selectedIds.filter(id => id !== establishmentId));
-    } else {
-      // Add to selection
-      onChange([...selectedIds, establishmentId]);
+    const actionKey = actionId.split(":")[1]; // Extract action key from "osha:create" -> "create"
+    
+    // Get current establishment permissions or initialize empty
+    const establishmentPerms = permissions[establishmentId] || {};
+    
+    // Get current value
+    const currentValue = getPermissionValue({ osha: establishmentPerms }, "osha", entityName, actionKey);
+    
+    // Update value
+    const updatedEstablishmentPerms = setPermissionValue(
+      { osha: establishmentPerms },
+      "osha",
+      entityName,
+      actionKey,
+      !currentValue
+    ).osha;
+    
+    // Update overall permissions
+    onChange({
+      ...permissions,
+      [establishmentId]: updatedEstablishmentPerms
+    });
+  };
+
+  const handleToggleCategory = (establishmentId: string, category: PermissionCategory) => {
+    if (disabled) return;
+    
+    const establishmentPerms = permissions[establishmentId] || {};
+    const actionIds = getActionsByCategory(oshaModule, category);
+    
+    // Check if all actions in category are enabled
+    let allEnabled = true;
+    for (const actionId of actionIds) {
+      const actionKey = actionId.split(":")[1];
+      for (const feature of oshaModule.features) {
+        const action = feature.actions.find(a => a.id === actionId);
+        if (action) {
+          if (!getPermissionValue({ osha: establishmentPerms }, "osha", feature.entity, actionKey)) {
+            allEnabled = false;
+            break;
+          }
+        }
+      }
+      if (!allEnabled) break;
     }
+    
+    // Toggle all actions in category
+    let updatedEstablishmentPerms = establishmentPerms;
+    for (const actionId of actionIds) {
+      const actionKey = actionId.split(":")[1];
+      for (const feature of oshaModule.features) {
+        const action = feature.actions.find(a => a.id === actionId);
+        if (action) {
+          updatedEstablishmentPerms = setPermissionValue(
+            { osha: updatedEstablishmentPerms },
+            "osha",
+            feature.entity,
+            actionKey,
+            !allEnabled
+          ).osha;
+        }
+      }
+    }
+    
+    onChange({
+      ...permissions,
+      [establishmentId]: updatedEstablishmentPerms
+    });
   };
 
-  const handleSelectAll = () => {
-    if (disabled) return;
-    onChange(mockOSHAEstablishments.map(est => est.id));
+  const isCategoryFullySelected = (establishmentId: string, category: PermissionCategory): boolean => {
+    const establishmentPerms = permissions[establishmentId] || {};
+    const actionIds = getActionsByCategory(oshaModule, category);
+    
+    for (const actionId of actionIds) {
+      const actionKey = actionId.split(":")[1];
+      for (const feature of oshaModule.features) {
+        const action = feature.actions.find(a => a.id === actionId);
+        if (action) {
+          if (!getPermissionValue({ osha: establishmentPerms }, "osha", feature.entity, actionKey)) {
+            return false;
+          }
+        }
+      }
+    }
+    return actionIds.length > 0;
   };
 
-  const handleClearAll = () => {
-    if (disabled) return;
-    onChange([]);
+  const isCategoryPartiallySelected = (establishmentId: string, category: PermissionCategory): boolean => {
+    const establishmentPerms = permissions[establishmentId] || {};
+    const actionIds = getActionsByCategory(oshaModule, category);
+    let someEnabled = false;
+    let allEnabled = true;
+    
+    for (const actionId of actionIds) {
+      const actionKey = actionId.split(":")[1];
+      for (const feature of oshaModule.features) {
+        const action = feature.actions.find(a => a.id === actionId);
+        if (action) {
+          const enabled = getPermissionValue({ osha: establishmentPerms }, "osha", feature.entity, actionKey);
+          if (enabled) someEnabled = true;
+          if (!enabled) allEnabled = false;
+        }
+      }
+    }
+    
+    return someEnabled && !allEnabled;
   };
 
-  const allSelected = selectedIds.length === mockOSHAEstablishments.length;
-  const noneSelected = selectedIds.length === 0;
+  const getActiveEstablishmentPermissions = (): ModulePermissions => {
+    return permissions[activeTab] || {};
+  };
 
   return (
     <div className="space-y-3">
-      {/* Header with Select All / Clear All */}
-      <div className="flex items-center justify-between">
-        <span className="text-sm font-medium text-gray-700">
-          {selectedIds.length} of {mockOSHAEstablishments.length} establishments selected
-        </span>
-        <div className="flex gap-2">
-          <button
-            type="button"
-            onClick={handleSelectAll}
-            disabled={disabled || allSelected}
-            className="text-xs text-blue-600 hover:text-blue-700 disabled:text-gray-400 disabled:cursor-not-allowed font-medium"
-          >
-            Select All
-          </button>
-          <span className="text-gray-300">|</span>
-          <button
-            type="button"
-            onClick={handleClearAll}
-            disabled={disabled || noneSelected}
-            className="text-xs text-gray-600 hover:text-gray-700 disabled:text-gray-400 disabled:cursor-not-allowed font-medium"
-          >
-            Clear All
-          </button>
-        </div>
+      <div className="mb-3">
+        <h4 className="text-sm font-semibold text-gray-900 flex items-center gap-2">
+          <span>🔒</span>
+          <span>OSHA Establishment Access</span>
+        </h4>
+        <p className="text-xs text-gray-600 mt-1">
+          Configure which OSHA actions this role can perform at each establishment
+        </p>
       </div>
 
-      {/* Establishment List */}
-      <div className="border border-gray-200 rounded-md divide-y divide-gray-200 max-h-60 overflow-y-auto">
+      {/* Tab Navigation */}
+      <div className="flex border-b border-gray-200">
         {mockOSHAEstablishments.map((establishment) => {
-          const isSelected = selectedIds.includes(establishment.id);
+          const isActive = activeTab === establishment.id;
+          const estPerms = permissions[establishment.id] || {};
+          const hasPermissions = Object.keys(estPerms).length > 0 && Object.values(estPerms).some(entity =>
+            Object.values(entity).some(val => val === true)
+          );
           
           return (
-            <label
+            <button
               key={establishment.id}
-              className={`flex items-center px-3 py-2.5 cursor-pointer hover:bg-gray-50 transition-colors ${
-                disabled ? 'opacity-50 cursor-not-allowed' : ''
-              }`}
+              type="button"
+              onClick={() => setActiveTab(establishment.id)}
+              disabled={disabled}
+              className={`
+                relative px-3 py-2 text-xs font-medium border-b-2 transition-colors
+                ${isActive
+                  ? "border-blue-500 text-blue-600 bg-blue-50/50"
+                  : "border-transparent text-gray-600 hover:text-gray-800 hover:border-gray-300"
+                }
+                ${disabled ? "opacity-50 cursor-not-allowed" : "cursor-pointer"}
+              `}
             >
-              <input
-                type="checkbox"
-                checked={isSelected}
-                onChange={() => handleToggle(establishment.id)}
-                disabled={disabled}
-                className="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500 focus:ring-2 disabled:cursor-not-allowed"
-              />
-              <div className="ml-3 flex-1">
-                <div className="flex items-center justify-between">
-                  <span className="text-sm font-medium text-gray-900">
-                    {establishment.name}
+              <div className="flex items-center gap-1.5">
+                <span>{establishment.name}</span>
+                {hasPermissions && (
+                  <span className="inline-flex items-center justify-center w-4 h-4 text-xs font-semibold text-white bg-blue-600 rounded-full">
+                    ✓
                   </span>
-                  {establishment.establishmentNumber && (
-                    <span className="text-xs text-gray-500 ml-2">
-                      #{establishment.establishmentNumber}
-                    </span>
-                  )}
-                </div>
-                <div className="text-xs text-gray-500 mt-0.5">
-                  {establishment.city}, {establishment.state}
-                </div>
+                )}
               </div>
-            </label>
+              <div className="text-xs text-gray-500 mt-0.5">
+                {establishment.city}, {establishment.state}
+              </div>
+            </button>
           );
         })}
       </div>
 
-      {/* Helper Text */}
-      {selectedIds.length === 0 && (
-        <p className="text-xs text-amber-600 flex items-center gap-1">
-          <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-            <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
-          </svg>
-          At least one establishment must be selected if OSHA permissions are enabled
-        </p>
-      )}
+      {/* Tab Content */}
+      <div className="bg-gray-50 border border-gray-200 rounded p-3">
+
+        {/* OSHA Permissions - Simple or Advanced Mode */}
+        {simpleMode ? (
+          /* SIMPLE MODE: Show Categories */
+          <div className="grid grid-cols-2 gap-2">
+            {getModuleCategories(oshaModule).map((category) => {
+              const categoryFullySelected = isCategoryFullySelected(activeTab, category);
+              const categoryPartiallySelected = isCategoryPartiallySelected(activeTab, category);
+              const categoryInfo = PERMISSION_CATEGORIES.find(c => c.id === category);
+              
+              return (
+                <button
+                  key={category}
+                  type="button"
+                  onClick={() => handleToggleCategory(activeTab, category)}
+                  disabled={disabled}
+                  className={`flex items-start gap-2 p-2.5 rounded border transition-colors text-left ${
+                    disabled
+                      ? "bg-gray-50 border-gray-200 cursor-not-allowed opacity-50"
+                      : categoryFullySelected
+                        ? "bg-blue-50 border-blue-300"
+                        : "bg-white border-gray-200 hover:border-blue-300 hover:bg-blue-50 cursor-pointer"
+                  }`}
+                >
+                  <div className={`mt-0.5 relative inline-flex h-4 w-4 flex-shrink-0 items-center justify-center rounded border-2 transition-colors ${
+                    disabled 
+                      ? "bg-gray-200 border-gray-300" 
+                      : categoryFullySelected
+                        ? "bg-blue-600 border-blue-600"
+                        : categoryPartiallySelected
+                          ? "bg-blue-600 border-blue-600"
+                          : "bg-white border-gray-300"
+                  }`}>
+                    {categoryFullySelected ? (
+                      <svg className="w-2.5 h-2.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                      </svg>
+                    ) : categoryPartiallySelected ? (
+                      <div className="w-2 h-0.5 bg-white rounded" />
+                    ) : null}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="text-sm font-medium text-gray-900">{categoryInfo?.label || category}</div>
+                    <div className="text-xs text-gray-500 mt-0.5">{categoryInfo?.description || ''}</div>
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+        ) : (
+          /* ADVANCED MODE: Show Individual Actions */
+          <div className="space-y-3">
+            {oshaModule.features.map((feature) => {
+              const establishmentPerms = getActiveEstablishmentPermissions();
+              
+              return (
+                <div key={feature.entity} className="border border-gray-200 rounded-md overflow-hidden">
+                  {/* Entity Header */}
+                  <div className="px-3 py-2 bg-gray-50 border-b border-gray-200">
+                    <h5 className="text-xs font-semibold text-gray-700">{feature.entity}</h5>
+                  </div>
+                  
+                  {/* Actions Grid */}
+                  <div className="p-2 grid grid-cols-2 gap-2">
+                    {feature.actions.map((action) => {
+                      const actionKey = action.id.split(":")[1];
+                      const checked = getPermissionValue(
+                        { osha: establishmentPerms },
+                        "osha",
+                        feature.entity,
+                        actionKey
+                      );
+                      
+                      return (
+                        <label
+                          key={action.id}
+                          className={`flex items-start gap-2 p-2 rounded border cursor-pointer transition-colors ${
+                            disabled
+                              ? "bg-gray-50 border-gray-200 cursor-not-allowed opacity-50"
+                              : checked
+                                ? "bg-blue-50 border-blue-300"
+                                : "bg-white border-gray-200 hover:border-blue-300 hover:bg-blue-50"
+                          }`}
+                        >
+                          <input
+                            type="checkbox"
+                            checked={checked}
+                            onChange={() => handleTogglePermission(activeTab, feature.entity, action.id)}
+                            disabled={disabled}
+                            className="mt-0.5 h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                          />
+                          <div className="flex-1 min-w-0">
+                            <div className="text-xs font-medium text-gray-900">{action.label}</div>
+                            <div className="text-xs text-gray-500 mt-0.5">{action.description}</div>
+                          </div>
+                        </label>
+                      );
+                    })}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </div>
     </div>
   );
 }
