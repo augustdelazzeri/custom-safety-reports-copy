@@ -947,24 +947,45 @@ function PeopleContent() {
               <div className="bg-white rounded-lg border border-gray-200 p-6">
                 {/* Header */}
                 <div className="mb-6 pb-4 border-b border-gray-200">
-                  <div className="flex items-center gap-3 mb-3">
-                    {/* Back Button */}
-                    <button
-                      type="button"
-                      onClick={handleFullscreenCancelRole}
-                      className="flex items-center gap-2 px-3 py-2 text-gray-700 hover:bg-gray-100 rounded-md transition-colors text-sm font-medium"
-                      title="Back to roles list"
-                    >
-                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-                      </svg>
-                      Back to Roles
-                    </button>
+                  <div className="flex items-center justify-between mb-2">
+                    {/* Back Button + Title */}
+                    <div className="flex items-center gap-3">
+                      <button
+                        type="button"
+                        onClick={handleFullscreenCancelRole}
+                        className="flex items-center gap-2 px-3 py-1.5 -ml-3 text-gray-700 hover:bg-gray-100 rounded-md transition-colors text-sm font-medium"
+                        title="Back to roles list"
+                      >
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                        </svg>
+                        Back to Roles
+                      </button>
+                      <div className="h-6 w-px bg-gray-300" />
+                      <h2 className="text-xl font-semibold text-gray-900">
+                        {roleViewMode === 'create' ? 'Create Custom Role' : 'Edit Role'}
+                      </h2>
+                    </div>
+                    {/* Advanced/Simple Mode Toggle */}
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs text-gray-600">Simple</span>
+                      <button
+                        type="button"
+                        onClick={() => setAdvancedMode(!advancedMode)}
+                        className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors ${
+                          advancedMode ? 'bg-blue-600' : 'bg-gray-300'
+                        }`}
+                      >
+                        <span
+                          className={`inline-block h-3 w-3 transform rounded-full bg-white transition-transform ${
+                            advancedMode ? 'translate-x-5' : 'translate-x-1'
+                          }`}
+                        />
+                      </button>
+                      <span className="text-xs text-gray-600">Advanced</span>
+                    </div>
                   </div>
-                  <h2 className="text-xl font-semibold text-gray-900">
-                    {roleViewMode === 'create' ? 'Create Custom Role' : 'Edit Role'}
-                  </h2>
-                  <p className="text-sm text-gray-600 mt-1">
+                  <p className="text-sm text-gray-600">
                     Configure permissions for this role
                   </p>
                 </div>
@@ -1039,34 +1060,9 @@ function PeopleContent() {
 
                 {/* Permissions Matrix */}
                 <div className="mb-6">
-                  <div className="flex items-center justify-between mb-3">
-                    <h3 className="text-sm font-medium text-gray-900">
-                      Permissions <span className="text-red-500">*</span>
-                    </h3>
-                    
-                    {/* Advanced Mode Toggle */}
-                    <div className="flex items-center gap-3 bg-gray-50 border border-gray-200 rounded-lg px-3 py-2">
-                      <span className={`text-xs font-medium transition-colors ${!advancedMode ? 'text-gray-900' : 'text-gray-500'}`}>
-                        Simple
-                      </span>
-                      <button
-                        type="button"
-                        onClick={() => setAdvancedMode(!advancedMode)}
-                        className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors ${
-                          advancedMode ? "bg-blue-600" : "bg-gray-300"
-                        }`}
-                      >
-                        <span
-                          className={`inline-block h-3.5 w-3.5 transform rounded-full bg-white transition-transform ${
-                            advancedMode ? "translate-x-5" : "translate-x-1"
-                          }`}
-                        />
-                      </button>
-                      <span className={`text-xs font-medium transition-colors ${advancedMode ? 'text-blue-600' : 'text-gray-500'}`}>
-                        Advanced
-                      </span>
-                    </div>
-                  </div>
+                  <h3 className="text-sm font-medium text-gray-900 mb-3">
+                    Permissions <span className="text-red-500">*</span>
+                  </h3>
                   
                   {/* Mode Description Banner */}
                   <div className="mb-3 bg-blue-50 border border-blue-200 rounded-lg px-3 py-2">
