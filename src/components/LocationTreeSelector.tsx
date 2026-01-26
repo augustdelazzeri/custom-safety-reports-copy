@@ -7,6 +7,7 @@ import {
   searchLocationTree,
   buildLocationSelectionFromId,
   getAllChildNodeIds,
+  buildLocationPath,
 } from "../schemas/locations";
 
 interface LocationTreeSelectorProps {
@@ -28,21 +29,6 @@ export default function LocationTreeSelector({
   const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
 
-  // Expand all nodes by default on mount
-  useEffect(() => {
-    const allNodeIds = new Set<string>();
-    function collectIds(nodes: LocationNode[]) {
-      nodes.forEach((node) => {
-        allNodeIds.add(node.id);
-        if (node.children && node.children.length > 0) {
-          collectIds(node.children);
-        }
-      });
-    }
-    collectIds(locationTree);
-    setExpandedNodes(allNodeIds);
-  }, [locationTree]);
-
   // Initialize from initialSelection
   useEffect(() => {
     if (initialSelection && initialSelection.locationId) {
@@ -63,21 +49,33 @@ export default function LocationTreeSelector({
     ? searchLocationTree(searchTerm, locationTree)
     : locationTree;
 
-  // Auto-expand nodes when searching
+  // Auto-expand only matched nodes and their ancestors when searching
   useEffect(() => {
     if (searchTerm.trim()) {
-      // Expand all nodes in filtered results to show matches
-      const allNodeIds = new Set<string>();
-      function collectIds(nodes: LocationNode[]) {
+      const lowerSearchTerm = searchTerm.toLowerCase();
+      const nodesToExpand = new Set<string>();
+      
+      function findMatchesAndAncestors(nodes: LocationNode[], ancestors: string[] = []) {
         nodes.forEach((node) => {
-          allNodeIds.add(node.id);
+          const matches = node.name.toLowerCase().includes(lowerSearchTerm);
+          
+          if (matches) {
+            // Expand all ancestors of this match to make it visible
+            ancestors.forEach(ancestorId => nodesToExpand.add(ancestorId));
+            // Also expand the matched node itself if it has children
+            if (node.children && node.children.length > 0) {
+              nodesToExpand.add(node.id);
+            }
+          }
+          
           if (node.children && node.children.length > 0) {
-            collectIds(node.children);
+            findMatchesAndAncestors(node.children, [...ancestors, node.id]);
           }
         });
       }
-      collectIds(filteredTree);
-      setExpandedNodes(allNodeIds);
+      
+      findMatchesAndAncestors(filteredTree);
+      setExpandedNodes(nodesToExpand);
     }
   }, [searchTerm, filteredTree]);
 
@@ -130,18 +128,37 @@ export default function LocationTreeSelector({
     return selection?.parentIds?.includes(nodeId) || false;
   };
 
-  const renderNode = (node: LocationNode, depth: number = 0): React.ReactNode => {
+  // Helper to render breadcrumb path for search results
+  const renderBreadcrumb = (node: LocationNode): React.ReactNode => {
+    const path = buildLocationPath(node.id, locationTree);
+    const parts = path.split(' > ');
+    const parentParts = parts.slice(0, -1); // All except current node
+    
+    if (parentParts.length === 0) return null;
+    
+    return (
+      <div className="text-xs text-gray-500 mb-1 ml-6 truncate">
+        {parentParts.join(' > ')}
+      </div>
+    );
+  };
+
+  const renderNode = (node: LocationNode, depth: number = 0, isTopLevelInSearch: boolean = false): React.ReactNode => {
     const isExpanded = expandedNodes.has(node.id);
     const isSelected = selectedNodeId === node.id;
     const isParent = isParentOfSelected(node.id);
     const hasChildren = node.children && node.children.length > 0;
     const childCount = countChildren(node);
+    const isSearching = searchTerm.trim() !== "";
 
     // Indentation based on depth
     const paddingLeft = depth * 24;
 
     return (
       <div key={node.id}>
+        {/* Show breadcrumb for top-level nodes in search results */}
+        {isSearching && isTopLevelInSearch && depth === 0 && renderBreadcrumb(node)}
+        
         <div
           className={`flex items-center py-2 px-2 hover:bg-gray-50 rounded ${
             isSelected ? "bg-blue-50" : isParent ? "bg-blue-50/30" : ""
@@ -239,7 +256,7 @@ export default function LocationTreeSelector({
 
         {/* Render children if expanded */}
         {isExpanded && hasChildren && (
-          <div>{node.children!.map((child) => renderNode(child, depth + 1))}</div>
+          <div>{node.children!.map((child) => renderNode(child, depth + 1, false))}</div>
         )}
       </div>
     );
@@ -266,7 +283,7 @@ export default function LocationTreeSelector({
           <path d="M12 8h.01" />
         </svg>
         <p className="text-xs text-blue-700">
-          All locations are shown expanded. Use the search to quickly find a specific location, or browse the tree to select one.
+          Click the arrows to expand locations and browse the tree. Use search to quickly find a specific location, then expand it to explore sub-locations.
         </p>
       </div>
 
@@ -326,7 +343,7 @@ export default function LocationTreeSelector({
       <div className="border border-gray-300 rounded-lg bg-white max-h-96 overflow-y-auto">
         <div className="p-2">
           {filteredTree.length > 0 ? (
-            filteredTree.map((node) => renderNode(node, 0))
+            filteredTree.map((node) => renderNode(node, 0, true))
           ) : (
             <div className="text-center py-8 text-gray-500 text-sm">
               {searchTerm.trim()

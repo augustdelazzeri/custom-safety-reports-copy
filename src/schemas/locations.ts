@@ -106,7 +106,8 @@ export function flattenLocationTree(nodes: LocationNode[]): LocationNode[] {
 // Utility function to search tree and return matching nodes with their parent paths visible
 export function searchLocationTree(
   searchTerm: string,
-  nodes: LocationNode[]
+  nodes: LocationNode[],
+  includeChildrenOfMatches: boolean = true
 ): LocationNode[] {
   if (!searchTerm.trim()) {
     return nodes;
@@ -115,6 +116,7 @@ export function searchLocationTree(
   const lowerSearchTerm = searchTerm.toLowerCase();
   const matchingNodeIds = new Set<string>();
   const ancestorIds = new Set<string>();
+  const childrenOfMatches = new Set<string>();
 
   // First pass: find all matching nodes and collect their ancestors
   function findMatches(nodeList: LocationNode[]) {
@@ -144,10 +146,26 @@ export function searchLocationTree(
 
   findMatches(nodes);
 
-  // Second pass: filter tree to only include matches and their ancestors
+  // Collect all children of matched nodes (for exploration after search)
+  if (includeChildrenOfMatches) {
+    matchingNodeIds.forEach((matchId) => {
+      const children = getAllChildNodeIds(matchId, nodes);
+      children.forEach((childId) => {
+        if (childId !== matchId) {
+          childrenOfMatches.add(childId);
+        }
+      });
+    });
+  }
+
+  // Second pass: filter tree to only include matches, their ancestors, and their children
   function filterNodes(nodeList: LocationNode[]): LocationNode[] {
     return nodeList
-      .filter((node) => matchingNodeIds.has(node.id) || ancestorIds.has(node.id))
+      .filter((node) => 
+        matchingNodeIds.has(node.id) || 
+        ancestorIds.has(node.id) ||
+        childrenOfMatches.has(node.id)
+      )
       .map((node) => ({
         ...node,
         children: node.children ? filterNodes(node.children) : undefined,

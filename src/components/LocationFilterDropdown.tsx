@@ -7,6 +7,7 @@ import {
   searchLocationTree,
   buildLocationSelectionForFilter,
   getAllChildNodeIds,
+  buildLocationPath,
 } from "../schemas/locations";
 
 interface LocationFilterDropdownProps {
@@ -32,21 +33,6 @@ export default function LocationFilterDropdown({
   
   // When alwaysIncludeChildren is true, always use includeSubLocations=true
   const effectiveIncludeSubLocations = alwaysIncludeChildren ? true : includeSubLocations;
-
-  // Expand all nodes by default
-  useEffect(() => {
-    const allNodeIds = new Set<string>();
-    function collectIds(nodes: LocationNode[]) {
-      nodes.forEach((node) => {
-        allNodeIds.add(node.id);
-        if (node.children && node.children.length > 0) {
-          collectIds(node.children);
-        }
-      });
-    }
-    collectIds(locationTree);
-    setExpandedNodes(allNodeIds);
-  }, [locationTree]);
 
   // Initialize from initialSelection
   useEffect(() => {
@@ -82,20 +68,33 @@ export default function LocationFilterDropdown({
     ? searchLocationTree(searchTerm, locationTree)
     : locationTree;
 
-  // Auto-expand nodes when searching
+  // Auto-expand only matched nodes and their ancestors when searching
   useEffect(() => {
     if (searchTerm.trim()) {
-      const allNodeIds = new Set<string>();
-      function collectIds(nodes: LocationNode[]) {
+      const lowerSearchTerm = searchTerm.toLowerCase();
+      const nodesToExpand = new Set<string>();
+      
+      function findMatchesAndAncestors(nodes: LocationNode[], ancestors: string[] = []) {
         nodes.forEach((node) => {
-          allNodeIds.add(node.id);
+          const matches = node.name.toLowerCase().includes(lowerSearchTerm);
+          
+          if (matches) {
+            // Expand all ancestors of this match to make it visible
+            ancestors.forEach(ancestorId => nodesToExpand.add(ancestorId));
+            // Also expand the matched node itself if it has children
+            if (node.children && node.children.length > 0) {
+              nodesToExpand.add(node.id);
+            }
+          }
+          
           if (node.children && node.children.length > 0) {
-            collectIds(node.children);
+            findMatchesAndAncestors(node.children, [...ancestors, node.id]);
           }
         });
       }
-      collectIds(filteredTree);
-      setExpandedNodes(allNodeIds);
+      
+      findMatchesAndAncestors(filteredTree);
+      setExpandedNodes(nodesToExpand);
     }
   }, [searchTerm, filteredTree]);
 
@@ -152,16 +151,35 @@ export default function LocationFilterDropdown({
     return allChildren.includes(nodeId) && nodeId !== tempSelectedNodeId;
   };
 
-  const renderNode = (node: LocationNode, depth: number = 0): React.ReactNode => {
+  // Helper to render breadcrumb path for search results
+  const renderBreadcrumb = (node: LocationNode): React.ReactNode => {
+    const path = buildLocationPath(node.id, locationTree);
+    const parts = path.split(' > ');
+    const parentParts = parts.slice(0, -1); // All except current node
+    
+    if (parentParts.length === 0) return null;
+    
+    return (
+      <div className="text-xs text-gray-500 mb-1 ml-6 truncate">
+        {parentParts.join(' > ')}
+      </div>
+    );
+  };
+
+  const renderNode = (node: LocationNode, depth: number = 0, isTopLevelInSearch: boolean = false): React.ReactNode => {
     const isExpanded = expandedNodes.has(node.id);
     const isSelected = tempSelectedNodeId === node.id;
     const isChild = isChildOfSelected(node.id);
     const hasChildren = node.children && node.children.length > 0;
     const childCount = countChildren(node);
     const paddingLeft = depth * 24;
+    const isSearching = searchTerm.trim() !== "";
 
     return (
       <div key={node.id}>
+        {/* Show breadcrumb for top-level nodes in search results */}
+        {isSearching && isTopLevelInSearch && depth === 0 && renderBreadcrumb(node)}
+        
         <div
           className={`flex items-center py-2 px-2 hover:bg-gray-50 rounded ${
             isSelected ? "bg-blue-50" : isChild ? "bg-blue-50/40" : ""
@@ -228,7 +246,7 @@ export default function LocationFilterDropdown({
         </div>
 
         {isExpanded && hasChildren && (
-          <div>{node.children!.map((child) => renderNode(child, depth + 1))}</div>
+          <div>{node.children!.map((child) => renderNode(child, depth + 1, false))}</div>
         )}
       </div>
     );
@@ -307,7 +325,7 @@ export default function LocationFilterDropdown({
           {/* Tree Container */}
           <div className="px-4 py-2 max-h-[400px] overflow-y-auto">
             {filteredTree.length > 0 ? (
-              filteredTree.map((node) => renderNode(node, 0))
+              filteredTree.map((node) => renderNode(node, 0, true))
             ) : (
               <div className="text-center py-8 text-gray-500 text-sm">
                 {searchTerm.trim()
