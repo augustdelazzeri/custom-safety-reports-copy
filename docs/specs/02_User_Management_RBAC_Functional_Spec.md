@@ -429,18 +429,45 @@ Custom Roles
 - **Default Value:** None
 
 **Component Behavior:**
-- Opens location tree in dropdown
-- User navigates 6-level hierarchy (e.g., Region > Country > State > City > Plant > Line)
-- Selecting a node automatically includes all child nodes
+
+**Initial State:**
+- Location tree starts **collapsed** (no folders expanded)
+- Clean, minimal view to reduce cognitive load
+- User can progressively drill down by clicking expand arrows
+
+**Navigation Flow:**
+1. User clicks dropdown to open location selector
+2. Tree shows top-level nodes only (e.g., "Global Operations", "North America", "Europe")
+3. User clicks arrow (▶) next to a node to expand and see children
+4. User continues expanding until reaching desired location
+5. User clicks checkbox to select final location
+6. All child locations automatically included (non-optional)
+
+**Search Functionality:**
+- **Purpose:** Quick discovery of specific locations without manual navigation
+- **Behavior:** 
+  - User types location name (e.g., "Toronto")
+  - System finds matching locations AND includes their children
+  - Tree expands to show matched nodes + their parent path
+  - **Critical:** Children of matched nodes remain visible but collapsed
+  - User can expand matched location to explore its sub-locations
+- **Use Case:** "I know the facility name but want to see what areas/assets are inside"
+
+**Visual Feedback:**
+- Selected location: Blue background highlight
+- Child locations: Lighter blue background with checkmark (auto-included)
+- Counter shows: "X selected (with sub-locations)" to clarify scope
 
 **Breadcrumb Display:**
 - Selected location shown as breadcrumb: "North America > USA > Plant A"
 - Format: Parent > Parent > Selected Node
+- Displays full path for context
 
 **Dynamic Inheritance Rule:**
 - User inherits access to selected node + all descendant nodes
 - **Critical:** When new child locations are created under assigned node, user automatically gains access without requiring reassignment
 - **Revocation:** If assigned location is deleted/archived, user loses access to that subtree until reassigned
+- **Non-Optional:** Children are ALWAYS included (no toggle to exclude them)
 
 **Validation:**
 - Cannot be empty
@@ -454,6 +481,12 @@ Custom Roles
 
 **Hint Text:**
 - "User will have access to this location and all child locations automatically"
+
+**UX Principles:**
+- **Progressive Disclosure:** Start collapsed, expand on demand
+- **Search-Then-Explore:** Find parent location via search, then manually explore children
+- **No Overwhelming Views:** Avoid showing hundreds of locations at once
+- **Clear Selection Scope:** Visual indicators show exactly what's included
 
 #### 4.2.6 Validation Logic
 
@@ -816,10 +849,16 @@ Simple Mode ○───○ Advanced Mode
 - **Width:** 150px
 
 **Location Filter:**
-- **Component:** LocationFilterDropdown
+- **Component:** LocationFilterDropdown (collapsed tree view)
 - **Label:** "Location:"
-- **Behavior:** Shows selected node + children
+- **Behavior:** 
+  - Starts collapsed for clean interface
+  - User expands nodes to navigate hierarchy
+  - Search enabled for quick location discovery
+  - Selected location + ALL children automatically included in filter
+  - Counter shows total locations in scope
 - **Clear Button:** X icon to reset filter
+- **Use Case:** "Show me all users who have access to Plant A (and all areas/assets within it)"
 
 **Add User Button:**
 - **Label:** "+ Add User"
@@ -2035,6 +2074,7 @@ function validateOSHAPermissions(
 **Pre-Submit:**
 - Location selector marked with red asterisk (*)
 - Hint text: "User will have access to this location and all child locations automatically"
+- Informational banner: "Click the arrows to expand locations and browse the tree. Use search to quickly find a specific location, then expand it to explore sub-locations."
 
 **On Submit (No Location Selected):**
 - Form submission proceeds to validation
@@ -2057,6 +2097,11 @@ function validateOSHAPermissions(
 - Modal remains open
 - Auto-scroll to location selector
 - Location selector highlights with red border
+
+**User Guidance:**
+- If tree appears empty: Ensure locations are configured in Settings
+- If overwhelmed: Use search to find specific location quickly
+- If unsure of scope: Hover over location to see child count
 
 ---
 
@@ -2143,6 +2188,116 @@ function validateUserRole(roleId: string): { valid: boolean; error?: string } {
 ---
 
 ## Appendix A: UI Component Specifications
+
+### Location Tree Selector
+
+**Purpose:** Hierarchical location selection for user assignment and filtering
+
+**Modes:**
+1. **Assignment Mode:** Single selection for user location assignment (used in "Add/Edit User")
+2. **Filter Mode:** Single selection with automatic child inclusion (used in "User List Filters")
+
+**Visual Hierarchy (6 Levels):**
+```
+▶ Level 1: Global Operations
+  ▶ Level 2: North America
+    ▶ Level 3: USA
+      ▶ Level 4: Plant A (Chicago)
+        ▶ Level 5: Production Floor
+          ▶ Level 6: Line 3
+```
+
+**Component States:**
+
+**1. Collapsed (Default)**
+- All nodes start collapsed
+- Only top-level nodes visible
+- Arrow icons point right (▶)
+- Reduces initial visual complexity
+
+**2. Expanded (User-Triggered)**
+- User clicks arrow to expand node
+- Arrow rotates down (▼)
+- Children become visible
+- Maintains collapsed state for siblings
+
+**3. Selected (Checkbox)**
+- User checks a node
+- Node background: Blue (#DBEAFE)
+- All children automatically included (shown with lighter blue background)
+- Parent nodes show indeterminate state (dash icon) for context
+
+**Search Behavior:**
+
+**Problem Solved:** User knows a facility exists (e.g., "Toronto DC") but doesn't know where it sits in the hierarchy or what's inside it.
+
+**Flow:**
+1. User types "Toronto" in search field
+2. System finds "Toronto DC" node
+3. System expands path from root to Toronto DC to show context
+4. System includes Toronto DC's children in results
+5. Children remain collapsed (user can explore manually)
+6. Parent path shown as breadcrumb: "North America > Canada"
+
+**Example: Search for "Toronto"**
+```
+Before Search (All Collapsed):
+▶ Global Operations
+▶ North America
+▶ Europe
+
+After Search:
+North America > Canada          ← Breadcrumb for context
+▼ Toronto DC ☐                  ← Found node, auto-expanded
+  ▶ Loading Dock                 ← Child visible but collapsed
+  ▶ Warehouse Floor              ← User can explore if needed
+```
+
+**Interaction Patterns:**
+
+**Scenario 1: Manual Navigation (No Search)**
+- User: Clicks "North America" expand arrow
+- Result: Shows USA, Canada, Mexico
+- User: Clicks "USA" expand arrow
+- Result: Shows Chicago Plant, Seattle Plant
+- User: Checks "Chicago Plant"
+- Result: Plant selected + all children auto-included
+
+**Scenario 2: Search-Then-Explore**
+- User: Types "Chicago"
+- Result: "Chicago Plant" shown with path "North America > USA"
+- User: Sees "Chicago Plant" has 3 children (Loading Dock, Office, Lab)
+- User: Clicks expand arrow on Chicago Plant
+- Result: Can now see and explore the 3 child locations
+- User: Checks "Chicago Plant"
+- Result: All 3 children automatically included
+
+**Visual Indicators:**
+- **Expand/Collapse Arrow:** ▶ (collapsed) or ▼ (expanded)
+- **Checkbox States:**
+  - Empty ☐ : Not selected
+  - Checked ☑ : Selected
+  - Indeterminate ☐ : Parent of selection (context only)
+  - Child checkmark ✓ : Auto-included child
+- **Sub-location Count:** "3 sub-locations" badge next to parent nodes
+- **Selection Counter:** "5 locations selected (with sub-locations)" in footer
+
+**Accessibility:**
+- Keyboard navigation: Tab through nodes, Space to select, Arrow keys to expand/collapse
+- Screen reader announces: "Node name, Level X, Has Y children, Collapsed/Expanded"
+- Focus indicator: Blue outline on current node
+
+**Performance:**
+- Lazy rendering: Only visible nodes rendered in DOM
+- Virtual scrolling: For trees with 1000+ locations
+- Search debounce: 300ms delay before executing search
+
+**Error Prevention:**
+- Cannot deselect children individually (prevented by UI)
+- Cannot assign user to non-existent location (validation)
+- Cannot leave location empty (mandatory field with validation)
+
+---
 
 ### Toggle Switch
 
@@ -2286,11 +2441,172 @@ CREATE INDEX idx_audit_logs_metadata_gin ON audit_logs USING GIN (metadata);
 
 ---
 
+---
+
+## 9. Location Selection UX: Detailed User Flows
+
+### 9.1 Creating a User with Location Assignment
+
+**User Goal:** Invite a new Safety Coordinator for the Chicago Plant
+
+**Step-by-Step Flow:**
+
+**Step 1: Open User Creation**
+- Admin clicks "+ Add User" button
+- Modal opens with form fields
+- Location selector shows collapsed tree with info banner
+
+**Step 2: Navigate Location Tree (Manual Method)**
+1. Admin sees top-level: "▶ Global Operations", "▶ North America", "▶ Europe"
+2. Admin clicks arrow next to "North America"
+3. Tree expands: "▼ North America" now shows "▶ USA", "▶ Canada", "▶ Mexico"
+4. Admin clicks arrow next to "USA"
+5. Tree expands: "▼ USA" now shows "▶ Chicago Plant", "▶ Seattle Plant"
+6. Admin checks "Chicago Plant"
+7. Selection confirmed: Counter shows "4 locations selected (with sub-locations)"
+8. Visual feedback: Chicago Plant highlighted in blue, children shown with light blue
+
+**Step 3: Alternative - Search Method**
+1. Admin types "Chicago" in search field
+2. Results show: "Chicago Plant" with breadcrumb "North America > USA"
+3. System reveals that Chicago Plant has 3 children (collapsed)
+4. Admin clicks expand arrow to see: "Loading Dock", "Office", "Lab"
+5. Admin confirms this is the correct location
+6. Admin checks "Chicago Plant"
+7. All 3 children automatically included
+
+**Step 4: Validation**
+- Admin fills name, email, role fields
+- Admin clicks "Add User"
+- System validates all fields including location
+- Success: User created with access to Chicago Plant + all areas
+
+**Why This Matters:**
+- Progressive disclosure reduces cognitive load
+- Search enables quick discovery without memorizing hierarchy
+- Visual feedback confirms exact scope of access
+- No ambiguity about child location inclusion
+
+---
+
+### 9.2 Filtering Users by Location
+
+**User Goal:** Find all users who have access to any part of the Chicago Plant
+
+**Step-by-Step Flow:**
+
+**Step 1: Open Location Filter**
+- Admin navigates to Users tab
+- Admin clicks location filter dropdown
+- Tree opens in collapsed state
+
+**Step 2: Find Target Location**
+- Admin types "Chicago" in search
+- "Chicago Plant" appears with path "North America > USA"
+- Children visible: "▶ Loading Dock", "▶ Office", "▶ Lab"
+- Admin checks "Chicago Plant"
+
+**Step 3: Apply Filter**
+- Counter shows: "4 locations selected (with sub-locations)"
+- Admin clicks "Apply" button
+- User list updates immediately
+
+**Step 4: Results Displayed**
+- Table shows all users assigned to:
+  - Chicago Plant directly
+  - Loading Dock (child of Chicago Plant)
+  - Office (child of Chicago Plant)
+  - Lab (child of Chicago Plant)
+  - North America (parent - has access to Chicago as child)
+  - USA (parent - has access to Chicago as child)
+
+**Filter Behavior:**
+- **Downstream Inclusion:** All users at Chicago Plant level and below
+- **Upstream Inclusion:** All users at parent levels (who inherit Chicago access)
+- **Exclusion:** Users at sibling locations (Seattle Plant, Canada, etc.)
+
+**Why This Matters:**
+- Answers question: "Who can see safety data from this facility?"
+- Includes both direct assignments and inherited access
+- Critical for auditing data visibility and compliance
+
+---
+
+### 9.3 Editing User Location (Reassignment)
+
+**User Goal:** Move a user from Chicago Plant to Seattle Plant
+
+**Step-by-Step Flow:**
+
+**Step 1: Open User Edit**
+- Admin clicks "Edit" on user row
+- Modal opens with current assignment: "North America > USA > Chicago Plant"
+- Location selector shows current selection highlighted
+
+**Step 2: Change Location**
+- Admin clears current selection (click X icon)
+- Tree resets to collapsed state
+- Admin searches "Seattle"
+- "Seattle Plant" appears
+- Admin checks "Seattle Plant"
+
+**Step 3: Impact Understanding**
+- Visual comparison:
+  - **Old Access:** Chicago Plant, Loading Dock, Office, Lab
+  - **New Access:** Seattle Plant, Distribution Center, Warehouse
+- Admin confirms change
+
+**Step 4: Save**
+- Admin clicks "Save Changes"
+- System updates user record
+- User's next login shows Seattle Plant data only
+- Audit log records location change with before/after details
+
+**Critical Rules:**
+- **Immediate Effect:** Access changes instantly (no delay)
+- **Data Loss Prevention:** User loses access to Chicago data, gains Seattle data
+- **No Orphaned Data:** Historical actions (incidents, CAPAs) retain original location tags
+- **Audit Trail:** Complete record of location reassignments for compliance
+
+---
+
+### 9.4 Dealing with Complex Hierarchies
+
+**Scenario:** Organization has 200+ locations across 20 countries
+
+**Challenge:** Finding specific location without overwhelming UI
+
+**Solution: Collapsed Tree + Smart Search**
+
+**Example: Find "Line 3" in Mexico City Plant**
+
+**Without Search (Manual Navigation):**
+1. Expand "North America" (10 children)
+2. Expand "Mexico" (5 children)
+3. Expand "Mexico City Plant" (8 children)
+4. Expand "Production Floor" (6 children)
+5. Finally see "Line 3"
+- **Result:** 5 clicks, high cognitive load
+
+**With Search:**
+1. Type "Line 3"
+2. See result: "Line 3" with breadcrumb "North America > Mexico > Mexico City Plant > Production Floor"
+3. Confirm correct location (production floor, not loading dock)
+4. Check "Line 3"
+- **Result:** 1 search + 1 click, minimal cognitive load
+
+**Best Practices:**
+- **For Common Locations:** Use search (faster)
+- **For Exploration:** Use manual navigation (discover hierarchy)
+- **For Verification:** Expand matched node to see children (ensure correct scope)
+
+---
+
 ## Document Approval
 
-**Version:** 1.0  
-**Date:** January 23, 2026  
-**Status:** ✅ Ready for Implementation
+**Version:** 1.1  
+**Date:** January 26, 2026  
+**Status:** ✅ Ready for Implementation (Updated with Location UX Improvements)
 
 **Approved By:**
 - Product Management: ________________
