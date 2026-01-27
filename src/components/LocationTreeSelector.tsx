@@ -77,7 +77,8 @@ export default function LocationTreeSelector({
       findMatchesAndAncestors(filteredTree);
       setExpandedNodes(nodesToExpand);
     }
-  }, [searchTerm, filteredTree]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchTerm]);
 
   const handleToggleExpand = (nodeId: string) => {
     setExpandedNodes((prev) => {
