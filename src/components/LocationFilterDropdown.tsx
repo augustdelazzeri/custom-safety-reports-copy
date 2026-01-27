@@ -96,7 +96,8 @@ export default function LocationFilterDropdown({
       findMatchesAndAncestors(filteredTree);
       setExpandedNodes(nodesToExpand);
     }
-  }, [searchTerm, filteredTree]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchTerm]);
 
   const handleToggleExpand = (nodeId: string) => {
     setExpandedNodes((prev) => {
@@ -137,6 +138,10 @@ export default function LocationFilterDropdown({
   const handleCancel = () => {
     setTempSelectedNodeId(selectedNodeId);
     setIsOpen(false);
+  };
+
+  const handleClearSearch = () => {
+    setSearchTerm("");
   };
 
   const countChildren = (node: LocationNode): number => {
@@ -302,8 +307,32 @@ export default function LocationFilterDropdown({
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 placeholder="Search..."
-                className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md text-sm text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full pl-10 pr-10 py-2 border border-gray-300 rounded-md text-sm text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               />
+              {searchTerm && (
+                <button
+                  type="button"
+                  onClick={handleClearSearch}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 focus:outline-none"
+                  title="Clear search"
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="16"
+                    height="16"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <circle cx="12" cy="12" r="10" />
+                    <path d="m15 9-6 6" />
+                    <path d="m9 9 6 6" />
+                  </svg>
+                </button>
+              )}
             </div>
           </div>
 
