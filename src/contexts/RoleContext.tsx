@@ -28,7 +28,7 @@ const RoleContext = createContext<RoleContextType | undefined>(undefined);
 
 const STORAGE_KEY = "ehs_custom_roles";
 const STORAGE_VERSION_KEY = "ehs_custom_roles_version";
-const CURRENT_VERSION = "2.0"; // Updated for 3-level permission structure
+const CURRENT_VERSION = "3.1"; // Global Admin with full OSHA location permissions + UI improvements
 
 export function RoleProvider({ children }: { children: ReactNode }) {
   const [roles, setRoles] = useState<Record<string, CustomRole>>({});

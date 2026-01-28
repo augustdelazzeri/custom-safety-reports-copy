@@ -223,56 +223,52 @@ export default function RoleBuilderMatrix({
             key={module.moduleId}
             className="border border-gray-200 rounded-lg overflow-hidden"
           >
-            {/* Module Header */}
-            <div className="px-4 py-3 border-b bg-gray-50 border-gray-200">
-              <div className="flex items-center justify-between">
-                <div className="flex-1">
-                  <h3 className="text-sm font-semibold text-gray-900">
-                    {module.moduleName}
-                  </h3>
-                  <p className="text-xs mt-0.5 text-gray-600">
-                    {module.description}
-                  </p>
-                  {isOSHA && (
-                    <div className="mt-1.5 text-xs text-gray-500 flex items-center gap-1">
-                      <span>🔒</span>
-                      <span>Contains PII - Handle with care</span>
-                    </div>
-                  )}
-                </div>
-                <button
-                  type="button"
-                  onClick={() => handleSelectAllModule(module.moduleId)}
-                  disabled={disabled}
-                  className={`ml-4 flex items-center gap-2 px-3 py-1.5 rounded-md text-xs font-medium transition-colors ${
-                    disabled
-                      ? "bg-gray-200 text-gray-400 cursor-not-allowed"
-                      : moduleFullySelected
-                        ? "bg-blue-100 text-blue-700 hover:bg-blue-200"
-                        : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-                  }`}
-                >
-                  <div className={`relative inline-flex h-4 w-4 flex-shrink-0 items-center justify-center rounded border-2 transition-colors ${
-                    disabled 
-                      ? "bg-gray-200 border-gray-300" 
-                      : moduleFullySelected
-                        ? "bg-blue-600 border-blue-600"
-                        : modulePartiallySelected
-                          ? "bg-blue-600 border-blue-600"
-                          : "bg-white border-gray-400"
-                  }`}>
-                    {moduleFullySelected ? (
-                      <svg className="w-2.5 h-2.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
-                      </svg>
-                    ) : modulePartiallySelected ? (
-                      <div className="w-1.5 h-0.5 bg-white rounded" />
-                    ) : null}
+            {/* Module Header - Skip for OSHA (has its own header inside) */}
+            {!isOSHA && (
+              <div className="px-4 py-3 border-b bg-gray-50 border-gray-200">
+                <div className="flex items-center justify-between">
+                  <div className="flex-1">
+                    <h3 className="text-sm font-semibold text-gray-900">
+                      {module.moduleName}
+                    </h3>
+                    <p className="text-xs mt-0.5 text-gray-600">
+                      {module.description}
+                    </p>
                   </div>
-                  Select All
-                </button>
+                  <button
+                    type="button"
+                    onClick={() => handleSelectAllModule(module.moduleId)}
+                    disabled={disabled}
+                    className={`ml-4 flex items-center gap-2 px-3 py-1.5 rounded-md text-xs font-medium transition-colors ${
+                      disabled
+                        ? "bg-gray-200 text-gray-400 cursor-not-allowed"
+                        : moduleFullySelected
+                          ? "bg-blue-100 text-blue-700 hover:bg-blue-200"
+                          : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                    }`}
+                  >
+                    <div className={`relative inline-flex h-4 w-4 flex-shrink-0 items-center justify-center rounded border-2 transition-colors ${
+                      disabled 
+                        ? "bg-gray-200 border-gray-300" 
+                        : moduleFullySelected
+                          ? "bg-blue-600 border-blue-600"
+                          : modulePartiallySelected
+                            ? "bg-blue-600 border-blue-600"
+                            : "bg-white border-gray-400"
+                    }`}>
+                      {moduleFullySelected ? (
+                        <svg className="w-2.5 h-2.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                        </svg>
+                      ) : modulePartiallySelected ? (
+                        <div className="w-1.5 h-0.5 bg-white rounded" />
+                      ) : null}
+                    </div>
+                    Select All
+                  </button>
+                </div>
               </div>
-            </div>
+            )}
             
             {/* OSHA module: Skip regular permissions, only show location-based permissions below */}
             {module.moduleId !== 'osha' && (

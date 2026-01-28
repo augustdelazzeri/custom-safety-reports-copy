@@ -457,12 +457,13 @@ function PeopleContent() {
 
   const getRoleBadgeColor = (roleId: string) => {
     const role = getRoleById(roleId);
-    if (!role) return "bg-gray-100 text-gray-700 border-gray-200";
+    if (!role) return "bg-gray-100 text-gray-700 border-gray-300";
     
     if (role.isSystemRole) {
       return "bg-blue-100 text-blue-700 border-blue-200";
     }
-    return "bg-purple-100 text-purple-700 border-purple-200";
+    // Custom roles: gray (more discreet)
+    return "bg-gray-100 text-gray-700 border-gray-300";
   };
 
   const formatDate = (dateString: string) => {
@@ -616,15 +617,6 @@ function PeopleContent() {
               </div>
 
               <button
-                onClick={() => setShowBulkImportModal(true)}
-                className="px-4 py-2 bg-white text-gray-700 border border-gray-300 rounded-md text-sm font-medium hover:bg-gray-50 transition-colors flex items-center gap-2 flex-shrink-0"
-              >
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
-                </svg>
-                Import Users
-              </button>
-              <button
                 onClick={handleAddUser}
                 className="px-4 py-2 bg-blue-600 text-white rounded-md text-sm font-medium hover:bg-blue-700 transition-colors flex items-center gap-2 flex-shrink-0"
               >
@@ -632,6 +624,15 @@ function PeopleContent() {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
                 </svg>
                 Add User
+              </button>
+              <button
+                onClick={() => setShowBulkImportModal(true)}
+                className="px-4 py-2 bg-white text-gray-700 border border-gray-300 rounded-md text-sm font-medium hover:bg-gray-50 transition-colors flex items-center gap-2 flex-shrink-0"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                </svg>
+                Import Users
               </button>
               </div>
                 </div>
