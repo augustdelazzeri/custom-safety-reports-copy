@@ -11,8 +11,8 @@ import type { CustomRole } from "../schemas/roles";
 
 export const mockRoles: CustomRole[] = [
   {
-    id: "role_safety_admin",
-    name: "Safety Administrator",
+    id: "role_global_admin",
+    name: "Global Admin",
     isSystemRole: true,
     permissions: {
       // Incident Management
@@ -198,8 +198,8 @@ export const mockRoles: CustomRole[] = [
   },
   
   {
-    id: "role_safety_manager",
-    name: "Safety Manager",
+    id: "role_location_admin",
+    name: "Location Admin",
     isSystemRole: true,
     permissions: {
       // Incident Management
@@ -385,8 +385,8 @@ export const mockRoles: CustomRole[] = [
   },
   
   {
-    id: "role_field_tech",
-    name: "Field Technician",
+    id: "role_technician",
+    name: "Technician",
     isSystemRole: true,
     permissions: {
       // Incident Management
@@ -573,7 +573,7 @@ export const mockRoles: CustomRole[] = [
   
   {
     id: "role_view_only",
-    name: "View Only",
+    name: "View-Only",
     isSystemRole: true,
     permissions: {
       // Incident Management

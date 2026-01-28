@@ -10,12 +10,13 @@ import RoleBuilderMatrix from "./RoleBuilderMatrix";
 import { createDefaultPermissions, countEnabledPermissions } from "../schemas/roles";
 import type { CustomRole, RolePermissions, OSHALocationPermissions } from "../schemas/roles";
 import { useRole } from "../contexts/RoleContext";
+import { useUser } from "../contexts/UserContext";
 import { getVisibleModules } from "../data/permissionsMock";
 
 interface CreateRoleModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSubmit: (name: string, permissions: RolePermissions, oshaLocationPermissions?: OSHALocationPermissions) => void;
+  onSubmit: (name: string, permissions: RolePermissions, oshaLocationPermissions?: OSHALocationPermissions, description?: string) => void;
   existingRole?: CustomRole; // For edit mode
   checkDuplicateName: (name: string, excludeId?: string) => boolean;
   initialAdvancedMode?: boolean; // Initial state for advanced mode toggle
@@ -30,6 +31,7 @@ export default function CreateRoleModal({
   initialAdvancedMode = false
 }: CreateRoleModalProps) {
   const [roleName, setRoleName] = useState("");
+  const [description, setDescription] = useState("");
   const [permissions, setPermissions] = useState<RolePermissions>(createDefaultPermissions());
   const [oshaLocationPermissions, setOshaLocationPermissions] = useState<OSHALocationPermissions>({});
   const [error, setError] = useState("");
@@ -37,19 +39,28 @@ export default function CreateRoleModal({
   const [baseRoleId, setBaseRoleId] = useState("");
 
   const { getRolesList } = useRole();
+  const { getUsersList } = useUser();
   const roles = getRolesList();
+  const users = getUsersList();
   const isEditMode = !!existingRole;
+  
+  // Count active users assigned to this role
+  const activeUsersCount = isEditMode && existingRole 
+    ? users.filter(u => u.roleId === existingRole.id && u.status === 'active').length 
+    : 0;
 
   // Reset form when modal opens/closes or when existingRole changes
   useEffect(() => {
     if (isOpen) {
       if (existingRole) {
         setRoleName(existingRole.name);
+        setDescription(existingRole.description || "");
         setPermissions(existingRole.permissions);
         setOshaLocationPermissions(existingRole.oshaLocationPermissions || {});
         setBaseRoleId("");
       } else {
         setRoleName("");
+        setDescription("");
         setPermissions(createDefaultPermissions());
         setOshaLocationPermissions({});
         setBaseRoleId("");
@@ -148,7 +159,7 @@ export default function CreateRoleModal({
       }
     }
 
-    onSubmit(trimmedName, permissions, oshaLocationPermissions);
+    onSubmit(trimmedName, permissions, oshaLocationPermissions, description.trim() || undefined);
   };
 
   const handleCancel = () => {
@@ -216,6 +227,23 @@ export default function CreateRoleModal({
         <form onSubmit={handleSubmit} className="flex flex-col flex-1 min-h-0">
           <div className="px-6 py-4 space-y-6 overflow-y-auto flex-1">
             
+            {/* Warning Banner - Active Users */}
+            {isEditMode && activeUsersCount > 0 && (
+              <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
+                <div className="flex items-start gap-3">
+                  <svg className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                  </svg>
+                  <div className="flex-1">
+                    <h4 className="text-sm font-semibold text-amber-900 mb-1">Active Users Warning</h4>
+                    <p className="text-xs text-amber-800">
+                      ⚠️ This role is currently assigned to <span className="font-semibold">{activeUsersCount} active user{activeUsersCount !== 1 ? 's' : ''}</span>. Any changes to permissions will take effect immediately.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
+            
             {/* Role Name Input */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -244,6 +272,30 @@ export default function CreateRoleModal({
                   System role names cannot be changed
                 </p>
               )}
+            </div>
+
+            {/* Description Input */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Description <span className="text-gray-400 text-xs">(optional)</span>
+              </label>
+              <textarea
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                placeholder="e.g., Restricted role for external electrical contractors"
+                maxLength={500}
+                rows={3}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm text-gray-900 focus:outline-none focus:ring-2 focus:border-blue-500 focus:ring-blue-500 resize-none"
+                disabled={existingRole?.isSystemRole}
+              />
+              <div className="flex justify-between items-center mt-1">
+                <p className="text-xs text-gray-500">
+                  Define the intended scope and use case for this role
+                </p>
+                <span className="text-xs text-gray-400">
+                  {description.length}/500
+                </span>
+              </div>
             </div>
 
             {/* Base Role Selector - Only show when creating new role */}

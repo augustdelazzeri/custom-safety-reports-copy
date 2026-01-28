@@ -13,8 +13,8 @@ import { mockRoles } from "../samples/mockRoles";
 
 interface RoleContextType {
   roles: Record<string, CustomRole>;
-  createRole: (name: string, permissions: RolePermissions, oshaLocationPermissions?: OSHALocationPermissions) => string;
-  updateRole: (id: string, name: string, permissions: RolePermissions, oshaLocationPermissions?: OSHALocationPermissions) => boolean;
+  createRole: (name: string, permissions: RolePermissions, oshaLocationPermissions?: OSHALocationPermissions, description?: string) => string;
+  updateRole: (id: string, name: string, permissions: RolePermissions, oshaLocationPermissions?: OSHALocationPermissions, description?: string) => boolean;
   deleteRole: (id: string) => boolean;
   duplicateRole: (id: string) => string;
   getRoleById: (id: string) => CustomRole | undefined;
@@ -90,13 +90,14 @@ export function RoleProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  const createRole = (name: string, permissions: RolePermissions, oshaLocationPermissions?: OSHALocationPermissions): string => {
+  const createRole = (name: string, permissions: RolePermissions, oshaLocationPermissions?: OSHALocationPermissions, description?: string): string => {
     const newId = `role_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
     const now = new Date().toISOString();
     
     const newRole: CustomRole = {
       id: newId,
       name: name.trim(),
+      description: description?.trim() || undefined,
       permissions,
       oshaLocationPermissions: oshaLocationPermissions || {},
       isSystemRole: false,
@@ -119,7 +120,7 @@ export function RoleProvider({ children }: { children: ReactNode }) {
     return newId;
   };
 
-  const updateRole = (id: string, name: string, permissions: RolePermissions, oshaLocationPermissions?: OSHALocationPermissions): boolean => {
+  const updateRole = (id: string, name: string, permissions: RolePermissions, oshaLocationPermissions?: OSHALocationPermissions, description?: string): boolean => {
     const role = roles[id];
     if (!role) return false;
 
@@ -129,6 +130,7 @@ export function RoleProvider({ children }: { children: ReactNode }) {
     const updatedRole: CustomRole = {
       ...role,
       name: name.trim(),
+      description: description?.trim() || undefined,
       permissions,
       oshaLocationPermissions: oshaLocationPermissions !== undefined ? oshaLocationPermissions : role.oshaLocationPermissions,
       updatedAt: new Date().toISOString(),

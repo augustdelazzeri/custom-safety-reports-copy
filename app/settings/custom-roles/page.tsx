@@ -12,12 +12,14 @@ import { useRouter } from "next/navigation";
 import Sidebar from "../../../src/components/Sidebar";
 import CreateRoleModal from "../../../src/components/CreateRoleModal";
 import { RoleProvider, useRole } from "../../../src/contexts/RoleContext";
+import { UserProvider, useUser } from "../../../src/contexts/UserContext";
 import { countEnabledPermissions } from "../../../src/schemas/roles";
 import { getVisibleModules } from "../../../src/data/permissionsMock";
 
 function CustomRolesContent() {
   const router = useRouter();
   const { getRolesList, createRole, updateRole, duplicateRole, deleteRole, checkDuplicateName } = useRole();
+  const { getUsersList } = useUser();
   const [searchQuery, setSearchQuery] = useState("");
   const [openMenuId, setOpenMenuId] = useState<string | null>(null);
   const [showCreateModal, setShowCreateModal] = useState(false);
@@ -25,6 +27,7 @@ function CustomRolesContent() {
   const [advancedMode, setAdvancedMode] = useState(false);
 
   const roles = getRolesList();
+  const users = getUsersList();
 
   // Count permissions based on current mode (only visible modules)
   const countVisiblePermissions = (permissions: typeof roles[0]['permissions']) => {
@@ -65,11 +68,11 @@ function CustomRolesContent() {
     setOpenMenuId(null);
   };
 
-  const handleSubmitRole = (name: string, permissions: typeof roles[0]['permissions']) => {
+  const handleSubmitRole = (name: string, permissions: typeof roles[0]['permissions'], oshaLocationPermissions?: any, description?: string) => {
     if (editingRole) {
-      updateRole(editingRole, name, permissions);
+      updateRole(editingRole, name, permissions, oshaLocationPermissions, description);
     } else {
-      createRole(name, permissions);
+      createRole(name, permissions, oshaLocationPermissions, description);
     }
     setShowCreateModal(false);
     setEditingRole(null);
@@ -86,6 +89,13 @@ function CustomRolesContent() {
 
     if (role.isSystemRole) {
       alert("System roles cannot be deleted. You can duplicate them to create customizable versions.");
+      return;
+    }
+
+    // Check if role is assigned to any users
+    const assignedUsers = users.filter(u => u.roleId === roleId);
+    if (assignedUsers.length > 0) {
+      alert(`Cannot delete role\n\nThis role is assigned to ${assignedUsers.length} user${assignedUsers.length !== 1 ? 's' : ''}. Please reassign them first.\n\nTip: Go to Settings > People to reassign users to a different role.`);
       return;
     }
 
@@ -239,7 +249,7 @@ function CustomRolesContent() {
                         <div className="flex items-center gap-2">
                           <span className="text-sm font-medium text-gray-900">{role.name}</span>
                           {role.isSystemRole && (
-                            <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-700 border border-gray-300">
+                            <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-700 border border-blue-200">
                               <svg className="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
                                 <path fillRule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clipRule="evenodd" />
                               </svg>
@@ -366,7 +376,9 @@ function CustomRolesContent() {
 export default function CustomRolesPage() {
   return (
     <RoleProvider>
-      <CustomRolesContent />
+      <UserProvider>
+        <CustomRolesContent />
+      </UserProvider>
     </RoleProvider>
   );
 }
