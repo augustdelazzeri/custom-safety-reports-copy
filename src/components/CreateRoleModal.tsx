@@ -289,30 +289,6 @@ export default function CreateRoleModal({
               )}
             </div>
 
-            {/* Description Input */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Description <span className="text-gray-400 text-xs">(optional)</span>
-              </label>
-              <textarea
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
-                placeholder="e.g., Restricted role for external electrical contractors"
-                maxLength={500}
-                rows={3}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm text-gray-900 focus:outline-none focus:ring-2 focus:border-blue-500 focus:ring-blue-500 resize-none"
-                disabled={existingRole?.isSystemRole}
-              />
-              <div className="flex justify-between items-center mt-1">
-                <p className="text-xs text-gray-500">
-                  Define the intended scope and use case for this role
-                </p>
-                <span className="text-xs text-gray-400">
-                  {description.length}/500
-                </span>
-              </div>
-            </div>
-
             {/* Base Role Selector - Only show when creating new role */}
             {!isEditMode && (
               <div>
@@ -354,6 +330,30 @@ export default function CreateRoleModal({
                 </p>
               </div>
             )}
+
+            {/* Description Input */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Description <span className="text-gray-400 text-xs">(optional)</span>
+              </label>
+              <textarea
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                placeholder="e.g., Restricted role for external electrical contractors"
+                maxLength={500}
+                rows={3}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm text-gray-900 focus:outline-none focus:ring-2 focus:border-blue-500 focus:ring-blue-500 resize-none"
+                disabled={existingRole?.isSystemRole}
+              />
+              <div className="flex justify-between items-center mt-1">
+                <p className="text-xs text-gray-500">
+                  Define the intended scope and use case for this role
+                </p>
+                <span className="text-xs text-gray-400">
+                  {description.length}/500
+                </span>
+              </div>
+            </div>
 
             {/* Permissions Matrix */}
             <div>
