@@ -1,10 +1,11 @@
 # Functional Specification: User Management & Custom Roles (RBAC)
 
-**Document Version:** 1.0  
-**Date:** January 23, 2026  
+**Document Version:** 2.0  
+**Date:** January 26, 2026  
 **Status:** ✅ Approved for Implementation  
 **Author:** Product Management  
-**Stakeholders:** Engineering, Security, Compliance
+**Stakeholders:** Engineering, Security, Compliance  
+**Last Updated:** Expanded with new requirements including Decoupled Architecture, Zero-Trust Model, API Interceptor Pattern, and Bulk User Import
 
 ---
 
@@ -2810,9 +2811,9 @@ CREATE INDEX idx_audit_logs_metadata_gin ON audit_logs USING GIN (metadata);
 
 ## Document Approval
 
-**Version:** 1.0  
-**Date:** January 23, 2026  
-**Status:** ✅ Ready for Implementation
+**Version:** 2.0  
+**Date:** January 26, 2026  
+**Status:** ✅ Ready for Implementation (Updated with Expanded Requirements)
 
 **Approved By:**
 - Product Management: ________________
@@ -2827,6 +2828,24 @@ CREATE INDEX idx_audit_logs_metadata_gin ON audit_logs USING GIN (metadata);
 4. QA test plan creation
 5. Security audit
 6. Compliance validation
+
+---
+
+## Works Cited
+
+This specification incorporates requirements and design decisions from the following source documents:
+
+1. **Permissions and Location Hierarchy Work** - Architecture design for decoupled CMMS-EHS permission model and 6-level location hierarchy
+2. **Functional Specification: User Management & Custom Roles (RBAC)** - Original functional specification document (v1.0)
+3. **FSD: View-Only Role & Conditional Access** - Zero-trust visibility model and conditional access patterns for external auditors
+4. **FUNCTIONAL_SPECIFICATION_RBAC_LOCATIONS_COMPLETE.md** - Complete technical specification for location-based access control
+5. **EHS Permissions & Roles - 2026/01/21 09:30 PST - Notes by Gemini** - Requirements gathering session notes with stakeholders
+6. **Functional Specification: Lockout/Tagout (LOTO) & Permit to Work (PTW)** - Workflow notification requirements and approval patterns
+
+**Related Documentation:**
+- [`01_Location_Hierarchy_Business_Spec.md`](01_Location_Hierarchy_Business_Spec.md) - Detailed specification of 6-level location hierarchy
+- `EHS_USER_MANAGEMENT_IMPLEMENTATION.md` - Implementation guide and technical architecture
+- `CUSTOM_ROLES_IMPLEMENTATION.md` - Frontend component implementation details
 
 ---
 
