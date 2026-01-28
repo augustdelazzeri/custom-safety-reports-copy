@@ -21,25 +21,48 @@ Data: 2026-01-26
 
 ## 3. ✅ Campo Description - Visibilidade
 **Issue:** Espaço para descrição opcional não estava visível na criação de custom role
-**Verificação Necessária:** Campo já existe, verificar se há problema de CSS/layout
-**Status:** Em investigação
+**Resolução:** Campo está implementado, localizado logo após "Role Name"
+**Possível Causa:** Modal tem scroll (max-h-90vh), usuário precisa rolar para baixo
+**Como verificar:** 
+1. Abrir modal de criação de role
+2. Rolar para baixo após o campo "Role Name"
+3. Campo "Description (optional)" com textarea 3 linhas, 500 chars max
+**Status:** Implementado - pode precisar rolar no modal
 
 ---
 
-## 4. ✅ Botão "Import Users" - Posicionamento
-**Issue:** Botão "Import Users" estava "perdido" visualmente
-**Decisão:** Já está ao lado de "Add User", mas pode precisar de reordenamento visual
-**Ajuste:** Trocar ordem (Import Users à esquerda, Add User à direita destaque azul)
+## 4. ✅ Botão "Import Users" - Posicionamento Final
+**Issue:** Botões estavam misturados com filtros, sem agrupamento claro
+**Solução Implementada:** 
+- Filtros agrupados à ESQUERDA (search, role, status, location)
+- Botões de ação agrupados à DIREITA em container separado
+- "Import Users" (cinza, secundário) à esquerda
+- "Add User" (azul, primário) à direita
+- Gap de 2 entre os botões (gap-2)
+**Resultado:** Funcionalidades relacionadas ficam juntas, separadas dos filtros
 **Status:** Implementado
 
 ---
 
-## 5. ✅ Warning Banner - Role com Usuário Ativo
-**Issue:** Banner amarelo não apareceu ao editar role atribuída a usuário ativo
-**Verificação:** Lógica está correta - CreateRoleModal verifica `isEditMode && activeUsersCount > 0`
-**Possível Causa:** Role testada não tinha usuários **ativos** (status='active') atribuídos
-**Nota:** Banner só aparece se houver pelo menos 1 usuário com `status: 'active'` usando a role
-**Status:** Verificado - funcionando conforme esperado
+## 5. 🔍 Warning Banner - Role com Usuário Ativo (DEBUG ATIVO)
+**Issue:** Banner amarelo não aparece ao editar role atribuída a usuário ativo
+**Implementação:** Lógica correta - `isEditMode && activeUsersCount > 0`
+**Debug Adicionado:** Console.log mostra:
+- roleId e roleName
+- Total de usuários no sistema
+- Usuários com essa role
+- Usuários ATIVOS com essa role
+- Se banner deveria aparecer (willShowBanner)
+
+**Como testar:**
+1. Criar uma custom role
+2. Atribuir a um usuário com status='active'
+3. Editar a role
+4. Abrir console do navegador
+5. Ver output do debug "🔍 Warning Banner Debug"
+
+**Próximos Passos:** Analisar output do console para identificar problema
+**Status:** Debug ativo, aguardando análise
 
 ---
 
