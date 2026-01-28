@@ -19,15 +19,24 @@ Data: 2026-01-26
 
 ---
 
-## 3. ✅ Campo Description - Visibilidade
+## 3. ✅ Campo Description - Implementação Completa
 **Issue:** Espaço para descrição opcional não estava visível na criação de custom role
-**Resolução:** Campo está implementado, localizado logo após "Role Name"
-**Possível Causa:** Modal tem scroll (max-h-90vh), usuário precisa rolar para baixo
-**Como verificar:** 
-1. Abrir modal de criação de role
-2. Rolar para baixo após o campo "Role Name"
-3. Campo "Description (optional)" com textarea 3 linhas, 500 chars max
-**Status:** Implementado - pode precisar rolar no modal
+**Resolução Final:** Campo implementado em AMBOS os modos (modal E fullscreen)
+
+**Implementação:**
+- **Schema:** `src/schemas/roles.ts` - Adicionado `description?: string` ao `CustomRole`
+- **RoleContext:** `src/contexts/RoleContext.tsx` - `createRole()` e `updateRole()` aceitam description opcional
+- **CreateRoleModal:** `src/components/CreateRoleModal.tsx` - Campo description após "Start from existing role"
+- **Fullscreen Mode:** `app/settings/people/page.tsx` - Campo description no fullscreen role builder
+
+**Características do Campo:**
+- Localização: Após "Start from existing role" (ou "Role Name" se não houver base role)
+- Tipo: `textarea` com 3 linhas
+- Limite: 500 caracteres com contador visual "X/500"
+- Placeholder: "e.g., Restricted role for external electrical contractors"
+- Label: "Description (optional)" em cinza
+
+**Status:** ✅ Implementado e testado em ambos os modos
 
 ---
 
