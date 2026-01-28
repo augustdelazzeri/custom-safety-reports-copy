@@ -109,3 +109,78 @@ Data: 2026-01-26
 1. Global Admin deve ter 100% das permissões por padrão? (Assumido: SIM)
 2. Custom roles em cinza na lista de Users? (Decisão: SIM, mais discreto)
 3. OSHA cabeçalho duplicado era bug ou design? (Corrigido: bug)
+
+---
+
+## Arquivos Modificados - Checklist Completo
+
+### 📋 Schema & Types
+- ✅ `src/schemas/roles.ts` - Adicionado campo `description?: string` ao `CustomRole`
+
+### 🗄️ Mock Data
+- ✅ `src/samples/mockRoles.ts` 
+  - Renomeado `role_safety_admin` → `role_global_admin`
+  - Renomeado `role_safety_manager` → `role_location_admin`
+  - Renomeado `role_field_tech` → `role_technician`
+  - Renomeado `View Only` → `View-Only`
+  - Adicionado `oshaLocationPermissions` completo para Global Admin (Toronto + Atlanta, todas entidades)
+
+- ✅ `src/samples/mockUsers.ts`
+  - Atualizado `roleId` e `roleName` para todos os usuários refletindo novos nomes de System Roles
+
+### 🎯 Context Providers
+- ✅ `src/contexts/RoleContext.tsx`
+  - `createRole()` e `updateRole()` aceitam parâmetro `description?: string`
+  - Versão incrementada para 3.1 (força re-inicialização do localStorage)
+
+- ✅ `src/contexts/UserContext.tsx`
+  - Implementado `bulkImportUsers()` com validação e resolução de roles/locations
+  - Implementado "Last Global Admin Protection" em `toggleUserStatus()`
+  - Validação contra desativação do último Global Admin ativo
+
+### 🧩 Components
+- ✅ `src/components/CreateRoleModal.tsx`
+  - Campo description após "Start from existing role"
+  - Warning banner amarelo para edição de roles com usuários ativos
+  - Debug logs para troubleshooting do banner
+  - Conta usuários ativos por role
+
+- ✅ `src/components/BulkUserImportModal.tsx` (NOVO)
+  - Modal completo para import CSV
+  - Download de template CSV
+  - Upload drag-and-drop ou file picker
+  - Validação linha por linha (email, role, location)
+  - Preview table com indicação visual de valid/invalid
+  - Download de error report
+  - Import de rows válidas
+
+- ✅ `src/components/RoleBuilderMatrix.tsx`
+  - Esconde header externo para módulo "OSHA" (evita duplicação com OSHALocationSelector)
+
+### 📄 Pages
+- ✅ `app/settings/people/page.tsx`
+  - Integrado `BulkUserImportModal`
+  - Botões "Import Users" (gray) e "Add User" (blue) agrupados à direita
+  - Campo `fullscreenDescription` para modo fullscreen
+  - Badges: System Roles (blue), Custom Roles (gray discreto)
+  - Proteção contra deleção de role atribuída a usuários
+
+- ✅ `app/settings/custom-roles/page.tsx`
+  - Wrapped com `UserProvider` para validação de deleção
+  - Coluna "Description" na tabela (após "Role Name")
+  - Badges: System Roles (blue)
+  - Proteção contra deleção de role atribuída a usuários
+  - Truncate + tooltip para descrições longas
+
+### 🔧 Utilities & Data
+- ✅ `src/data/permissionsMock.ts`
+  - Redefinido `PermissionCategory` com 6 categorias funcionais
+  - Adicionado `CATEGORY_METADATA` para UI
+  - Atualizado todas as `category` dos `PermissionAction`
+  - Atualizado `PERMISSION_CATEGORIES` e `getModuleCategories()`
+
+### 📚 Documentation
+- ✅ `docs/PROTOTYPE_ADJUSTMENTS.md` (NOVO)
+  - Rastreamento de todos os ajustes visuais e decisões
+  - Comparação com especificação original para validação futura
+
