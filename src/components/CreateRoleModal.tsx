@@ -48,6 +48,21 @@ export default function CreateRoleModal({
   const activeUsersCount = isEditMode && existingRole 
     ? users.filter(u => u.roleId === existingRole.id && u.status === 'active').length 
     : 0;
+  
+  // Debug log
+  React.useEffect(() => {
+    if (isEditMode && existingRole) {
+      console.log('🔍 Warning Banner Debug:', {
+        roleId: existingRole.id,
+        roleName: existingRole.name,
+        totalUsers: users.length,
+        usersWithRole: users.filter(u => u.roleId === existingRole.id).length,
+        activeUsers: users.filter(u => u.roleId === existingRole.id && u.status === 'active').length,
+        activeUsersCount,
+        willShowBanner: activeUsersCount > 0
+      });
+    }
+  }, [isEditMode, existingRole, users, activeUsersCount]);
 
   // Reset form when modal opens/closes or when existingRole changes
   useEffect(() => {
