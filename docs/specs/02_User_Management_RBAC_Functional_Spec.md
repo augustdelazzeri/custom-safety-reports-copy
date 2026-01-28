@@ -54,16 +54,16 @@ This specification covers four core workflows:
 
 The system interaction is defined by distinct actor types, each with specific responsibilities, constraints, and relationships to the underlying data model.
 
-#### 2.1.1 Super Admin (Global Administrator)
+#### 2.1.1 Global Admin (Super Administrator)
 
 - **Definition:** The highest-level authority within the EHS tenant, typically representing the "Head of Safety" or Corporate Safety Director (e.g., Persona: Jane).
 - **Capabilities:**
   - **Full CRUD Access:** Possesses unrestricted Create, Read, Update, and Delete capabilities across all modules, including Safety Events, CAPA, JHA, SOP, LOTO, and PTW.
-  - **Exclusive Compliance Access:** Only Super Admins can access the Compliance Engine to manage sensitive OSHA Logs (300, 301, 300A). This module is invisible to all other roles.
+  - **Exclusive Compliance Access:** Only Global Admins can access the Compliance Engine to manage sensitive OSHA Logs (300, 301, 300A). This module is invisible to all other roles.
   - **Cross-Module Authority:** Via the API Interceptor Pattern, this actor can trigger Work Order creations in the CMMS even if their CMMS-specific role is "View-Only," resolving the "Desmoine Scenario" where safety leaders lack maintenance admin rights.
-- **Constraint:** The system **Must** prevent the deletion or deactivation of the last remaining user with the Super Admin role to prevent irreversible system lockout.
+- **Constraint:** The system **Must** prevent the deletion or deactivation of the last remaining user with the Global Admin role to prevent irreversible system lockout.
 
-#### 2.1.2 User Administrator (Location Administrator)
+#### 2.1.2 Location Admin (Location Administrator)
 
 - **Definition:** A site-level manager responsible for a specific facility or region (e.g., Persona: John, Plant Manager).
 - **Capabilities:**
@@ -71,7 +71,7 @@ The system interaction is defined by distinct actor types, each with specific re
   - **Administrative Powers:** Possesses "Admin-like" powers (e.g., Approve CAPA, Close Incident) confined strictly to data tagged with their assigned Location ID or its descendants.
 - **Constraint:** Strictly blocked from viewing or managing records associated with sibling locations (e.g., a Texas admin cannot see New York data) or modifying System Roles.
 
-#### 2.1.3 End User (Technician / Limited Tech)
+#### 2.1.3 Technician (Limited Tech)
 
 - **Definition:** The primary executor of safety tasks and data entry, such as a Machine Operator or Maintenance Technician (e.g., Persona: Mike).
 - **Capabilities:**
@@ -79,7 +79,7 @@ The system interaction is defined by distinct actor types, each with specific re
   - **Work Order Augmentation:** Can attach safety artifacts (checklists, JHAs) to Work Orders without possessing "Edit" rights for the Work Order itself, facilitating the "Field Execution Paradox" resolution.
 - **Constraint:** Strictly prohibited from deleting any record. Subject to a strict "One role per user" enforcement (1:1 relationship).
 
-#### 2.1.4 Conditional View-Only (Auditor)
+#### 2.1.4 View-Only (Auditor)
 
 - **Definition:** External legal counsel, auditors, or temporary contractors (e.g., Persona: Sarah).
 - **Capabilities:**
@@ -99,10 +99,13 @@ The system interaction is defined by distinct actor types, each with specific re
 - **Deletion:** Cannot be deleted (Delete action hidden from UI actions menu)
 - **Duplication:** Can be cloned to create a Custom role with "(Copy)" suffix
 
-**Examples:**
-- EHS Manager (full access to all modules)
-- Site Safety Lead (events, CAPA, audits)
-- Safety Inspector (read-only with incident reporting)
+**Standard System Roles:**
+- **Global Admin:** Full access to all modules and administrative functions
+- **Location Admin:** Site-level management with location-scoped permissions
+- **Technician:** Field execution role with ownership-based editing
+- **View-Only:** Conditional read-only access with zero-trust visibility
+
+**Note:** We certainly need to learn more from customers and adjust over time, building a system that facilitates future changes.
 
 #### Custom Roles (Mutable)
 
@@ -164,7 +167,20 @@ The system interaction is defined by distinct actor types, each with specific re
 - Field Disabled: True
 - Hint Text: "System role names cannot be changed"
 
-#### 3.3.2 Clone from Existing Role (Optional)
+#### 3.3.2 Description (Optional)
+
+**Field Specifications:**
+- **Label:** "Description" with gray text "(optional)"
+- **Input Type:** Text area
+- **Placeholder:** "e.g., Restricted role for external electrical contractors"
+- **Character Limit:** 500 characters
+- **Validation:** None (optional field)
+
+**Purpose:** Allows administrators to define the intended scope and use case for the role, aiding in role management and selection.
+
+**Display:** Shown in role list view as tooltip on hover over role name.
+
+#### 3.3.3 Clone from Existing Role (Optional)
 
 **Field Specifications:**
 - **Label:** "Start from existing role" with gray text "(optional)"
@@ -176,9 +192,10 @@ The system interaction is defined by distinct actor types, each with specific re
 Create from scratch
 ─────────────────────
 System Roles
-  ├─ EHS Manager (32 permissions)
-  ├─ Site Safety Lead (24 permissions)
-  └─ Safety Inspector (18 permissions)
+  ├─ Global Admin (full permissions)
+  ├─ Location Admin (scoped permissions)
+  ├─ Technician (limited permissions)
+  └─ View-Only (read-only)
 ─────────────────────
 Custom Roles
   ├─ Regional Coordinator (28 permissions)
@@ -343,7 +360,7 @@ System Must validate the following before allowing save:
 **Automatic Naming:** When duplicating a System or Custom role, append " (Copy)" suffix
 
 **Examples:**
-- "EHS Manager" → "EHS Manager (Copy)"
+- "Global Admin" → "Global Admin (Copy)"
 - "Regional Coordinator (Copy)" → "Regional Coordinator (Copy) (Copy)"
 
 **Validation:** Duplicate name check applies to generated name (incremental if needed)
@@ -406,9 +423,9 @@ System Must validate the following before allowing save:
 ```
 Create from scratch
 ─────────────────────
-John Smith (EHS Manager - North America > USA)
-Jane Doe (Site Safety Lead - North America > USA > Plant A)
-Bob Johnson (Safety Inspector - Europe > UK > London)
+John Smith (Global Admin - North America > USA)
+Jane Doe (Location Admin - North America > USA > Plant A)
+Bob Johnson (Technician - Europe > UK > London)
 ```
 
 **Behavior:**
@@ -430,9 +447,10 @@ Bob Johnson (Safety Inspector - Europe > UK > London)
 Select a role...
 ─────────────────────
 System Roles
-  ├─ EHS Manager (Template)
-  ├─ Site Safety Lead (Template)
-  └─ Safety Inspector (Template)
+  ├─ Global Admin (Template)
+  ├─ Location Admin (Template)
+  ├─ Technician (Template)
+  └─ View-Only (Template)
 ─────────────────────
 Custom Roles
   ├─ Regional Coordinator
@@ -660,162 +678,18 @@ The selector **Must** support the 6-level recursive tree structure. Organization
 
 ### 4.4 Bulk User Import
 
-The bulk user import feature enables administrators to provision or update multiple users simultaneously via CSV upload, facilitating rapid onboarding and organizational restructuring.
+**Trigger:** "Import Users" button (Secondary action on User List).
 
-#### 4.4.1 Entry Points
+**Workflow:**
 
-**Trigger:** "Import Users" button (Secondary action on User Management List)
+1. **Download Template:** User downloads a CSV template containing headers: First Name, Last Name, Email, Role Name, Location Path.
+2. **Upload CSV:** User uploads the populated file.
+3. **Validation & Preview:** The system parses the file and validates rows.
 
-**Button Styling:**
-- Position: Top-right of user list, next to "Add User" button
-- Style: Secondary button (gray border, gray text)
-- Icon: Upload icon
-- Label: "Import Users"
+**Logic:**
 
-#### 4.4.2 Workflow
-
-**Step 1: Download Template**
-
-User downloads a CSV template containing the required headers:
-
-**Template Structure:**
-```csv
-First Name,Last Name,Email,Role Name,Location Path
-```
-
-**Header Definitions:**
-- **First Name:** Required. User's given name.
-- **Last Name:** Required. User's family name.
-- **Email:** Required. Must be valid email format. Used as unique identifier.
-- **Role Name:** Required. Must match an existing System Role or Custom Role name (case-insensitive).
-- **Location Path:** Required. Full hierarchical path using " > " separator (e.g., "North America > USA > Plant A").
-
-**Example Template Content:**
-```csv
-First Name,Last Name,Email,Role Name,Location Path
-John,Doe,john.doe@company.com,Safety Coordinator,North America > USA > Plant A
-Jane,Smith,jane.smith@company.com,EHS Manager,North America > Canada > Toronto DC
-Mike,Johnson,mike.j@company.com,Safety Inspector,Europe > UK > London Plant
-```
-
-**Step 2: Upload CSV**
-
-User uploads the populated CSV file.
-
-**Upload Component:**
-- Drag-and-drop zone or file picker
-- Accepted file types: `.csv` only
-- Max file size: 5MB (approximately 50,000 rows)
-- Progress indicator during upload
-
-**Step 3: Validation & Preview**
-
-The system parses the file and validates each row against the following rules:
-
-**Validation Rules:**
-
-1. **Email Format:** Must match standard email regex
-2. **Email Uniqueness (Per File):** No duplicate emails within the uploaded CSV
-3. **Role Existence:** Role Name must match an existing System or Custom Role
-   - **Critical:** If a Custom Role is specified but does not exist, the row fails
-   - **Resolution:** Users **Must** create Custom Roles manually *before* attempting bulk import
-4. **Location Path Validity:** Location path must match an existing location hierarchy
-   - System performs fuzzy matching to account for minor variations
-   - If no match found, row fails with specific error
-
-**Validation Results Display:**
-
-**Success State:**
-- Green checkmark icon
-- Message: "All X rows validated successfully. Ready to import."
-- "Import Users" button enabled
-
-**Partial Success State:**
-- Amber warning icon
-- Message: "X rows validated successfully. Y rows have errors. Review errors below."
-- Failed rows displayed in red with specific error messages
-- "Import Valid Rows" button enabled (imports only successful rows)
-- "Download Error Report" button available
-
-**Failure State:**
-- Red error icon
-- Message: "All rows have errors. Please correct the issues and try again."
-- "Import Users" button disabled
-- "Download Error Report" button available
-
-**Error Report Format (CSV):**
-```csv
-Row Number,First Name,Last Name,Email,Error Message
-2,Jane,Smith,jane.smith@company.com,"Role 'Regional Manager' does not exist. Create this role before importing."
-5,Bob,Williams,invalid-email,"Invalid email format"
-```
-
-#### 4.4.3 Import Logic
-
-**Case 1: New User (Email Not Found)**
-- System creates new user record with status "Pending"
-- Sends invitation email with 7-day token
-- Assigns specified role and location
-
-**Case 2: Existing User (Email Match Found)**
-- System treats the row as an **update request**
-- **Bulk Update Behavior:**
-  - Updates user's Role to match CSV data
-  - Updates user's Location to match CSV data
-  - Preserves user's status (Active/Inactive/Pending)
-  - Does NOT send new invitation email
-  - Logs role and location changes in audit trail
-- **Use Case:** Enables rapid mass-migration of users to new role types during organizational restructuring
-
-**Conflict Resolution:**
-- If user's current status is "Inactive," bulk update proceeds but user remains Inactive
-- If user's current role is deleted, bulk update replaces with new valid role
-- Location changes apply inheritance rules (user gains access to new subtree, loses access to old subtree)
-
-#### 4.4.4 Post-Import Behavior
-
-**Success Toast:**
-- Message: "X users imported successfully. Y users updated."
-- Color: Green
-- Duration: 5 seconds
-- Action: "View Users" link (navigates to filtered user list)
-
-**Audit Log Entries:**
-- Event: `users.bulk_imported`
-- Metadata includes:
-  - Total rows processed
-  - New users created count
-  - Existing users updated count
-  - Failed rows count
-  - Actor ID (admin who performed import)
-  - Timestamp
-  - Uploaded filename
-
-**Error Handling:**
-- Display validation errors per row with specific error messages
-- Allow partial import (successful rows imported, failed rows reported)
-- Provide downloadable error report for troubleshooting
-- Failed rows do NOT block successful row processing
-
-#### 4.4.5 Business Rules
-
-1. **Role Pre-Existence Requirement:**
-   - System validates that Custom Role names exist before import
-   - If Custom Role missing, row fails with actionable error message
-   - System Roles always available (cannot be deleted)
-
-2. **Location Path Matching:**
-   - System performs case-insensitive matching on location names
-   - Trailing/leading spaces are trimmed automatically
-   - Path separators normalized (spaces around " > " ignored)
-
-3. **Duplicate Prevention:**
-   - Within CSV: System detects duplicate emails and flags as error
-   - Cross-system: System uses email as unique identifier for update/create decision
-
-4. **Permission Requirements:**
-   - Only Super Admins and User Administrators can perform bulk import
-   - Users with location-scoped admin rights can only import users within their assigned location subtree
+- **Role Existence:** The system validates that the Role Name in the CSV matches an existing System or Custom Role. If a Custom Role is specified but does not exist, the row fails. Users **Must** create Custom Roles manually *before* attempting bulk import.
+- **Bulk Update:** If the email matches an existing user, the system treats the row as an update request, modifying the user's Role and Location to match the CSV data. This allows for rapid mass-migration of users to new role types.
 
 ---
 
@@ -878,7 +752,7 @@ Simple Mode ○───○ Advanced Mode
 **Role Name Column:**
 - **System Role Display:**
   ```
-  EHS Manager [System]
+  Global Admin [System]
   ```
   - Badge: Blue background (#DBEAFE), blue text (#1E40AF), lock icon
 - **Custom Role Display:**
@@ -1203,8 +1077,8 @@ Simple Mode ○───○ Advanced Mode
 
 **Name Collision Handling:**
 - If "[Name] (Copy)" exists, append another " (Copy)"
-- Example: "EHS Manager (Copy) (Copy)"
-- Alternative: Append number: "EHS Manager (Copy 2)"
+- Example: "Global Admin (Copy) (Copy)"
+- Alternative: Append number: "Global Admin (Copy 2)"
 
 #### 6.1.4 Deletion (Soft-Delete)
 
@@ -1247,29 +1121,29 @@ AND deletedAt IS NULL
    - Keep in database for audit trail
    - Success toast: "Role '[name]' deleted"
 
-**Special Case: Last Super Admin Check**
+**Special Case: Last Global Admin Check**
 
-**Trigger:** Attempting to delete a role with Super Admin permissions
+**Trigger:** Attempting to delete a role with Global Admin permissions
 
 **Logic:**
 ```typescript
 // Pseudo-code
-const isSuperAdminRole = checkIfFullAccessPermissions(role.permissions);
-if (isSuperAdminRole) {
+const isGlobalAdminRole = checkIfFullAccessPermissions(role.permissions);
+if (isGlobalAdminRole) {
   const activeUsersWithThisRole = await countActiveUsersWithRole(roleId);
-  const totalActiveSuperAdmins = await countAllActiveSuperAdmins();
+  const totalActiveGlobalAdmins = await countAllActiveGlobalAdmins();
   
-  if (activeUsersWithThisRole === totalActiveSuperAdmins && totalActiveSuperAdmins === 1) {
-    // Block deletion - this is the last Super Admin
-    showError("Cannot delete last Super Admin role");
+  if (activeUsersWithThisRole === totalActiveGlobalAdmins && totalActiveGlobalAdmins === 1) {
+    // Block deletion - this is the last Global Admin
+    showError("Cannot delete last Global Admin role");
   }
 }
 ```
 
-**Error Modal (Last Super Admin):**
-- **Title:** "Cannot Delete Last Super Admin Role"
+**Error Modal (Last Global Admin):**
+- **Title:** "Cannot Delete Last Global Admin Role"
 - **Icon:** Shield with X (red)
-- **Message:** "This is the only role with Super Admin permissions assigned to an active user. At least one Super Admin must exist at all times. Please assign another user to this role before deleting."
+- **Message:** "This is the only role with Global Admin permissions assigned to an active user. At least one Global Admin must exist at all times. Please assign another user to this role before deleting."
 - **Action:** "Cancel" button (closes modal)
 
 ---
@@ -1699,9 +1573,9 @@ All audit trail entries Must include:
   "userAgent": "Mozilla/5.0...",
   "metadata": {
     "sourceRoleId": "original-role-uuid",
-    "sourceRoleName": "EHS Manager",
+    "sourceRoleName": "Global Admin",
     "newRoleId": "new-role-uuid",
-    "newRoleName": "EHS Manager (Copy)",
+    "newRoleName": "Global Admin (Copy)",
     "permissionCount": 32
   }
 }
@@ -1801,9 +1675,9 @@ All audit trail entries Must include:
     "userId": "user-uuid",
     "userEmail": "john.doe@company.com",
     "oldRoleId": "old-role-uuid",
-    "oldRoleName": "Safety Inspector",
+    "oldRoleName": "Technician",
     "newRoleId": "new-role-uuid",
-    "newRoleName": "Safety Coordinator",
+    "newRoleName": "Location Admin",
     "permissionDiffSummary": {
       "permissionsAdded": 8,
       "permissionsRemoved": 2,
@@ -2478,24 +2352,24 @@ const impact = await getRoleEditImpact(roleId);
 
 ---
 
-### 8.7 Deleting Last Super Admin
+### 8.7 Deleting Last Global Admin
 
-**Scenario:** Admin attempts to delete a role that is the only role with Super Admin permissions assigned to an active user
+**Scenario:** Admin attempts to delete a role that is the only role with Global Admin permissions assigned to an active user
 
 **Required Behavior:**
 
 **Step 1: Pre-Delete Check**
 ```typescript
-async function canDeleteSuperAdminRole(roleId: string): Promise<{
+async function canDeleteGlobalAdminRole(roleId: string): Promise<{
   canDelete: boolean;
   reason?: string;
-  isLastSuperAdmin?: boolean;
+  isLastGlobalAdmin?: boolean;
 }> {
-  // Check if this role has full access (Super Admin equivalent)
+  // Check if this role has full access (Global Admin equivalent)
   const role = await db.roles.findUnique({ where: { id: roleId } });
-  const isSuperAdminRole = checkIfFullAccessPermissions(role.permissions);
+  const isGlobalAdminRole = checkIfFullAccessPermissions(role.permissions);
   
-  if (!isSuperAdminRole) {
+  if (!isGlobalAdminRole) {
     return { canDelete: true };
   }
   
@@ -2504,8 +2378,8 @@ async function canDeleteSuperAdminRole(roleId: string): Promise<{
     where: { roleId, status: 'active', deletedAt: null }
   });
   
-  // Count all active users with any Super Admin role
-  const allActiveSuperAdmins = await db.users.count({
+  // Count all active users with any Global Admin role
+  const allActiveGlobalAdmins = await db.users.count({
     where: {
       status: 'active',
       deletedAt: null,
@@ -2513,11 +2387,11 @@ async function canDeleteSuperAdminRole(roleId: string): Promise<{
     }
   });
   
-  if (activeUsersWithThisRole === allActiveSuperAdmins && allActiveSuperAdmins === 1) {
+  if (activeUsersWithThisRole === allActiveGlobalAdmins && allActiveGlobalAdmins === 1) {
     return {
       canDelete: false,
-      reason: 'last_super_admin',
-      isLastSuperAdmin: true
+      reason: 'last_global_admin',
+      isLastGlobalAdmin: true
     };
   }
   
@@ -2526,19 +2400,19 @@ async function canDeleteSuperAdminRole(roleId: string): Promise<{
 ```
 
 **Step 2: Block Deletion**
-- If `isLastSuperAdmin === true`, prevent deletion
+- If `isLastGlobalAdmin === true`, prevent deletion
 - Display error modal (not confirmation dialog)
 
 **Error Modal:**
-- **Title:** "Cannot Delete Last Super Admin Role"
+- **Title:** "Cannot Delete Last Global Admin Role"
 - **Icon:** Red shield with X
-- **Message:** "This is the only role with Super Admin permissions assigned to an active user. At least one Super Admin must exist at all times. Please assign another user to this role before deleting."
+- **Message:** "This is the only role with Global Admin permissions assigned to an active user. At least one Global Admin must exist at all times. Please assign another user to this role before deleting."
 - **Action:** "Cancel" button (gray, closes modal)
 
 **No Workaround:** System Must not allow deletion under any circumstance
 
 **Alternative Path for Admin:**
-1. Create a new user with Super Admin role
+1. Create a new user with Global Admin role
 2. Verify new user can log in
 3. Then delete the old role
 
