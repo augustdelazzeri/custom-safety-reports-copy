@@ -83,6 +83,7 @@ function PeopleContent() {
   // Fullscreen role creation state
   const [roleViewMode, setRoleViewMode] = useState<RoleViewMode>('list');
   const [fullscreenRoleName, setFullscreenRoleName] = useState("");
+  const [fullscreenDescription, setFullscreenDescription] = useState("");
   const [fullscreenPermissions, setFullscreenPermissions] = useState<RolePermissions>(createDefaultPermissions());
   const [fullscreenOshaLocationPermissions, setFullscreenOshaLocationPermissions] = useState<OSHALocationPermissions>({});
   const [fullscreenErrors, setFullscreenErrors] = useState<{name?: string; permissions?: string; oshaLocations?: string}>({});
@@ -243,6 +244,7 @@ function PeopleContent() {
     if (roleCreationMode === 'fullscreen') {
       // Fullscreen mode: switch view and reset form
       setFullscreenRoleName("");
+      setFullscreenDescription("");
       setFullscreenPermissions(createDefaultPermissions());
       setFullscreenOshaLocationPermissions({});
       setFullscreenErrors({});
@@ -346,14 +348,15 @@ function PeopleContent() {
     
     // Save
     if (editingRoleId) {
-      updateRole(editingRoleId, fullscreenRoleName.trim(), fullscreenPermissions, fullscreenOshaLocationPermissions);
+      updateRole(editingRoleId, fullscreenRoleName.trim(), fullscreenPermissions, fullscreenOshaLocationPermissions, fullscreenDescription.trim() || undefined);
     } else {
-      createRole(fullscreenRoleName.trim(), fullscreenPermissions, fullscreenOshaLocationPermissions);
+      createRole(fullscreenRoleName.trim(), fullscreenPermissions, fullscreenOshaLocationPermissions, fullscreenDescription.trim() || undefined);
     }
     
     // Reset and return to list
     setRoleViewMode('list');
     setFullscreenRoleName("");
+    setFullscreenDescription("");
     setFullscreenPermissions(createDefaultPermissions());
     setFullscreenOshaLocationPermissions({});
     setEditingRoleId(null);
@@ -362,7 +365,7 @@ function PeopleContent() {
   
   const handleFullscreenCancelRole = () => {
     // Confirm if there are unsaved changes
-    const hasChanges = fullscreenRoleName.trim() !== "" || countEnabledPermissions(fullscreenPermissions) > 0 || Object.keys(fullscreenOshaLocationPermissions).length > 0;
+    const hasChanges = fullscreenRoleName.trim() !== "" || fullscreenDescription.trim() !== "" || countEnabledPermissions(fullscreenPermissions) > 0 || Object.keys(fullscreenOshaLocationPermissions).length > 0;
     
     if (hasChanges) {
       if (!confirm("You have unsaved changes. Are you sure you want to cancel?")) {
@@ -373,6 +376,7 @@ function PeopleContent() {
     // Reset and return to list
     setRoleViewMode('list');
     setFullscreenRoleName("");
+    setFullscreenDescription("");
     setFullscreenPermissions(createDefaultPermissions());
     setFullscreenOshaLocationPermissions({});
     setEditingRoleId(null);
@@ -1100,6 +1104,30 @@ function PeopleContent() {
                     </p>
                   </div>
                 )}
+
+                {/* Description Input */}
+                <div className="mb-6 pb-6 border-b border-gray-200">
+                  <label htmlFor="roleDescription" className="block text-sm font-medium text-gray-900 mb-2">
+                    Description <span className="text-gray-400 text-xs">(optional)</span>
+                  </label>
+                  <textarea
+                    id="roleDescription"
+                    value={fullscreenDescription}
+                    onChange={(e) => setFullscreenDescription(e.target.value)}
+                    placeholder="e.g., Restricted role for external electrical contractors"
+                    maxLength={500}
+                    rows={3}
+                    className="w-full max-w-2xl px-4 py-2 border border-gray-300 rounded-md text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
+                  />
+                  <div className="flex justify-between items-center mt-1 max-w-2xl">
+                    <p className="text-xs text-gray-500">
+                      Define the intended scope and use case for this role
+                    </p>
+                    <span className="text-xs text-gray-400">
+                      {fullscreenDescription.length}/500
+                    </span>
+                  </div>
+                </div>
 
                 {/* Permissions Matrix */}
                 <div className="mb-6">
