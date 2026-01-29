@@ -102,6 +102,75 @@ The Custom Roles management table displays all System and Custom Roles with the 
 
 ---
 
+## **ADIÇÃO 4: Audits & Inspections em Simple Mode**
+
+### **Localização:** Seção 3, Step 2.1 Simple Mode (Category-Level Grouping) (linha 112)
+
+### **Texto a modificar:**
+
+**Linha atual:**
+```markdown
+Designed for rapid configuration, this mode groups actions into high-level functional categories across the 5 core modules: **Events, CAPA, OSHA, Access Points, and LOTO**.4
+```
+
+**Novo texto:**
+```markdown
+Designed for rapid configuration, this mode groups actions into high-level functional categories across the 6 core modules: **Events, CAPA, OSHA, Access Points, LOTO, and Audits & Inspections**.4
+```
+
+### **Contexto:**
+
+Durante a prototipagem e validação com usuários, identificou-se que o módulo "Audits & Inspections" é suficientemente fundamental para estar disponível no Simple Mode, não apenas no Advanced Mode.
+
+**Justificativa:**
+* Auditorias de segurança são uma funcionalidade core do EHS, não uma feature "avançada"
+* Simplifica onboarding de novos administradores que precisam configurar roles básicas
+* Alinha com expectativas de usuários de outros sistemas EHS
+
+**Módulos no Simple Mode (atualizado):**
+1. Access Points (QR Codes)
+2. Safety Events
+3. CAPA (Corrective and Preventive Actions)
+4. OSHA Compliance
+5. LOTO (Lockout/Tagout)
+6. **Audits & Inspections** ← NOVO
+7. Safety Work Orders
+
+**Advanced Mode continua com 10 módulos total**, adicionando: JHA, SOP, PTW.
+
+---
+
+## **ADIÇÃO 5: CMMS Integration Badge (UI Enhancement)**
+
+### **Localização:** Seção 3, Step 2: Permission Matrix Configuration (após linha 107, como nota adicional)
+
+### **Texto a adicionar:**
+
+```markdown
+#### **2.3 CMMS Integration Indicator**
+
+To improve administrator awareness, the UI displays a discrete **CMMS badge** next to module names that require CMMS permissions during record creation:
+
+* **Visual Indicator:** Amber badge with link icon and text "CMMS"
+* **Modules with Badge:**
+  1. **CAPA:** Allows linking existing Work Orders from CMMS during CAPA creation
+  2. **Permit to Work (PTW):** Checklist items can be created during PTW setup (Step 4), integrating with CMMS
+  3. **Audits & Inspections:** "Save and Build Checklist" button auto-generates CMMS checklist
+
+* **User Interaction:** 
+  * Badge displays on hover: detailed tooltip explaining the specific CMMS integration requirement
+  * Example tooltip: *"Users can link existing Work Orders from the CMMS during CAPA creation. Ensure CMMS permissions are granted if this feature will be used."*
+
+* **Design Rationale:** 
+  * Prevents confusion when users without CMMS permissions cannot access certain creation features
+  * Makes cross-system permission dependencies explicit during role configuration
+  * Follows principle of "progressive disclosure" - information available on-demand without cluttering the interface
+
+**Note:** Other modules (SOP, LOTO, JHA, Work Orders) have CMMS integration but only *after* record creation, not during initial setup. The badge specifically identifies modules requiring CMMS access at creation time.
+```
+
+---
+
 ## **Contexto de Implementação**
 
 Estas adições refletem decisões de design e implementação tomadas durante a prototipagem que:
@@ -120,19 +189,31 @@ Para referência cruzada com o código:
 
 - **Schema:** `src/schemas/roles.ts` (campo `description?`)
 - **Contexts:** `src/contexts/RoleContext.tsx`, `src/contexts/UserContext.tsx`
-- **Components:** `src/components/CreateRoleModal.tsx`, `src/components/RoleBuilderMatrix.tsx`
+- **Components:** 
+  - `src/components/CreateRoleModal.tsx` (campo description)
+  - `src/components/RoleBuilderMatrix.tsx` (badge CMMS com tooltip)
 - **Pages:** `app/settings/custom-roles/page.tsx`, `app/settings/people/page.tsx`
 - **Mock Data:** `src/samples/mockRoles.ts` (Global Admin com oshaLocationPermissions completo)
+- **Permissions Data:** `src/data/permissionsMock.ts` (Audits & Inspections disponível em Simple Mode)
 
 ---
 
 ## **Notas Adicionais**
 
+### **Decisões INCLUÍDAS na spec:**
+
+1. **Campo Description:** Feature nova com impacto funcional (Adição 1)
+2. **Badge Colors:** Clarificação de comportamento visual por contexto (Adição 2)
+3. **Global Admin Permissions:** Esclarecimento de comportamento padrão crítico (Adição 3)
+4. **Audits & Inspections em Simple Mode:** Mudança estrutural nos modos de configuração (Adição 4)
+5. **CMMS Integration Badge:** Enhancement de UX para evitar confusão de permissões cross-system (Adição 5)
+
 ### **Decisões NÃO incluídas na spec (e por quê):**
 
 1. **OSHA Header Redundancy Fix:** Bug de implementação UI, não design funcional
-2. **Warning Banner Debug:** Ainda em troubleshooting
+2. **Warning Banner Debug:** Ainda em troubleshooting, não confirmado como funcionando
 3. **Button Positioning (Import Users):** Detalhes de layout CSS, não funcionalidade
 4. **localStorage Versioning:** Detalhe de implementação técnica do protótipo
+5. **Sidebar Navigation (Audits menu item):** Estrutura de navegação não costuma estar em specs funcionais
 
 Essas decisões estão documentadas em `PROTOTYPE_ADJUSTMENTS.md` para referência da equipe de desenvolvimento.
