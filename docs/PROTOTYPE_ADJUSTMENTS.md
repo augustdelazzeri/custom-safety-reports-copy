@@ -106,9 +106,27 @@ Data: 2026-01-26
 ---
 
 ## Questões para Especificação:
-1. Global Admin deve ter 100% das permissões por padrão? (Assumido: SIM)
-2. Custom roles em cinza na lista de Users? (Decisão: SIM, mais discreto)
-3. OSHA cabeçalho duplicado era bug ou design? (Corrigido: bug)
+1. Global Admin deve ter 100% das permissões por padrão? (Assumido: SIM) → **Documentado em RBAC_SPEC_ADDITIONS.md**
+2. Custom roles em cinza na lista de Users? (Decisão: SIM, mais discreto) → **Documentado em RBAC_SPEC_ADDITIONS.md**
+3. OSHA cabeçalho duplicado era bug ou design? (Corrigido: bug) → **Não adicionar à spec (bug de implementação)**
+
+---
+
+## 📄 Adições Recomendadas para a Especificação
+
+As seguintes mudanças foram consideradas **significativas o suficiente** para justificar adição ao documento oficial `RBAC-2.md`:
+
+### ✅ Recomendado Adicionar:
+1. **Campo Description** (Seção 3, Step 1) - Feature nova não prevista na spec
+2. **Badge Colors** (Seção 2.2.2) - Clarificação de comportamento por contexto
+3. **Global Admin Permissions** (Seção 2.1.1) - Esclarecimento de padrão 100%
+
+### ❌ NÃO Recomendado Adicionar:
+- OSHA Header Fix (bug de implementação)
+- Warning Banner Debug (ainda em troubleshooting)
+- Button Positioning (detalhe de layout CSS)
+
+**Ver documento completo:** `docs/RBAC_SPEC_ADDITIONS.md` (texto formatado pronto para copy/paste)
 
 ---
 
@@ -183,4 +201,9 @@ Data: 2026-01-26
 - ✅ `docs/PROTOTYPE_ADJUSTMENTS.md` (NOVO)
   - Rastreamento de todos os ajustes visuais e decisões
   - Comparação com especificação original para validação futura
+
+- ✅ `docs/RBAC_SPEC_ADDITIONS.md` (NOVO)
+  - Documento formatado com 3 adições recomendadas para o RBAC-2.md
+  - Texto pronto para copy/paste com indicação de localização exata
+  - Inclui: Campo Description, Badge Colors clarificados, Global Admin default permissions
 
