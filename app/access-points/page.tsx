@@ -6,9 +6,15 @@ import { AccessPointProvider, useAccessPoint } from "../../src/contexts/AccessPo
 import { TemplateProvider } from "../../src/contexts/TemplateContext";
 import CreateAccessPointModal from "../../src/components/CreateAccessPointModal";
 import QRCodeModal from "../../src/components/QRCodeModal";
+import { useActionPermission } from "../../src/hooks/usePermissions";
 
 function AccessPointsListContent() {
   const { getAllAccessPoints, archiveAccessPoint } = useAccessPoint();
+  const canCreate = useActionPermission("access-point", "Access Point", "create");
+  const canEdit = useActionPermission("access-point", "Access Point", "edit");
+  const canArchive = useActionPermission("access-point", "Access Point", "archive");
+  const canDelete = useActionPermission("access-point", "Access Point", "delete");
+  
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [showCreateModal, setShowCreateModal] = useState(false);
@@ -78,8 +84,10 @@ function AccessPointsListContent() {
               <span className="absolute top-1 right-1 w-5 h-5 bg-red-500 text-white text-xs rounded-full flex items-center justify-center font-semibold">4</span>
             </button>
             <button 
-              onClick={() => setShowCreateModal(true)}
-              className="px-4 py-2 bg-blue-600 text-white rounded-md text-sm font-medium hover:bg-blue-700 transition-colors"
+              onClick={() => canCreate.canPerform && setShowCreateModal(true)}
+              disabled={canCreate.disabled}
+              title={canCreate.title}
+              className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${canCreate.buttonClass}`}
             >
               + Create
             </button>
@@ -114,8 +122,10 @@ function AccessPointsListContent() {
           </div>
           <div className="flex items-center gap-3">
             <button
-              onClick={() => setShowCreateModal(true)}
-              className="px-4 py-2 bg-blue-600 text-white rounded-md text-sm font-medium hover:bg-blue-700 transition-colors"
+              onClick={() => canCreate.canPerform && setShowCreateModal(true)}
+              disabled={canCreate.disabled}
+              title={canCreate.title}
+              className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${canCreate.buttonClass}`}
             >
               + Create Access Point
             </button>
@@ -273,8 +283,14 @@ function AccessPointsListContent() {
                           <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg z-10 border border-gray-200">
                             <div className="py-1">
                               <button
-                                onClick={() => handleArchive(ap.id)}
-                                className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50"
+                                onClick={() => canArchive.canPerform && handleArchive(ap.id)}
+                                disabled={canArchive.disabled}
+                                title={canArchive.title}
+                                className={`w-full text-left px-4 py-2 text-sm transition-colors ${
+                                  canArchive.canPerform 
+                                    ? 'text-red-600 hover:bg-red-50 cursor-pointer' 
+                                    : 'text-gray-400 cursor-not-allowed opacity-50'
+                                }`}
                               >
                                 Archive
                               </button>
