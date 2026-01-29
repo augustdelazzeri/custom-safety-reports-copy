@@ -211,7 +211,7 @@ export const EHS_PERMISSIONS: PermissionModule[] = [
         entity: "OSHA Audit Trail",
         actions: [
           { id: "osha-audit-trail:view", label: "View Audit Trail", description: "Compliance logs", permission: "VIEW", category: "view" },
-          { id: "osha-audit-trail:create", label: "Log Action", description: "Manual log entry", permission: "CREATE", category: "advanced" }
+          { id: "osha-audit-trail:create", label: "Log Action", description: "Manual log entry", permission: "CREATE", category: "create-edit" }
         ]
       }
     ]
@@ -356,7 +356,7 @@ export const EHS_PERMISSIONS: PermissionModule[] = [
           { id: "work-order:unlink", label: "Unlink WO", description: "Remove association", permission: "EDIT", category: "create-edit" },
           { id: "work-order:get-by-capa", label: "List by CAPA", description: "View CAPA WOs", permission: "VIEW", category: "view" },
           { id: "work-order:count-by-capa", label: "Count by CAPA", description: "WO count", permission: "VIEW", category: "view" },
-          { id: "work-order:enqueue-analysis", label: "Queue AI Analysis", description: "Analyze completed WO", permission: "CREATE", category: "advanced" }
+          { id: "work-order:enqueue-analysis", label: "Queue AI Analysis", description: "Analyze completed WO", permission: "CREATE", category: "create-edit" }
         ]
       }
     ]
