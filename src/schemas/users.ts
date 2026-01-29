@@ -14,7 +14,7 @@ export interface EHSUser {
   roleName?: string;          // Denormalized for display (populated from RoleContext)
   locationNodeId: string;     // References LocationNode.id
   locationPath?: string;      // Denormalized breadcrumb path (e.g., "North America > USA > Plant A")
-  status: 'active' | 'inactive';
+  status: 'active' | 'inactive' | 'pending';
   createdAt: string;
   updatedAt: string;
   createdBy?: string;
@@ -45,5 +45,5 @@ export interface CreateUserFormData {
 export interface UserFilters {
   searchQuery: string;
   roleId: string | 'all';
-  status: 'all' | 'active' | 'inactive';
+  status: 'all' | 'active' | 'inactive' | 'pending';
 }
