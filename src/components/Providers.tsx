@@ -1,12 +1,15 @@
 "use client";
 
 import React, { ReactNode } from "react";
+import { ProfileProvider } from "../contexts/ProfileContext";
 import { CAPAProvider } from "../contexts/CAPAContext";
 
 export function Providers({ children }: { children: ReactNode }) {
   return (
-    <CAPAProvider>
-      {children}
-    </CAPAProvider>
+    <ProfileProvider>
+      <CAPAProvider>
+        {children}
+      </CAPAProvider>
+    </ProfileProvider>
   );
 }
