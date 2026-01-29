@@ -207,3 +207,21 @@ As seguintes mudanças foram consideradas **significativas o suficiente** para j
   - Texto pronto para copy/paste com indicação de localização exata
   - Inclui: Campo Description, Badge Colors clarificados, Global Admin default permissions
 
+### 🔧 UX Enhancements
+- ✅ `src/components/RoleBuilderMatrix.tsx`
+  - Badge CMMS para módulos que requerem integração CMMS durante criação
+  - Tooltip informativo ao passar mouse sobre badge
+  - Módulos com badge: CAPA, PTW (Permit to Work), Audit
+  - Mensagens específicas por módulo explicando a necessidade de CMMS
+
+- ✅ `src/data/permissionsMock.ts`
+  - Módulo "Audits & Inspections" agora disponível em Simple Mode
+  - Removido flag `advancedOnly` do módulo audit
+  - Reordenado para aparecer antes de "Safety Work Orders"
+  - Simple Mode agora tem 7 módulos (era 6)
+
+- ✅ `src/components/Sidebar.tsx`
+  - Adicionado "Audits & Inspections" na seção DOCUMENTATION
+  - Criado ícone `clipboard-check` para o menu
+  - Ordem: JHA → SOP → LOTO → PTW → Audits & Inspections
+

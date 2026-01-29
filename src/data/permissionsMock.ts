@@ -3,10 +3,10 @@
  * 
  * Extracted from FUNCTIONAL_SPECS.md - Core EHS modules for Custom Roles
  * 
- * Simple Mode (6 modules): Access Point, Event, CAPA, OSHA, LOTO, Work Orders
- * Advanced Mode (10 modules): Adds JHA, SOP, PTW, Audit
+ * Simple Mode (7 modules): Access Point, Event, CAPA, OSHA, LOTO, Audit, Work Orders
+ * Advanced Mode (10 modules): Adds JHA, SOP, PTW
  * 
- * Order matches sidebar: Access Point → Event → CAPA → OSHA → Documentation (JHA, SOP, LOTO, PTW) → Work Orders → Audit
+ * Order matches sidebar: Access Point → Event → CAPA → OSHA → Documentation (JHA, SOP, LOTO, PTW, Audit) → Work Orders
  */
 
 /**
@@ -313,6 +313,31 @@ export const EHS_PERMISSIONS: PermissionModule[] = [
     ]
   },
   
+  // Audits & Inspections (now available in Simple Mode)
+  {
+    moduleId: "audit",
+    moduleName: "Audits & Inspections",
+    description: "Safety audits with checklist generation and CMMS integration",
+    features: [
+      {
+        entity: "Audit",
+        actions: [
+          { id: "audit:create", label: "Create Audit", description: "Schedule inspection", permission: "CREATE", category: "create-edit" },
+          { id: "audit:view", label: "View Audit", description: "Access details", permission: "VIEW", category: "view" },
+          { id: "audit:view-list", label: "Browse Audits", description: "List all audits", permission: "VIEW", category: "view" },
+          { id: "audit:edit", label: "Update", description: "Modify audit", permission: "EDIT", category: "create-edit" },
+          { id: "audit:duplicate", label: "Duplicate", description: "Copy template", permission: "CREATE", category: "create-edit" },
+          { id: "audit:submit-review", label: "Submit", description: "Send to approvers", permission: "UPDATE_STATUS", category: "approvals" },
+          { id: "audit:approve", label: "Approve", description: "Sign off", permission: "UPDATE_STATUS", category: "approvals" },
+          { id: "audit:reject", label: "Reject", description: "Send back", permission: "UPDATE_STATUS", category: "approvals" },
+          { id: "audit:archive", label: "Archive", description: "Soft-delete", permission: "EDIT", category: "archive-delete" },
+          { id: "audit:delete", label: "Delete", description: "Hard delete", permission: "DELETE", category: "archive-delete" },
+          { id: "audit:export", label: "Export", description: "Download CSV", permission: "EXPORT", category: "reporting" }
+        ]
+      }
+    ]
+  },
+  
   // Safety Work Orders (CMMS Integration)
   {
     moduleId: "work-order",
@@ -332,32 +357,6 @@ export const EHS_PERMISSIONS: PermissionModule[] = [
           { id: "work-order:get-by-capa", label: "List by CAPA", description: "View CAPA WOs", permission: "VIEW", category: "view" },
           { id: "work-order:count-by-capa", label: "Count by CAPA", description: "WO count", permission: "VIEW", category: "view" },
           { id: "work-order:enqueue-analysis", label: "Queue AI Analysis", description: "Analyze completed WO", permission: "CREATE", category: "advanced" }
-        ]
-      }
-    ]
-  },
-  
-  // === ADVANCED MODE ONLY ===
-  {
-    moduleId: "audit",
-    moduleName: "Safety Audits",
-    description: "Audit management with checklist generation",
-    advancedOnly: true,
-    features: [
-      {
-        entity: "Audit",
-        actions: [
-          { id: "audit:create", label: "Create Audit", description: "Schedule inspection", permission: "CREATE", category: "create-edit" },
-          { id: "audit:view", label: "View Audit", description: "Access details", permission: "VIEW", category: "view" },
-          { id: "audit:view-list", label: "Browse Audits", description: "List all audits", permission: "VIEW", category: "view" },
-          { id: "audit:edit", label: "Update", description: "Modify audit", permission: "EDIT", category: "create-edit" },
-          { id: "audit:duplicate", label: "Duplicate", description: "Copy template", permission: "CREATE", category: "create-edit" },
-          { id: "audit:submit-review", label: "Submit", description: "Send to approvers", permission: "UPDATE_STATUS", category: "approvals" },
-          { id: "audit:approve", label: "Approve", description: "Sign off", permission: "UPDATE_STATUS", category: "approvals" },
-          { id: "audit:reject", label: "Reject", description: "Send back", permission: "UPDATE_STATUS", category: "approvals" },
-          { id: "audit:archive", label: "Archive", description: "Soft-delete", permission: "EDIT", category: "archive-delete" },
-          { id: "audit:delete", label: "Delete", description: "Hard delete", permission: "DELETE", category: "archive-delete" },
-          { id: "audit:export", label: "Export", description: "Download CSV", permission: "EXPORT", category: "reporting" }
         ]
       }
     ]
