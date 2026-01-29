@@ -224,4 +224,171 @@ As seguintes mudanças foram consideradas **significativas o suficiente** para j
   - Adicionado "Audits & Inspections" na seção DOCUMENTATION
   - Criado ícone `clipboard-check` para o menu
   - Ordem: JHA → SOP → LOTO → PTW → Audits & Inspections
+  - Filtro condicional: PEOPLE & PERMISSIONS só visível para Global Admin
+
+---
+
+## 9. ✅ Profile Switcher - Simulação de Permissões
+**Objetivo:** Permitir alternar entre perfis de usuário (Global Admin ↔ Technician) para validar o comportamento das permissões no protótipo
+
+**Implementação Completa:**
+
+### 📦 Novos Arquivos Criados:
+1. **`src/contexts/ProfileContext.tsx`**
+   - Context para gerenciar perfil atual (global_admin | technician)
+   - Carrega permissões de `mockRoles.ts` baseado no perfil selecionado
+   - Função `hasPermission(module, entity, action)` para verificar permissões
+   - Persistência no localStorage para manter seleção entre reloads
+   - Maps: perfil → roleId e perfil → nome de exibição
+
+2. **`src/hooks/usePermissions.ts`**
+   - Hook utilitário para verificação de permissões
+   - `useActionPermission()`: para botões primários (Create, Submit)
+   - `useActionPermissionSecondary()`: para botões secundários/outline
+   - `useActionPermissionIcon()`: para botões de ícone e itens de menu
+   - Retorna: `{ canPerform, buttonClass, disabled, title }`
+   - Classes Tailwind consistentes: azul (habilitado) ou cinza (desabilitado)
+
+### 🎨 Componentes Modificados:
+
+**`src/components/Header.tsx`:**
+- Adicionado Profile Switcher dropdown à esquerda do sino de notificações
+- Mostra perfil atual com ícone de usuário
+- Dropdown com 2 opções:
+  - **Global Admin** - Full system access (ícone shield)
+  - **Technician** - Limited permissions (ícone briefcase)
+- Perfil selecionado destacado com fundo azul e checkmark
+- Posicionamento: `[Profile ▼] [🔔 5] [Create]`
+
+**`src/components/Sidebar.tsx`:**
+- Integrado `useProfile()` hook
+- Seção "PEOPLE & PERMISSIONS" só renderizada se `currentProfile === 'global_admin'`
+- Technician não vê menu Settings na sidebar
+
+**`src/components/Providers.tsx`:**
+- `ProfileProvider` adicionado no topo da hierarquia
+- Ordem: ProfileProvider > CAPAProvider > {children}
+- Disponibiliza `useProfile()` para toda aplicação
+
+### 🔒 Permissões por Página:
+
+**Access Points (`app/access-points/page.tsx`):**
+- ❌ Create (disabled para Technician)
+- ❌ Edit (disabled)
+- ❌ Archive (disabled)
+- ✅ View (enabled)
+- Tooltip: "You do not have permission to perform this action"
+
+**Safety Events (`app/page.tsx`):**
+- ✅ Create (enabled para Technician) ← **Pode criar!**
+- ✅ View (enabled)
+- ✅ Comment (enabled)
+- ❌ Edit (disabled)
+- ❌ Archive (disabled)
+- ❌ Delete (disabled)
+- ❌ Export (disabled)
+
+**CAPAs (`app/capas/page.tsx`):**
+- ❌ Create (disabled para Technician)
+- ✅ View (enabled)
+- ✅ View List (enabled)
+- ✅ Comment (enabled)
+- ❌ Edit (disabled)
+- ❌ Duplicate (disabled - requer create)
+- ❌ Archive (disabled)
+- ❌ Delete (disabled)
+- ❌ Export (disabled)
+
+### 📄 Páginas Atualizadas (Headers Substituídos):
+
+Todas as páginas agora usam o componente `Header.tsx` ao invés de headers inline:
+
+1. ✅ `app/access-points/page.tsx` - Access Points list
+2. ✅ `app/page.tsx` - Safety Events list  
+3. ✅ `app/capas/page.tsx` - CAPA Tracker
+4. ✅ `app/settings/people/page.tsx` - User Management
+5. ✅ `app/settings/custom-roles/page.tsx` - Custom Roles
+6. ✅ `app/settings/safety-templates/page.tsx` - Safety Templates
+7. ✅ `app/safetyevents/new/page.tsx` - New Safety Event form
+8. ✅ `app/safety-events/template-form/page.tsx` - Template form preview
+
+**Benefício:** Profile Switcher agora visível em TODAS as páginas
+
+### 🎯 Estilo dos Botões:
+
+**Habilitado (Global Admin):**
+```css
+bg-blue-600 hover:bg-blue-700 text-white cursor-pointer
+```
+
+**Desabilitado (Technician):**
+```css
+bg-gray-300 text-gray-500 opacity-50 cursor-not-allowed
+```
+
+**Tooltip ao hover:**
+> "You do not have permission to perform this action"
+
+### 📊 Permissões do Technician (mockRoles.ts):
+
+```typescript
+role_technician: {
+  // Access Points
+  'access-point': { view: true, create: false, edit: false, delete: false },
+  
+  // Safety Events - CAN CREATE!
+  'event': { 
+    view: true, 
+    create: true,  // ← Habilitado
+    edit: false, 
+    delete: false,
+    comment: true 
+  },
+  
+  // CAPA - View only
+  'capa': { 
+    view: true, 
+    create: false, 
+    edit: false, 
+    delete: false,
+    comment: true 
+  },
+  
+  // Sem permissões OSHA
+  oshaLocationPermissions: {}
+}
+```
+
+### 💾 Persistência:
+- Profile selecionado salvo em `localStorage` com key `ehs_current_profile`
+- Perfil persiste entre reloads da página
+- Default: `global_admin`
+
+### ✅ Commits Realizados:
+1. `feat: add ProfileContext for permission simulation`
+2. `feat: add usePermissions hook for consistent button styling`
+3. `feat: add profile switcher to Header and filter Settings from Sidebar`
+4. `feat: disable actions without permission in Access Points`
+5. `feat: disable actions without permission in Safety Events`
+6. `feat: disable all actions without permission in CAPAs`
+7. `feat: add ProfileProvider to app hierarchy`
+8. `fix: add Profile Switcher to all pages by using Header component`
+9. `fix: add Profile Switcher to remaining pages`
+
+**Status:** ✅ Implementado e testado em todas as páginas
+
+**Como Testar:**
+1. Recarregar navegador
+2. Clicar no Profile Switcher (ao lado do sino de notificações)
+3. Alternar para "Technician"
+4. Observar:
+   - Settings desaparece da sidebar
+   - Botões ficam cinzas/desabilitados conforme permissões
+   - Safety Events: pode criar, mas não editar
+   - CAPAs/Access Points: só visualização
+5. Alternar de volta para "Global Admin"
+   - Todos os botões voltam azul/habilitados
+   - Settings reaparece
+
+---
 
