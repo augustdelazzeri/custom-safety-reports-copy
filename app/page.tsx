@@ -3,6 +3,7 @@
 import React, { useState } from "react";
 import Link from "next/link";
 import Sidebar from "../src/components/Sidebar";
+import { useActionPermission } from "../src/hooks/usePermissions";
 
 interface DummyEvent {
   id: string;
@@ -40,6 +41,13 @@ const dummyEvents = [
 
 export default function SafetyEventsPage() {
   const [searchQuery, setSearchQuery] = useState("");
+  
+  // Permission checks
+  const canCreate = useActionPermission("event", "Safety Event", "create");
+  const canEdit = useActionPermission("event", "Safety Event", "edit");
+  const canArchive = useActionPermission("event", "Safety Event", "archive");
+  const canDelete = useActionPermission("event", "Safety Event", "delete");
+  const canExport = useActionPermission("event", "Safety Event", "export");
 
   const getTypeBadgeColor = (type: string) => {
     switch (type) {
@@ -120,7 +128,12 @@ export default function SafetyEventsPage() {
               </svg>
               <span className="absolute top-1 right-1 w-5 h-5 bg-red-500 text-white text-xs rounded-full flex items-center justify-center font-semibold">4</span>
             </button>
-            <Link href="/safetyevents/new" className="px-4 py-2 bg-blue-600 text-white rounded-md text-sm font-medium hover:bg-blue-700 transition-colors">
+            <Link 
+              href={canCreate.canPerform ? "/safetyevents/new" : "#"}
+              onClick={(e) => !canCreate.canPerform && e.preventDefault()}
+              title={canCreate.title}
+              className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${canCreate.buttonClass}`}
+            >
               + Create
             </Link>
             <div className="w-9 h-9 bg-gray-300 rounded-full flex items-center justify-center">
@@ -152,13 +165,23 @@ export default function SafetyEventsPage() {
               />
             </div>
             <Link 
-              href="/safetyevents/new"
-              className="px-4 py-2 bg-blue-600 text-white rounded-md text-sm font-medium hover:bg-blue-700 transition-colors flex items-center gap-2"
+              href={canCreate.canPerform ? "/safetyevents/new" : "#"}
+              onClick={(e) => !canCreate.canPerform && e.preventDefault()}
+              title={canCreate.title}
+              className={`px-4 py-2 rounded-md text-sm font-medium transition-colors flex items-center gap-2 ${canCreate.buttonClass}`}
             >
               <span>+ Create Safety Event</span>
             </Link>
-            <button className="p-2 border border-gray-300 rounded-md hover:bg-gray-50 transition-colors">
-              <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <button 
+              disabled={canExport.disabled}
+              title={canExport.title || "Export"}
+              className={`p-2 border rounded-md transition-colors ${
+                canExport.canPerform 
+                  ? 'border-gray-300 hover:bg-gray-50' 
+                  : 'border-gray-200 opacity-50 cursor-not-allowed'
+              }`}
+            >
+              <svg className={`w-5 h-5 ${canExport.canPerform ? 'text-gray-600' : 'text-gray-400'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
               </svg>
             </button>
