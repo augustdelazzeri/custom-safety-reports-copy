@@ -3,12 +3,14 @@
 import React, { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useProfile } from "../contexts/ProfileContext";
 
 export default function Sidebar() {
   const pathname = usePathname();
   const [settingsExpanded, setSettingsExpanded] = useState(false);
+  const { currentProfile } = useProfile();
   
-  const navItems = [
+  const baseNavItems = [
     { id: "safety-management", label: "SAFETY MANAGEMENT", items: [
       { label: "Access Points", icon: "grid", href: "/access-points" },
       { label: "Safety Events", icon: "warning", href: "/" },
@@ -29,10 +31,17 @@ export default function Sidebar() {
     { id: "safety-actions", label: "SAFETY ACTIONS", items: [
       { label: "Safety Work Orders", icon: "clipboard-list", href: "/work-orders" },
     ]},
-    { id: "people-permissions", label: "PEOPLE & PERMISSIONS", items: [
-      { label: "User Management", icon: "users-cog", href: "/settings/people" },
-    ]},
   ];
+
+  // Only show People & Permissions for Global Admin
+  const navItems = currentProfile === 'global_admin' 
+    ? [
+        ...baseNavItems,
+        { id: "people-permissions", label: "PEOPLE & PERMISSIONS", items: [
+          { label: "User Management", icon: "users-cog", href: "/settings/people" },
+        ]}
+      ]
+    : baseNavItems;
   
   const footerItems = [
     { label: "Settings", icon: "settings", hasDropdown: true },
