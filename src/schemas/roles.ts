@@ -45,6 +45,7 @@ export interface OSHALocationPermissions {
 export interface CustomRole {
   id: string;
   name: string;
+  description?: string;        // Optional: 500 chars max, describes role scope
   permissions: RolePermissions;
   oshaLocationPermissions?: OSHALocationPermissions;  // OSHA permissions per establishment
   isSystemRole?: boolean;     // True for non-deletable template roles

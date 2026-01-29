@@ -11,8 +11,9 @@ import type { CustomRole } from "../schemas/roles";
 
 export const mockRoles: CustomRole[] = [
   {
-    id: "role_safety_admin",
-    name: "Safety Administrator",
+    id: "role_global_admin",
+    name: "Global Admin",
+    description: "Full system access with all permissions across all modules and locations",
     isSystemRole: true,
     permissions: {
       // Incident Management
@@ -192,14 +193,72 @@ export const mockRoles: CustomRole[] = [
         }
       }
     },
+    // OSHA Location Permissions - Global Admin has access to ALL establishments
+    oshaLocationPermissions: {
+      "osha_toronto": {
+        "OSHA Report (300/301)": {
+          create: true,
+          view: true,
+          "view-list": true,
+          edit: true,
+          archive: true,
+          delete: true,
+          export: true
+        },
+        "OSHA 300A Summary": {
+          "view-cases": true,
+          "view-establishment": true,
+          "upsert-establishment": true,
+          certify: true,
+          archive: true,
+          "view-archived": true
+        },
+        "OSHA Agency Report": {
+          create: true,
+          view: true,
+          "view-list": true,
+          submit: true,
+          "view-submitted": true,
+          export: true
+        }
+      },
+      "osha_atlanta": {
+        "OSHA Report (300/301)": {
+          create: true,
+          view: true,
+          "view-list": true,
+          edit: true,
+          archive: true,
+          delete: true,
+          export: true
+        },
+        "OSHA 300A Summary": {
+          "view-cases": true,
+          "view-establishment": true,
+          "upsert-establishment": true,
+          certify: true,
+          archive: true,
+          "view-archived": true
+        },
+        "OSHA Agency Report": {
+          create: true,
+          view: true,
+          "view-list": true,
+          submit: true,
+          "view-submitted": true,
+          export: true
+        }
+      }
+    },
     createdAt: new Date('2025-01-01T10:00:00Z').toISOString(),
     updatedAt: new Date('2025-01-01T10:00:00Z').toISOString(),
     createdBy: "system",
   },
   
   {
-    id: "role_safety_manager",
-    name: "Safety Manager",
+    id: "role_location_admin",
+    name: "Location Admin",
+    description: "Manages safety operations and reporting within assigned location scope",
     isSystemRole: true,
     permissions: {
       // Incident Management
@@ -385,8 +444,9 @@ export const mockRoles: CustomRole[] = [
   },
   
   {
-    id: "role_field_tech",
-    name: "Field Technician",
+    id: "role_technician",
+    name: "Technician",
+    description: "Field workers who report events and execute work orders with basic permissions",
     isSystemRole: true,
     permissions: {
       // Incident Management
@@ -573,7 +633,8 @@ export const mockRoles: CustomRole[] = [
   
   {
     id: "role_view_only",
-    name: "View Only",
+    name: "View-Only",
+    description: "Read-only access for auditors, executives, and external stakeholders",
     isSystemRole: true,
     permissions: {
       // Incident Management

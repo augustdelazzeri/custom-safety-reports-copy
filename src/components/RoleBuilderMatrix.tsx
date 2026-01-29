@@ -59,6 +59,32 @@ export default function RoleBuilderMatrix({
   // Filter modules based on advanced mode
   const visibleModules = getVisibleModules(advancedMode);
   
+  /**
+   * Modules that require CMMS permissions during record creation.
+   * 
+   * These modules have UI elements in their creation/setup forms that interact with the CMMS:
+   * - CAPA: Can link existing Work Orders during creation
+   * - PTW: Step 4 allows creating checklist items (CMMS integration)
+   * - Audit: "Save and Build Checklist" button auto-generates CMMS checklist
+   * 
+   * Note: Other modules (SOP, LOTO, JHA) have CMMS integration but only AFTER creation.
+   */
+  const CMMS_INTEGRATION_MODULES = new Set(['capa', 'ptw', 'audit']);
+  
+  // Get specific CMMS integration tooltip for each module
+  const getCMMSTooltip = (moduleId: string): string => {
+    switch (moduleId) {
+      case 'capa':
+        return 'Users can link existing Work Orders from the CMMS during CAPA creation. Ensure CMMS permissions are granted if this feature will be used.';
+      case 'ptw':
+        return 'Checklist items can be created during Permit to Work setup (Step 4), which integrates with CMMS. Verify CMMS access is granted.';
+      case 'audit':
+        return 'The "Save and Build Checklist" button automatically generates a checklist in the CMMS. Users need CMMS permissions to use this feature.';
+      default:
+        return 'This module integrates with the CMMS system. Some features may require CMMS permissions.';
+    }
+  };
+  
   const handleToggleAction = (moduleId: string, entityName: string, actionId: string) => {
     if (disabled) return;
     const actionKey = getActionKey(actionId);
@@ -223,56 +249,72 @@ export default function RoleBuilderMatrix({
             key={module.moduleId}
             className="border border-gray-200 rounded-lg overflow-hidden"
           >
-            {/* Module Header */}
-            <div className="px-4 py-3 border-b bg-gray-50 border-gray-200">
-              <div className="flex items-center justify-between">
-                <div className="flex-1">
-                  <h3 className="text-sm font-semibold text-gray-900">
-                    {module.moduleName}
-                  </h3>
-                  <p className="text-xs mt-0.5 text-gray-600">
-                    {module.description}
-                  </p>
-                  {isOSHA && (
-                    <div className="mt-1.5 text-xs text-gray-500 flex items-center gap-1">
-                      <span>🔒</span>
-                      <span>Contains PII - Handle with care</span>
+            {/* Module Header - Skip for OSHA (has its own header inside) */}
+            {!isOSHA && (
+              <div className="px-4 py-3 border-b bg-gray-50 border-gray-200">
+                <div className="flex items-center justify-between">
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2">
+                      <h3 className="text-sm font-semibold text-gray-900">
+                        {module.moduleName}
+                      </h3>
+                      {CMMS_INTEGRATION_MODULES.has(module.moduleId) && (
+                        <div className="relative inline-flex">
+                          <span 
+                            className="group inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-medium bg-amber-50 text-amber-700 border border-amber-200 cursor-help"
+                          >
+                            <svg className="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
+                            </svg>
+                            CMMS
+                            {/* Enhanced Tooltip - only shows on badge hover */}
+                            <div className="invisible group-hover:visible absolute left-0 top-full mt-1 z-50 w-64 p-2 bg-gray-900 text-white text-xs rounded shadow-lg pointer-events-none">
+                              <div className="font-medium mb-1">🔗 CMMS Integration Required</div>
+                              <div className="text-gray-300">{getCMMSTooltip(module.moduleId)}</div>
+                              <div className="absolute -top-1 left-4 w-2 h-2 bg-gray-900 transform rotate-45"></div>
+                            </div>
+                          </span>
+                        </div>
+                      )}
                     </div>
-                  )}
-                </div>
-                <button
-                  type="button"
-                  onClick={() => handleSelectAllModule(module.moduleId)}
-                  disabled={disabled}
-                  className={`ml-4 flex items-center gap-2 px-3 py-1.5 rounded-md text-xs font-medium transition-colors ${
-                    disabled
-                      ? "bg-gray-200 text-gray-400 cursor-not-allowed"
-                      : moduleFullySelected
-                        ? "bg-blue-100 text-blue-700 hover:bg-blue-200"
-                        : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-                  }`}
-                >
-                  <div className={`relative inline-flex h-4 w-4 flex-shrink-0 items-center justify-center rounded border-2 transition-colors ${
-                    disabled 
-                      ? "bg-gray-200 border-gray-300" 
-                      : moduleFullySelected
-                        ? "bg-blue-600 border-blue-600"
-                        : modulePartiallySelected
-                          ? "bg-blue-600 border-blue-600"
-                          : "bg-white border-gray-400"
-                  }`}>
-                    {moduleFullySelected ? (
-                      <svg className="w-2.5 h-2.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
-                      </svg>
-                    ) : modulePartiallySelected ? (
-                      <div className="w-1.5 h-0.5 bg-white rounded" />
-                    ) : null}
+                    <p className="text-xs mt-0.5 text-gray-600">
+                      {module.description}
+                    </p>
                   </div>
-                  Select All
-                </button>
+                  <button
+                    type="button"
+                    onClick={() => handleSelectAllModule(module.moduleId)}
+                    disabled={disabled}
+                    className={`ml-4 flex items-center gap-2 px-3 py-1.5 rounded-md text-xs font-medium transition-colors ${
+                      disabled
+                        ? "bg-gray-200 text-gray-400 cursor-not-allowed"
+                        : moduleFullySelected
+                          ? "bg-blue-100 text-blue-700 hover:bg-blue-200"
+                          : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                    }`}
+                  >
+                    <div className={`relative inline-flex h-4 w-4 flex-shrink-0 items-center justify-center rounded border-2 transition-colors ${
+                      disabled 
+                        ? "bg-gray-200 border-gray-300" 
+                        : moduleFullySelected
+                          ? "bg-blue-600 border-blue-600"
+                          : modulePartiallySelected
+                            ? "bg-blue-600 border-blue-600"
+                            : "bg-white border-gray-400"
+                    }`}>
+                      {moduleFullySelected ? (
+                        <svg className="w-2.5 h-2.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                        </svg>
+                      ) : modulePartiallySelected ? (
+                        <div className="w-1.5 h-0.5 bg-white rounded" />
+                      ) : null}
+                    </div>
+                    Select All
+                  </button>
+                </div>
               </div>
-            </div>
+            )}
             
             {/* OSHA module: Skip regular permissions, only show location-based permissions below */}
             {module.moduleId !== 'osha' && (

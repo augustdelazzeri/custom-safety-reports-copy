@@ -15,6 +15,8 @@
 import React, { useState } from "react";
 import Sidebar from "../../../src/components/Sidebar";
 import CreateUserModal from "../../../src/components/CreateUserModal";
+import BulkUserImportModal from "../../../src/components/BulkUserImportModal";
+import type { ParsedUserRow } from "../../../src/components/BulkUserImportModal";
 import CreateRoleModal from "../../../src/components/CreateRoleModal";
 import CreateTeamModal from "../../../src/components/CreateTeamModal";
 import RoleBuilderMatrix from "../../../src/components/RoleBuilderMatrix";
@@ -37,7 +39,7 @@ type RoleViewMode = 'list' | 'create' | 'edit';
 type RoleCreationMode = 'modal' | 'fullscreen';
 
 function PeopleContent() {
-  const { getUsersList, createUser, updateUser, toggleUserStatus, checkDuplicateEmail } = useUser();
+  const { getUsersList, createUser, updateUser, toggleUserStatus, bulkImportUsers, checkDuplicateEmail } = useUser();
   const { getRolesList, getRoleById, createRole, updateRole, duplicateRole, deleteRole, checkDuplicateName } = useRole();
   const { getTeamsList, getTeamById, createTeam, updateTeam, duplicateTeam, deleteTeam, toggleTeamStatus, checkDuplicateName: checkDuplicateTeamName } = useTeam();
   
@@ -48,9 +50,9 @@ function PeopleContent() {
   const [roleCreationMode, setRoleCreationMode] = useState<RoleCreationMode>(() => {
     if (typeof window !== 'undefined') {
       const saved = localStorage.getItem('ehs_role_creation_mode');
-      return (saved as RoleCreationMode) || 'modal';
+      return (saved as RoleCreationMode) || 'fullscreen';
     }
-    return 'modal';
+    return 'fullscreen';
   });
 
   // Toggle role creation mode and save to localStorage
@@ -68,6 +70,7 @@ function PeopleContent() {
   const [statusFilter, setStatusFilter] = useState("all");
   const [locationSelection, setLocationSelection] = useState<LocationSelection | null>(null);
   const [showCreateModal, setShowCreateModal] = useState(false);
+  const [showBulkImportModal, setShowBulkImportModal] = useState(false);
   const [editingUserId, setEditingUserId] = useState<string | null>(null);
   const [openMenuId, setOpenMenuId] = useState<string | null>(null);
 
@@ -80,9 +83,10 @@ function PeopleContent() {
   // Fullscreen role creation state
   const [roleViewMode, setRoleViewMode] = useState<RoleViewMode>('list');
   const [fullscreenRoleName, setFullscreenRoleName] = useState("");
+  const [fullscreenDescription, setFullscreenDescription] = useState("");
   const [fullscreenPermissions, setFullscreenPermissions] = useState<RolePermissions>(createDefaultPermissions());
   const [fullscreenOshaLocationPermissions, setFullscreenOshaLocationPermissions] = useState<OSHALocationPermissions>({});
-  const [fullscreenErrors, setFullscreenErrors] = useState<{name?: string; permissions?: string; oshaLocations?: string}>({});
+  const [fullscreenErrors, setFullscreenErrors] = useState<{name?: string; permissions?: string}>({});
   const [baseRoleId, setBaseRoleId] = useState<string>("");
   const [advancedMode, setAdvancedMode] = useState(false);
 
@@ -202,11 +206,45 @@ function PeopleContent() {
     }
   };
 
+  const handleBulkImport = (validRows: ParsedUserRow[]) => {
+    // Build location path map for resolution
+    const locationPathMap = new Map<string, string>();
+    const buildLocationPaths = (node: typeof mockLocationHierarchy[0], path: string = "") => {
+      const currentPath = path ? `${path} > ${node.name}` : node.name;
+      locationPathMap.set(currentPath.toLowerCase(), node.id);
+      node.children?.forEach(child => buildLocationPaths(child, currentPath));
+    };
+    mockLocationHierarchy.forEach(node => buildLocationPaths(node));
+
+    // Build role name to ID map (case-insensitive)
+    const roleNameMap = new Map<string, string>();
+    roles.forEach(role => {
+      roleNameMap.set(role.name.toLowerCase(), role.id);
+    });
+
+    // Process rows
+    const rowsWithIds = validRows.map(row => ({
+      firstName: row.firstName,
+      lastName: row.lastName,
+      email: row.email,
+      roleName: row.roleName,
+      locationPath: row.locationPath,
+      locationNodeId: locationPathMap.get(row.locationPath.toLowerCase()) || "",
+      roleId: roleNameMap.get(row.roleName.toLowerCase()) || ""
+    }));
+
+    const result = bulkImportUsers(rowsWithIds);
+    
+    // Show success toast
+    alert(`Import complete! Created ${result.created} new users, updated ${result.updated} existing users.`);
+  };
+
   // Roles tab handlers
   const handleCreateRole = () => {
     if (roleCreationMode === 'fullscreen') {
       // Fullscreen mode: switch view and reset form
       setFullscreenRoleName("");
+      setFullscreenDescription("");
       setFullscreenPermissions(createDefaultPermissions());
       setFullscreenOshaLocationPermissions({});
       setFullscreenErrors({});
@@ -244,6 +282,7 @@ function PeopleContent() {
     if (roleCreationMode === 'fullscreen') {
       // Fullscreen mode: populate form and switch view
       setFullscreenRoleName(role.name);
+      setFullscreenDescription(role.description || "");
       setFullscreenPermissions(role.permissions);
       setFullscreenOshaLocationPermissions(role.oshaLocationPermissions || {});
       setFullscreenErrors({});
@@ -257,11 +296,11 @@ function PeopleContent() {
     setOpenRoleMenuId(null);
   };
 
-  const handleSubmitRole = (name: string, permissions: typeof roles[0]['permissions'], oshaLocationPermissions?: OSHALocationPermissions) => {
+  const handleSubmitRole = (name: string, permissions: typeof roles[0]['permissions'], oshaLocationPermissions?: OSHALocationPermissions, description?: string) => {
     if (editingRoleId) {
-      updateRole(editingRoleId, name, permissions, oshaLocationPermissions);
+      updateRole(editingRoleId, name, permissions, oshaLocationPermissions, description);
     } else {
-      createRole(name, permissions, oshaLocationPermissions);
+      createRole(name, permissions, oshaLocationPermissions, description);
     }
     setShowCreateRoleModal(false);
     setEditingRoleId(null);
@@ -269,7 +308,7 @@ function PeopleContent() {
   
   const handleFullscreenSaveRole = () => {
     // Validate
-    const errors: {name?: string; permissions?: string; oshaLocations?: string} = {};
+    const errors: {name?: string; permissions?: string} = {};
     
     if (!fullscreenRoleName.trim()) {
       errors.name = "Role name is required";
@@ -284,25 +323,6 @@ function PeopleContent() {
       errors.permissions = "At least one permission must be enabled";
     }
     
-    // Validate OSHA location permissions if global OSHA permissions are enabled
-    const hasOSHAPermissions = fullscreenPermissions.osha && Object.keys(fullscreenPermissions.osha).some(entityName => {
-      const entityPerms = fullscreenPermissions.osha[entityName];
-      return Object.values(entityPerms).some(val => val === true);
-    });
-    
-    if (hasOSHAPermissions) {
-      const hasLocationPerms = Object.keys(fullscreenOshaLocationPermissions).length > 0 &&
-        Object.values(fullscreenOshaLocationPermissions).some(estPerms =>
-          Object.values(estPerms).some(entity =>
-            Object.values(entity).some(val => val === true)
-          )
-        );
-      
-      if (!hasLocationPerms) {
-        errors.oshaLocations = "At least one OSHA permission must be configured for at least one establishment when OSHA module is enabled";
-      }
-    }
-    
     if (Object.keys(errors).length > 0) {
       setFullscreenErrors(errors);
       return;
@@ -310,14 +330,15 @@ function PeopleContent() {
     
     // Save
     if (editingRoleId) {
-      updateRole(editingRoleId, fullscreenRoleName.trim(), fullscreenPermissions, fullscreenOshaLocationPermissions);
+      updateRole(editingRoleId, fullscreenRoleName.trim(), fullscreenPermissions, fullscreenOshaLocationPermissions, fullscreenDescription.trim() || undefined);
     } else {
-      createRole(fullscreenRoleName.trim(), fullscreenPermissions, fullscreenOshaLocationPermissions);
+      createRole(fullscreenRoleName.trim(), fullscreenPermissions, fullscreenOshaLocationPermissions, fullscreenDescription.trim() || undefined);
     }
     
     // Reset and return to list
     setRoleViewMode('list');
     setFullscreenRoleName("");
+    setFullscreenDescription("");
     setFullscreenPermissions(createDefaultPermissions());
     setFullscreenOshaLocationPermissions({});
     setEditingRoleId(null);
@@ -326,7 +347,7 @@ function PeopleContent() {
   
   const handleFullscreenCancelRole = () => {
     // Confirm if there are unsaved changes
-    const hasChanges = fullscreenRoleName.trim() !== "" || countEnabledPermissions(fullscreenPermissions) > 0 || Object.keys(fullscreenOshaLocationPermissions).length > 0;
+    const hasChanges = fullscreenRoleName.trim() !== "" || fullscreenDescription.trim() !== "" || countEnabledPermissions(fullscreenPermissions) > 0 || Object.keys(fullscreenOshaLocationPermissions).length > 0;
     
     if (hasChanges) {
       if (!confirm("You have unsaved changes. Are you sure you want to cancel?")) {
@@ -337,6 +358,7 @@ function PeopleContent() {
     // Reset and return to list
     setRoleViewMode('list');
     setFullscreenRoleName("");
+    setFullscreenDescription("");
     setFullscreenPermissions(createDefaultPermissions());
     setFullscreenOshaLocationPermissions({});
     setEditingRoleId(null);
@@ -355,6 +377,13 @@ function PeopleContent() {
 
     if (role.isSystemRole) {
       alert("System roles cannot be deleted. You can duplicate them to create customizable versions.");
+      return;
+    }
+
+    // Check if role is assigned to any users
+    const assignedUsers = users.filter(u => u.roleId === roleId);
+    if (assignedUsers.length > 0) {
+      alert(`Cannot delete role\n\nThis role is assigned to ${assignedUsers.length} user${assignedUsers.length !== 1 ? 's' : ''}. Please reassign them first.\n\nTip: Switch to Users tab to reassign users to a different role.`);
       return;
     }
 
@@ -414,12 +443,13 @@ function PeopleContent() {
 
   const getRoleBadgeColor = (roleId: string) => {
     const role = getRoleById(roleId);
-    if (!role) return "bg-gray-100 text-gray-700 border-gray-200";
+    if (!role) return "bg-gray-100 text-gray-700 border-gray-300";
     
     if (role.isSystemRole) {
       return "bg-blue-100 text-blue-700 border-blue-200";
     }
-    return "bg-purple-100 text-purple-700 border-purple-200";
+    // Custom roles: gray (more discreet)
+    return "bg-gray-100 text-gray-700 border-gray-300";
   };
 
   const formatDate = (dateString: string) => {
@@ -572,15 +602,27 @@ function PeopleContent() {
                 </div>
               </div>
 
-              <button
-                onClick={handleAddUser}
-                className="px-4 py-2 bg-blue-600 text-white rounded-md text-sm font-medium hover:bg-blue-700 transition-colors flex items-center gap-2 flex-shrink-0"
-              >
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-                </svg>
-                Add User
-              </button>
+              {/* Action Buttons Group - Right Side */}
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => setShowBulkImportModal(true)}
+                  className="px-4 py-2 bg-white text-gray-700 border border-gray-300 rounded-md text-sm font-medium hover:bg-gray-50 transition-colors flex items-center gap-2"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                  </svg>
+                  Import Users
+                </button>
+                <button
+                  onClick={handleAddUser}
+                  className="px-4 py-2 bg-blue-600 text-white rounded-md text-sm font-medium hover:bg-blue-700 transition-colors flex items-center gap-2"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                  </svg>
+                  Add User
+                </button>
+              </div>
               </div>
                 </div>
 
@@ -626,7 +668,12 @@ function PeopleContent() {
                         <span className="text-sm text-gray-700">{user.email}</span>
                       </td>
                       <td className="px-6 py-4">
-                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-md text-xs font-medium border ${getRoleBadgeColor(user.roleId)}`}>
+                        <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-md text-xs font-medium border ${getRoleBadgeColor(user.roleId)}`}>
+                          {getRoleById(user.roleId)?.isSystemRole && (
+                            <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                              <path fillRule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clipRule="evenodd" />
+                            </svg>
+                          )}
                           {user.roleName || "Unknown"}
                         </span>
                       </td>
@@ -796,6 +843,9 @@ function PeopleContent() {
                             Role Name
                           </th>
                           <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Description
+                          </th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                             Permissions
                           </th>
                           <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -818,7 +868,7 @@ function PeopleContent() {
                                 <div className="flex items-center gap-2">
                                   <span className="text-sm font-medium text-gray-900">{role.name}</span>
                                   {role.isSystemRole && (
-                                    <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-700 border border-gray-300">
+                                    <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-700 border border-blue-200">
                                       <svg className="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
                                         <path fillRule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clipRule="evenodd" />
                                       </svg>
@@ -826,6 +876,11 @@ function PeopleContent() {
                                     </span>
                                   )}
                                 </div>
+                              </td>
+                              <td className="px-6 py-4">
+                                <span className="text-sm text-gray-600 max-w-xs truncate block" title={role.description || ''}>
+                                  {role.description || <span className="text-gray-400 italic">No description</span>}
+                                </span>
                               </td>
                               <td className="px-6 py-4">
                                 <span className="inline-flex items-center px-2.5 py-0.5 rounded-md text-xs font-medium bg-blue-100 text-blue-700 border border-blue-200">
@@ -1040,6 +1095,30 @@ function PeopleContent() {
                   </div>
                 )}
 
+                {/* Description Input */}
+                <div className="mb-6 pb-6 border-b border-gray-200">
+                  <label htmlFor="roleDescription" className="block text-sm font-medium text-gray-900 mb-2">
+                    Description <span className="text-gray-400 text-xs">(optional)</span>
+                  </label>
+                  <textarea
+                    id="roleDescription"
+                    value={fullscreenDescription}
+                    onChange={(e) => setFullscreenDescription(e.target.value)}
+                    placeholder="e.g., Restricted role for external electrical contractors"
+                    maxLength={500}
+                    rows={3}
+                    className="w-full max-w-2xl px-4 py-2 border border-gray-300 rounded-md text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
+                  />
+                  <div className="flex justify-between items-center mt-1 max-w-2xl">
+                    <p className="text-xs text-gray-500">
+                      Define the intended scope and use case for this role
+                    </p>
+                    <span className="text-xs text-gray-400">
+                      {fullscreenDescription.length}/500
+                    </span>
+                  </div>
+                </div>
+
                 {/* Permissions Matrix */}
                 <div className="mb-6">
                   <div className="flex items-center justify-between mb-3">
@@ -1091,11 +1170,6 @@ function PeopleContent() {
                       <p className="text-sm text-red-600">{fullscreenErrors.permissions}</p>
                     </div>
                   )}
-                  {fullscreenErrors.oshaLocations && (
-                    <div className="mb-4 p-3 bg-amber-50 border border-amber-200 rounded-md">
-                      <p className="text-sm text-amber-700">{fullscreenErrors.oshaLocations}</p>
-                    </div>
-                  )}
                   <RoleBuilderMatrix
                     permissions={fullscreenPermissions}
                     onChange={(newPermissions) => {
@@ -1107,9 +1181,6 @@ function PeopleContent() {
                     oshaLocationPermissions={fullscreenOshaLocationPermissions}
                     onOSHAPermissionsChange={(perms) => {
                       setFullscreenOshaLocationPermissions(perms);
-                      if (fullscreenErrors.oshaLocations) {
-                        setFullscreenErrors({...fullscreenErrors, oshaLocations: undefined});
-                      }
                     }}
                     disabled={editingRoleId ? roles.find(r => r.id === editingRoleId)?.isSystemRole : false}
                     advancedMode={advancedMode}
@@ -1408,6 +1479,16 @@ function PeopleContent() {
         onSubmit={handleSubmitUser}
         existingUser={editingUserId ? users.find(u => u.id === editingUserId) : undefined}
         checkDuplicateEmail={checkDuplicateEmail}
+        locationNodes={mockLocationHierarchy}
+      />
+
+      {/* Bulk User Import Modal */}
+      <BulkUserImportModal
+        isOpen={showBulkImportModal}
+        onClose={() => setShowBulkImportModal(false)}
+        onImport={handleBulkImport}
+        existingEmails={new Set(users.map(u => u.email))}
+        validRoleNames={new Set(roles.map(r => r.name))}
         locationNodes={mockLocationHierarchy}
       />
 

@@ -13,12 +13,23 @@ import { isValidEmail } from "../schemas/users";
 import { mockUsers } from "../samples/mockUsers";
 import { useRole } from "./RoleContext";
 
+export interface BulkImportUserRow {
+  firstName: string;
+  lastName: string;
+  email: string;
+  roleName: string;
+  locationPath: string;
+  locationNodeId: string; // Resolved from path
+  roleId: string;        // Resolved from name
+}
+
 interface UserContextType {
   users: Record<string, EHSUser>;
   createUser: (formData: CreateUserFormData) => string;
   updateUser: (id: string, formData: Partial<CreateUserFormData>) => boolean;
   deleteUser: (id: string) => boolean;
   toggleUserStatus: (id: string) => boolean;
+  bulkImportUsers: (rows: BulkImportUserRow[]) => { created: number; updated: number };
   getUserById: (id: string) => EHSUser | undefined;
   getUsersList: () => EHSUser[];
   checkDuplicateEmail: (email: string, excludeId?: string) => boolean;
@@ -192,6 +203,27 @@ export function UserProvider({ children }: { children: ReactNode }) {
     const user = users[id];
     if (!user) return false;
 
+    // Check if this is the last active Global Admin
+    if (user.status === "active") {
+      const role = getRoleById(user.roleId);
+      
+      // Check if role has Global Admin permissions (full access)
+      const isGlobalAdmin = role?.name === "Global Admin" || role?.id === "role_global_admin";
+      
+      if (isGlobalAdmin) {
+        // Count active Global Admins
+        const activeGlobalAdmins = Object.values(users).filter(u => 
+          u.status === "active" && 
+          (u.roleId === "role_global_admin" || u.roleName === "Global Admin")
+        ).length;
+        
+        if (activeGlobalAdmins <= 1) {
+          alert("Cannot deactivate last Global Admin\n\nThis is the only active user with Global Admin privileges. Assign Global Admin to another user before deactivating.");
+          return false;
+        }
+      }
+    }
+
     const updatedUser: EHSUser = {
       ...user,
       status: user.status === "active" ? "inactive" : "active",
@@ -211,6 +243,67 @@ export function UserProvider({ children }: { children: ReactNode }) {
     }
 
     return true;
+  };
+
+  /**
+   * Bulk import users from CSV
+   * - If email exists: update role and location (Bulk Update behavior)
+   * - If email new: create user with status 'pending'
+   */
+  const bulkImportUsers = (rows: BulkImportUserRow[]): { created: number; updated: number } => {
+    let created = 0;
+    let updated = 0;
+    let updatedUsers = { ...users };
+
+    rows.forEach(row => {
+      // Find existing user by email
+      const existingUser = Object.values(users).find(u => u.email === row.email);
+
+      if (existingUser) {
+        // Bulk Update: update role and location
+        const role = getRoleById(row.roleId);
+        const updatedUser: EHSUser = {
+          ...existingUser,
+          roleId: row.roleId,
+          roleName: role?.name,
+          locationNodeId: row.locationNodeId,
+          locationPath: row.locationPath,
+          updatedAt: new Date().toISOString(),
+        };
+        updatedUsers[existingUser.id] = updatedUser;
+        updated++;
+      } else {
+        // Create new user (status: 'pending')
+        const newId = `user_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+        const role = getRoleById(row.roleId);
+        const now = new Date().toISOString();
+
+        const newUser: EHSUser = {
+          id: newId,
+          firstName: row.firstName,
+          lastName: row.lastName,
+          email: row.email,
+          roleId: row.roleId,
+          roleName: role?.name,
+          locationNodeId: row.locationNodeId,
+          locationPath: row.locationPath,
+          status: "pending",
+          createdAt: now,
+          updatedAt: now,
+        };
+        updatedUsers[newId] = newUser;
+        created++;
+      }
+    });
+
+    setUsers(updatedUsers);
+    
+    // Save to localStorage
+    if (typeof window !== "undefined") {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(updatedUsers));
+    }
+
+    return { created, updated };
   };
 
   const getUserById = (id: string): EHSUser | undefined => {
@@ -240,6 +333,7 @@ export function UserProvider({ children }: { children: ReactNode }) {
     updateUser,
     deleteUser,
     toggleUserStatus,
+    bulkImportUsers,
     getUserById,
     getUsersList,
     checkDuplicateEmail,

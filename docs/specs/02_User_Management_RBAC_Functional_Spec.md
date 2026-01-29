@@ -1,10 +1,11 @@
 # Functional Specification: User Management & Custom Roles (RBAC)
 
-**Document Version:** 1.0  
-**Date:** January 23, 2026  
+**Document Version:** 2.0  
+**Date:** January 26, 2026  
 **Status:** ✅ Approved for Implementation  
 **Author:** Product Management  
-**Stakeholders:** Engineering, Security, Compliance
+**Stakeholders:** Engineering, Security, Compliance  
+**Last Updated:** Expanded with new requirements including Decoupled Architecture, Zero-Trust Model, API Interceptor Pattern, and Bulk User Import
 
 ---
 
@@ -12,18 +13,30 @@
 
 ### 1.1 Objective
 
-This specification defines the **User Management & Custom Roles (RBAC)** module for the UpKeep EHS platform. The system enables **granular access control** via Role-Based Access Control (RBAC) to ensure data security, operational flexibility, and regulatory compliance.
+The primary objective of the User Management and Role-Based Access Control (RBAC) module is to establish a secure, scalable, and granular permission infrastructure for the Environmental, Health, and Safety (EHS) platform. This functional specification outlines the architectural pivot from a legacy, coupled model—where safety permissions were strictly inherited from the Computerized Maintenance Management System (CMMS)—to a **Decoupled Modular Role Architecture**. This transition is critical to resolving the "Contextual Role Conflict," a scenario where the operational responsibilities of safety managers do not align with their maintenance system privileges.
+
+This module serves as the foundational security layer for the entire EHS ecosystem. It empowers organizations to enforce a "Zero-Trust" model where necessary, granting precise authorities such as "Global Admin" capabilities to safety directors without exposing sensitive maintenance asset databases to accidental modification. Furthermore, it facilitates the seamless integration of field technicians into safety workflows—allowing them to augment work orders with safety checklists—without requiring broad edit rights that would violate the Principle of Least Privilege.
 
 **Core Capability:** Administrators can create custom roles with fine-grained permissions, invite users with location-based data scoping, and maintain comprehensive audit trails for all permission changes.
 
+**Key Problem Scenarios Resolved:**
+
+- **The Desmoine Scenario:** Safety directors (e.g., Jane, Head of Safety) who hold "View-Only" CMMS access can now create Work Orders from Safety Incidents via the API Interceptor Pattern, bypassing standard CMMS permission checks while maintaining asset data protection.
+- **The Field Execution Paradox:** Maintenance technicians can attach safety artifacts (Job Hazard Analysis, safety checklists) to Work Orders without requiring full "Edit" permissions on the Work Order itself, enabling proper safety documentation without over-permissioning.
+
 ### 1.2 Compliance & Security Standards
 
-This module Must adhere to the following standards:
+To ensure strict data integrity, auditability, and regulatory adherence, the system **Must** be engineered to meet the following compliance standards:
 
-- **SOC 2 Type II:** All permission changes Must be logged with before/after diffs for compliance audits
-- **Least Privilege Principle:** Users receive only the minimum permissions necessary for their role
-- **Data Sovereignty:** Location-based scoping ensures users access only data within their assigned organizational hierarchy
-- **Audit Trail Integrity:** All administrative actions (role creation, user invitation, permission updates) Must be immutably logged with actor ID, timestamp, and IP address
+- **SOC 2 Type II Compliance:** The architecture **Must** support rigorous change management logging. All modifications to permission configurations—whether system-defined or custom—**Must** be logged with detailed "before" and "after" differentials (diffs) to provide a transparent history of access control changes.
+- **Least Privilege Principle:** The system's default permission state **Must** be "Deny All." Users **Must** receive only the minimum permissions explicitly granted by their assigned role. Access to sensitive modules, particularly the OSHA Compliance Engine (Forms 300, 301, 300A), is restricted exclusively to authorized administrators, hidden entirely from view-only or standard users.
+- **Data Sovereignty & Location Scoping:** Access **Must** be strictly scoped to the user's assigned node within the 6-level recursive location hierarchy. Each level is semantically flexible and can be named according to organizational structure:
+  - **Example 1:** Level 1: Global → Level 2: Region/Business Unit → Level 3: Country/State → Level 4: Site/Facility → Level 5: Area/Department → Level 6: Asset/Equipment
+  - **Example 2:** Level 1: Business Unit → Level 2: Division → Level 3: Plant → Level 4: Building → Level 5: Floor → Level 6: Room
+  
+  The system **Must** enforce strict isolation, preventing users from viewing or querying data associated with sibling nodes or parent nodes outside their explicit assignment.
+- **Audit Trail Integrity:** To satisfy ISO 45001 and OSHA record-keeping requirements, all critical actions—including Role Creation, Permission Modification, and User Assignment—**Must** be immutably logged. These logs **Must** include the actor_id, timestamp (UTC), ip_address, and context_metadata to ensure non-repudiation.
+- **Zero-Trust Visibility:** For high-risk roles, such as External Auditors, the system **Must** enforce a conditional access model. Visibility is not granted by role alone but requires explicit tagging (e.g., inclusion in notify_team_members or watchers) to view specific records, ensuring sensitive injury data remains private.
 
 ### 1.3 Scope
 
@@ -38,22 +51,41 @@ This specification covers four core workflows:
 
 ## 2. Roles & Definitions
 
-### 2.1 Actors
+### 2.1 Actors and Personas
 
-#### Super Admin
-- **Responsibility:** Configures roles, manages OSHA establishments, grants administrative privileges
-- **Access Level:** Full system access including user management, role configuration, and system settings
-- **Constraint:** At least one Super Admin Must exist at all times (deletion of last Super Admin is blocked)
+The system interaction is defined by distinct actor types, each with specific responsibilities, constraints, and relationships to the underlying data model.
 
-#### User Administrator
-- **Responsibility:** Invites users, assigns roles, manages user status (active/inactive)
-- **Access Level:** User management module access, can assign any existing role (System or Custom)
-- **Constraint:** Cannot modify or delete System roles
+#### 2.1.1 Global Admin (Super Administrator)
 
-#### End User
-- **Responsibility:** Performs day-to-day EHS operations within assigned permissions
-- **Access Level:** Determined by assigned role and location scope
-- **Constraint:** Single role per user (1:1 relationship), location-scoped data access
+- **Definition:** The highest-level authority within the EHS tenant, typically representing the "Head of Safety" or Corporate Safety Director (e.g., Persona: Jane).
+- **Capabilities:**
+  - **Full CRUD Access:** Possesses unrestricted Create, Read, Update, and Delete capabilities across all modules, including Safety Events, CAPA, JHA, SOP, LOTO, and PTW.
+  - **Exclusive Compliance Access:** Only Global Admins can access the Compliance Engine to manage sensitive OSHA Logs (300, 301, 300A). This module is invisible to all other roles.
+  - **Cross-Module Authority:** Via the API Interceptor Pattern, this actor can trigger Work Order creations in the CMMS even if their CMMS-specific role is "View-Only," resolving the "Desmoine Scenario" where safety leaders lack maintenance admin rights.
+- **Constraint:** The system **Must** prevent the deletion or deactivation of the last remaining user with the Global Admin role to prevent irreversible system lockout.
+
+#### 2.1.2 Location Admin (Location Administrator)
+
+- **Definition:** A site-level manager responsible for a specific facility or region (e.g., Persona: John, Plant Manager).
+- **Capabilities:**
+  - **Scoped Management:** Manages users and assigns roles, but strictly within their assigned location scope.
+  - **Administrative Powers:** Possesses "Admin-like" powers (e.g., Approve CAPA, Close Incident) confined strictly to data tagged with their assigned Location ID or its descendants.
+- **Constraint:** Strictly blocked from viewing or managing records associated with sibling locations (e.g., a Texas admin cannot see New York data) or modifying System Roles.
+
+#### 2.1.3 Technician (Limited Tech)
+
+- **Definition:** The primary executor of safety tasks and data entry, such as a Machine Operator or Maintenance Technician (e.g., Persona: Mike).
+- **Capabilities:**
+  - **Ownership-Based Editing:** Can only edit records they personally created or are explicitly assigned to.
+  - **Work Order Augmentation:** Can attach safety artifacts (checklists, JHAs) to Work Orders without possessing "Edit" rights for the Work Order itself, facilitating the "Field Execution Paradox" resolution.
+- **Constraint:** Strictly prohibited from deleting any record. Subject to a strict "One role per user" enforcement (1:1 relationship).
+
+#### 2.1.4 View-Only (Auditor)
+
+- **Definition:** External legal counsel, auditors, or temporary contractors (e.g., Persona: Sarah).
+- **Capabilities:**
+  - **Zero-Trust Visibility:** By default, this role sees **0 results** in any list view. Visibility is granted only when the user's ID is explicitly found in a record's notify_team_members, watchers, or assignee fields.
+- **Constraint:** The OSHA module is strictly inaccessible (HTTP 403). All UI inputs are disabled, and action buttons (Save, Edit) are removed from the DOM.
 
 ### 2.2 Role Types
 
@@ -68,10 +100,13 @@ This specification covers four core workflows:
 - **Deletion:** Cannot be deleted (Delete action hidden from UI actions menu)
 - **Duplication:** Can be cloned to create a Custom role with "(Copy)" suffix
 
-**Examples:**
-- EHS Manager (full access to all modules)
-- Site Safety Lead (events, CAPA, audits)
-- Safety Inspector (read-only with incident reporting)
+**Standard System Roles:**
+- **Global Admin:** Full access to all modules and administrative functions
+- **Location Admin:** Site-level management with location-scoped permissions
+- **Technician:** Field execution role with ownership-based editing
+- **View-Only:** Conditional read-only access with zero-trust visibility
+
+**Note:** We certainly need to learn more from customers and adjust over time, building a system that facilitates future changes.
 
 #### Custom Roles (Mutable)
 
@@ -133,7 +168,20 @@ This specification covers four core workflows:
 - Field Disabled: True
 - Hint Text: "System role names cannot be changed"
 
-#### 3.3.2 Clone from Existing Role (Optional)
+#### 3.3.2 Description (Optional)
+
+**Field Specifications:**
+- **Label:** "Description" with gray text "(optional)"
+- **Input Type:** Text area
+- **Placeholder:** "e.g., Restricted role for external electrical contractors"
+- **Character Limit:** 500 characters
+- **Validation:** None (optional field)
+
+**Purpose:** Allows administrators to define the intended scope and use case for the role, aiding in role management and selection.
+
+**Display:** Shown in role list view as tooltip on hover over role name.
+
+#### 3.3.3 Clone from Existing Role (Optional)
 
 **Field Specifications:**
 - **Label:** "Start from existing role" with gray text "(optional)"
@@ -145,9 +193,10 @@ This specification covers four core workflows:
 Create from scratch
 ─────────────────────
 System Roles
-  ├─ EHS Manager (32 permissions)
-  ├─ Site Safety Lead (24 permissions)
-  └─ Safety Inspector (18 permissions)
+  ├─ Global Admin (full permissions)
+  ├─ Location Admin (scoped permissions)
+  ├─ Technician (limited permissions)
+  └─ View-Only (read-only)
 ─────────────────────
 Custom Roles
   ├─ Regional Coordinator (28 permissions)
@@ -312,7 +361,7 @@ System Must validate the following before allowing save:
 **Automatic Naming:** When duplicating a System or Custom role, append " (Copy)" suffix
 
 **Examples:**
-- "EHS Manager" → "EHS Manager (Copy)"
+- "Global Admin" → "Global Admin (Copy)"
 - "Regional Coordinator (Copy)" → "Regional Coordinator (Copy) (Copy)"
 
 **Validation:** Duplicate name check applies to generated name (incremental if needed)
@@ -375,9 +424,9 @@ System Must validate the following before allowing save:
 ```
 Create from scratch
 ─────────────────────
-John Smith (EHS Manager - North America > USA)
-Jane Doe (Site Safety Lead - North America > USA > Plant A)
-Bob Johnson (Safety Inspector - Europe > UK > London)
+John Smith (Global Admin - North America > USA)
+Jane Doe (Location Admin - North America > USA > Plant A)
+Bob Johnson (Technician - Europe > UK > London)
 ```
 
 **Behavior:**
@@ -399,9 +448,10 @@ Bob Johnson (Safety Inspector - Europe > UK > London)
 Select a role...
 ─────────────────────
 System Roles
-  ├─ EHS Manager (Template)
-  ├─ Site Safety Lead (Template)
-  └─ Safety Inspector (Template)
+  ├─ Global Admin (Template)
+  ├─ Location Admin (Template)
+  ├─ Technician (Template)
+  └─ View-Only (Template)
 ─────────────────────
 Custom Roles
   ├─ Regional Coordinator
@@ -429,18 +479,65 @@ Custom Roles
 - **Default Value:** None
 
 **Component Behavior:**
-- Opens location tree in dropdown
-- User navigates 6-level hierarchy (e.g., Region > Country > State > City > Plant > Line)
-- Selecting a node automatically includes all child nodes
+
+**Initial State:**
+- Location tree starts **collapsed** (no folders expanded)
+- Clean, minimal view to reduce cognitive load
+- User can progressively drill down by clicking expand arrows
+
+**6-Level Recursive Hierarchy Structure:**
+
+The selector **Must** support the 6-level recursive tree structure. Organizations define their own hierarchy semantics based on operational needs:
+
+**Example Configuration 1 (Geographical):**
+- Level 1: Global Operations
+- Level 2: Region (North America, Europe, APAC)
+- Level 3: Country/State (USA, Canada, Mexico)
+- Level 4: Site/Facility (Chicago Plant, Seattle DC)
+- Level 5: Area/Department (Production Floor, Warehouse)
+- Level 6: Asset/Equipment (Line 3, Loading Dock)
+
+**Example Configuration 2 (Organizational):**
+- Level 1: Business Unit
+- Level 2: Division
+- Level 3: Plant
+- Level 4: Building
+- Level 5: Floor
+- Level 6: Room
+
+**Navigation Flow:**
+1. User clicks dropdown to open location selector
+2. Tree shows top-level nodes only (e.g., "Global Operations", "North America", "Europe")
+3. User clicks arrow (▶) next to a node to expand and see children
+4. User continues expanding until reaching desired location
+5. User clicks checkbox to select final location
+6. All child locations automatically included (non-optional)
+
+**Search Functionality:**
+- **Purpose:** Quick discovery of specific locations without manual navigation
+- **Behavior:**
+  - User types location name (e.g., "Toronto")
+  - System finds matching locations AND includes their children
+  - Tree expands to show matched nodes + their parent path
+  - **Critical:** Children of matched nodes remain visible but collapsed
+  - User can expand matched location to explore its sub-locations
+- **Use Case:** "I know the facility name but want to see what areas/assets are inside"
+
+**Visual Feedback:**
+- Selected location: Blue background highlight
+- Child locations: Lighter blue background with checkmark (auto-included)
+- Counter shows: "X selected (with sub-locations)" to clarify scope
 
 **Breadcrumb Display:**
 - Selected location shown as breadcrumb: "North America > USA > Plant A"
 - Format: Parent > Parent > Selected Node
+- Displays full path for context
 
 **Dynamic Inheritance Rule:**
 - User inherits access to selected node + all descendant nodes
 - **Critical:** When new child locations are created under assigned node, user automatically gains access without requiring reassignment
 - **Revocation:** If assigned location is deleted/archived, user loses access to that subtree until reassigned
+- **Non-Optional:** Children are ALWAYS included (no toggle to exclude them)
 
 **Validation:**
 - Cannot be empty
@@ -454,6 +551,12 @@ Custom Roles
 
 **Hint Text:**
 - "User will have access to this location and all child locations automatically"
+
+**UX Principles:**
+- **Progressive Disclosure:** Start collapsed, expand on demand
+- **Search-Then-Explore:** Find parent location via search, then manually explore children
+- **No Overwhelming Views:** Avoid showing hundreds of locations at once
+- **Clear Selection Scope:** Visual indicators show exactly what's included
 
 #### 4.2.6 Validation Logic
 
@@ -574,6 +677,23 @@ Custom Roles
 
 ---
 
+### 4.4 Bulk User Import
+
+**Trigger:** "Import Users" button (Secondary action on User List).
+
+**Workflow:**
+
+1. **Download Template:** User downloads a CSV template containing headers: First Name, Last Name, Email, Role Name, Location Path.
+2. **Upload CSV:** User uploads the populated file.
+3. **Validation & Preview:** The system parses the file and validates rows.
+
+**Logic:**
+
+- **Role Existence:** The system validates that the Role Name in the CSV matches an existing System or Custom Role. If a Custom Role is specified but does not exist, the row fails. Users **Must** create Custom Roles manually *before* attempting bulk import.
+- **Bulk Update:** If the email matches an existing user, the system treats the row as an update request, modifying the user's Role and Location to match the CSV data. This allows for rapid mass-migration of users to new role types.
+
+---
+
 ## 5. View Pages (The Interface)
 
 ### 5.1 Custom Roles List View
@@ -633,7 +753,7 @@ Simple Mode ○───○ Advanced Mode
 **Role Name Column:**
 - **System Role Display:**
   ```
-  EHS Manager [System]
+  Global Admin [System]
   ```
   - Badge: Blue background (#DBEAFE), blue text (#1E40AF), lock icon
 - **Custom Role Display:**
@@ -958,8 +1078,8 @@ Simple Mode ○───○ Advanced Mode
 
 **Name Collision Handling:**
 - If "[Name] (Copy)" exists, append another " (Copy)"
-- Example: "EHS Manager (Copy) (Copy)"
-- Alternative: Append number: "EHS Manager (Copy 2)"
+- Example: "Global Admin (Copy) (Copy)"
+- Alternative: Append number: "Global Admin (Copy 2)"
 
 #### 6.1.4 Deletion (Soft-Delete)
 
@@ -1002,29 +1122,29 @@ AND deletedAt IS NULL
    - Keep in database for audit trail
    - Success toast: "Role '[name]' deleted"
 
-**Special Case: Last Super Admin Check**
+**Special Case: Last Global Admin Check**
 
-**Trigger:** Attempting to delete a role with Super Admin permissions
+**Trigger:** Attempting to delete a role with Global Admin permissions
 
 **Logic:**
 ```typescript
 // Pseudo-code
-const isSuperAdminRole = checkIfFullAccessPermissions(role.permissions);
-if (isSuperAdminRole) {
+const isGlobalAdminRole = checkIfFullAccessPermissions(role.permissions);
+if (isGlobalAdminRole) {
   const activeUsersWithThisRole = await countActiveUsersWithRole(roleId);
-  const totalActiveSuperAdmins = await countAllActiveSuperAdmins();
+  const totalActiveGlobalAdmins = await countAllActiveGlobalAdmins();
   
-  if (activeUsersWithThisRole === totalActiveSuperAdmins && totalActiveSuperAdmins === 1) {
-    // Block deletion - this is the last Super Admin
-    showError("Cannot delete last Super Admin role");
+  if (activeUsersWithThisRole === totalActiveGlobalAdmins && totalActiveGlobalAdmins === 1) {
+    // Block deletion - this is the last Global Admin
+    showError("Cannot delete last Global Admin role");
   }
 }
 ```
 
-**Error Modal (Last Super Admin):**
-- **Title:** "Cannot Delete Last Super Admin Role"
+**Error Modal (Last Global Admin):**
+- **Title:** "Cannot Delete Last Global Admin Role"
 - **Icon:** Shield with X (red)
-- **Message:** "This is the only role with Super Admin permissions assigned to an active user. At least one Super Admin must exist at all times. Please assign another user to this role before deleting."
+- **Message:** "This is the only role with Global Admin permissions assigned to an active user. At least one Global Admin must exist at all times. Please assign another user to this role before deleting."
 - **Action:** "Cancel" button (closes modal)
 
 ---
@@ -1454,9 +1574,9 @@ All audit trail entries Must include:
   "userAgent": "Mozilla/5.0...",
   "metadata": {
     "sourceRoleId": "original-role-uuid",
-    "sourceRoleName": "EHS Manager",
+    "sourceRoleName": "Global Admin",
     "newRoleId": "new-role-uuid",
-    "newRoleName": "EHS Manager (Copy)",
+    "newRoleName": "Global Admin (Copy)",
     "permissionCount": 32
   }
 }
@@ -1556,9 +1676,9 @@ All audit trail entries Must include:
     "userId": "user-uuid",
     "userEmail": "john.doe@company.com",
     "oldRoleId": "old-role-uuid",
-    "oldRoleName": "Safety Inspector",
+    "oldRoleName": "Technician",
     "newRoleId": "new-role-uuid",
-    "newRoleName": "Safety Coordinator",
+    "newRoleName": "Location Admin",
     "permissionDiffSummary": {
       "permissionsAdded": 8,
       "permissionsRemoved": 2,
@@ -1789,7 +1909,410 @@ UpKeep EHS
 
 ---
 
-### 8.2 Editing Active Roles
+### 8.2 View-Only CMMS User acting as EHS Admin (The Interceptor)
+
+**Scenario:** A user is configured as "View-Only" in the CMMS (to protect asset data) but holds the "Global Admin" role in EHS. They attempt to create a Work Order (WO) from a Safety Incident.
+
+**Business Context:** This resolves the "Desmoine Scenario" where safety directors need to create Work Orders from safety incidents but should not have broad edit access to maintenance asset databases, which could lead to accidental modifications of critical equipment records.
+
+**Logic:** The API Gateway Interceptor detects the request source (EHS_Module) and the user's EHS Role (Global Admin). It authorizes the request, bypassing the standard CMMS permission check.
+
+**Implementation Flow:**
+
+1. **Request Detection:**
+   - User clicks "Create Work Order" from Safety Incident detail page
+   - API request includes header: `X-Source-Module: EHS`
+   - Request payload contains: `sourceIncidentId` and Work Order data
+
+2. **Interceptor Logic:**
+```typescript
+// API Gateway Middleware
+async function crossModulePermissionCheck(req, res, next) {
+  const sourceModule = req.headers['x-source-module'];
+  const userId = req.user.id;
+  
+  if (sourceModule === 'EHS' && req.path.startsWith('/api/work-orders')) {
+    // Check user's EHS role instead of CMMS role
+    const ehsRole = await db.ehsRoles.findUnique({ 
+      where: { userId },
+      include: { permissions: true }
+    });
+    
+    if (ehsRole?.permissions.workOrders?.create === true) {
+      req.bypassCMMSCheck = true;
+      return next();
+    }
+  }
+  
+  // Standard CMMS permission check
+  return standardPermissionCheck(req, res, next);
+}
+```
+
+3. **Work Order Creation:**
+   - Work Order created successfully in CMMS
+   - Link established: `work_orders.source_incident_id = incident.id`
+   - Audit log records cross-module creation
+
+**UI Feedback (Toast):**
+
+Display informational toast after successful creation:
+
+**Toast Content:**
+- **Icon:** Checkmark (green)
+- **Title:** "Work Order created successfully"
+- **Message:** "Note: You may not be able to view this record in the Maintenance system due to your current access level."
+- **Duration:** 5 seconds
+- **Action:** "View in EHS" button (links back to incident with WO reference)
+
+**Reasoning:** This message is critical to preventing user confusion and subsequent "Access Denied" errors if the user attempts to click a link to the WO in the CMMS interface, which they technically cannot view due to their "View-Only" CMMS role.
+
+**Security Considerations:**
+- Cross-module permission checks logged in audit trail
+- Work Orders created via EHS module are tagged: `created_via_module: 'EHS'`
+- Users cannot edit or delete Work Orders in CMMS—only view them from EHS incident context
+- Location scoping still applies (user can only create WOs for incidents in their location subtree)
+
+**Alternative Approaches Rejected:**
+1. ❌ Grant users full CMMS "Edit" access → Violates least privilege, risks asset data corruption
+2. ❌ Require manual WO creation by maintenance team → Delays response to safety incidents
+3. ✅ API Interceptor Pattern → Maintains security boundaries while enabling workflow
+
+---
+
+### 8.3 Zero-Trust Data Visibility (The Auditor)
+
+**Scenario:** A user with the "Conditional View-Only" role (e.g., External Auditor, Legal Counsel) logs in to review safety data.
+
+**Business Context:** Organizations need to provide limited, compartmentalized access to external parties reviewing specific incidents (e.g., OSHA investigations, legal discovery, insurance claims) without exposing the entire safety database.
+
+**Default State:** The "Safety Events" list displays **0 records** when user first logs in.
+
+**Access Grant Mechanism:**
+
+**Explicit Tagging Required:** Visibility is granted only when the user's ID is explicitly found in any of the following record fields:
+- `notify_team_members` (array of user IDs)
+- `watchers` (array of user IDs)
+- `assignee` (single user ID)
+- `created_by` (single user ID)
+
+**API-Level Filtering:**
+
+```typescript
+// Query modification for Conditional View-Only role
+async function getVisibleRecords(userId: string, role: Role) {
+  if (role.name === 'Conditional View-Only') {
+    return await db.safetyEvents.findMany({
+      where: {
+        OR: [
+          { notify_team_members: { has: userId } },
+          { watchers: { has: userId } },
+          { assignee: userId },
+          { created_by: userId }
+        ],
+        deletedAt: null
+      }
+    });
+  }
+  
+  // Standard location-based filtering for other roles
+  return await standardLocationScopedQuery(userId, role);
+}
+```
+
+**OSHA Module Complete Block:**
+
+**API Enforcement:**
+- Any direct API attempt to access `/api/v2/osha-logs` returns **HTTP 403 Forbidden**
+- Error response: `{ error: "Access Denied", message: "OSHA module is not accessible for your role" }`
+
+**UI Enforcement:**
+- OSHA navigation menu item hidden from sidebar
+- Direct URL navigation to `/osha-logs` redirects to dashboard with error toast
+- "Export to OSHA" buttons removed from incident detail pages
+
+**Implementation Requirements:**
+
+1. **API-Level Filtering:**
+   - Middleware intercepts all data queries
+   - Applies user ID filter before executing query
+   - No client-side filtering (security through obscurity rejected)
+
+2. **UI Conditional Rendering:**
+```typescript
+// Component rendering logic
+function SafetyEventActions({ event, currentUser, currentRole }) {
+  const isConditionalViewOnly = currentRole.name === 'Conditional View-Only';
+  
+  return (
+    <div>
+      {/* View button always visible */}
+      <ViewButton />
+      
+      {/* Edit/Delete hidden for Conditional View-Only */}
+      {!isConditionalViewOnly && (
+        <>
+          <EditButton disabled />
+          <DeleteButton disabled />
+        </>
+      )}
+      
+      {/* Action buttons removed from DOM, not just disabled */}
+    </div>
+  );
+}
+```
+
+3. **List View Behavior:**
+   - Empty state message: "No records available. Contact your administrator if you believe this is an error."
+   - No record count displayed (to prevent information leakage)
+   - Filters/search still available but yield no results unless records explicitly tagged
+
+**Use Cases:**
+
+1. **External Legal Counsel:** Tagged on specific incident requiring legal review
+2. **Insurance Adjuster:** Tagged on claim-related incidents only
+3. **OSHA Inspector:** Tagged on incidents under investigation
+4. **Temporary Contractor:** Tagged on project-specific safety documentation
+
+**Security Implications:**
+- Users cannot discover incidents they're not explicitly tagged on
+- Location hierarchy visibility does not apply (explicit tagging overrides)
+- Audit trail records all access attempts (successful and denied)
+- Role cannot be used for "fishing expeditions" across safety database
+
+---
+
+### 8.4 Multiple Roles & Concurrent Editing
+
+**Single Role Enforcement:** The system enforces a strict 1:1 relationship between User and Role. The database schema utilizes a single foreign key `role_id` on the user table. If a user requires permissions overlapping two roles, a new Custom Role combining those permissions must be created.
+
+**Database Schema Constraint:**
+```sql
+ALTER TABLE users ADD CONSTRAINT fk_role_id 
+  FOREIGN KEY (role_id) REFERENCES roles(id);
+  
+-- No junction table for user_roles (enforces 1:1)
+```
+
+**UI Enforcement:**
+- Role selector strictly single-select (no multi-select option)
+- No "Add Role" button in user management
+- Editing user replaces current role (does not add)
+
+**Concurrent Editing Scenarios:**
+
+**Scenario 1: Admin A edits role while Admin B deletes it**
+
+**Sequence:**
+1. Admin A opens Role Edit modal for "Safety Coordinator"
+2. Admin B deletes "Safety Coordinator" role
+3. Admin A clicks "Save Changes"
+
+**System Response:**
+- API returns `404 Not Found` error
+- UI displays error modal:
+  - **Title:** "Role No Longer Exists"
+  - **Message:** "The role 'Safety Coordinator' has been deleted by another administrator. Your changes could not be saved."
+  - **Action:** "Close" button (returns to role list)
+
+**Scenario 2: Admin A edits role while Admin B assigns it to user**
+
+**Sequence:**
+1. Admin A opens Role Edit modal for "Field Technician"
+2. Admin A modifies permissions (removes "Delete" action)
+3. Admin B assigns "Field Technician" role to new user
+4. Admin A clicks "Save Changes"
+
+**System Response:**
+- Assignment succeeds (Admin B's action completes first)
+- Permission update succeeds (Admin A's action completes second)
+- **User immediately inherits new permissions** upon their next API request
+- Both actions logged separately in audit trail with timestamps
+
+**Race Condition Handling:**
+- Database uses optimistic locking (version column on roles table)
+- Last-write-wins strategy for permission updates
+- No transaction rollback (assignment and update are independent operations)
+
+**Audit Trail Clarity:**
+```json
+[
+  {
+    "timestamp": "2026-01-26T10:30:00Z",
+    "event": "role.assigned",
+    "actor": "admin-b-uuid",
+    "metadata": { "userId": "user-uuid", "roleId": "field-tech-uuid" }
+  },
+  {
+    "timestamp": "2026-01-26T10:30:02Z",
+    "event": "role.updated",
+    "actor": "admin-a-uuid",
+    "metadata": { 
+      "roleId": "field-tech-uuid",
+      "permissions": { "removed": ["event:delete"] }
+    }
+  }
+]
+```
+
+**Clear Error Messaging:**
+- Conflicts detected and communicated clearly
+- No silent failures or data corruption
+- Admins informed of concurrent actions via audit log
+
+---
+
+### 8.5 Mandatory Location Context
+
+**Scenario:** An API call attempts to create a Safety Event or CAPA without a valid `location_id`.
+
+**System Response:** The API returns a **400 Bad Request** error.
+
+**Error Response Format:**
+```json
+{
+  "error": "ValidationError",
+  "message": "location_id is required for all EHS records",
+  "field": "location_id",
+  "code": "MISSING_LOCATION"
+}
+```
+
+**Business Justification:** Location context is fundamental to:
+- Data sovereignty enforcement
+- Audit trail integrity
+- Regulatory compliance (OSHA requires establishment identification)
+- Access control scoping
+
+**Orphan Prevention:**
+
+**Scenario:** Admin attempts to delete a Location Node that has active EHS records associated with it.
+
+**Pre-Delete Check:**
+```typescript
+async function canDeleteLocation(locationId: string): Promise<{
+  canDelete: boolean;
+  reason?: string;
+  affectedRecords?: {
+    safetyEvents: number;
+    capas: number;
+    audits: number;
+  };
+}> {
+  const affectedCounts = await db.$transaction([
+    db.safetyEvents.count({ where: { location_id: locationId, deletedAt: null } }),
+    db.capas.count({ where: { location_id: locationId, deletedAt: null } }),
+    db.audits.count({ where: { location_id: locationId, deletedAt: null } })
+  ]);
+  
+  const totalAffected = affectedCounts.reduce((sum, count) => sum + count, 0);
+  
+  if (totalAffected > 0) {
+    return {
+      canDelete: false,
+      reason: 'has_active_records',
+      affectedRecords: {
+        safetyEvents: affectedCounts[0],
+        capas: affectedCounts[1],
+        audits: affectedCounts[2]
+      }
+    };
+  }
+  
+  return { canDelete: true };
+}
+```
+
+**User Receives Prompt:**
+
+**Error Modal:**
+- **Title:** "Cannot Delete Location"
+- **Icon:** Red warning triangle
+- **Message:** "This location has X active records associated with it. Please reassign these records to another location before deletion."
+- **Details Section:**
+  - Safety Events: Y
+  - CAPAs: Z
+  - Audits: W
+- **Actions:**
+  - **Primary:** "Reassign Records" button (opens reassignment workflow)
+  - **Secondary:** "Cancel" button (closes modal)
+
+**Reassignment Workflow:**
+
+1. **Location Selector:**
+   - User selects target location (sibling or parent node)
+   - System validates target location is active (not deleted/archived)
+
+2. **Bulk Reassignment:**
+```typescript
+async function reassignRecordsToLocation(
+  sourceLocationId: string,
+  targetLocationId: string,
+  actorId: string
+) {
+  const result = await db.$transaction(async (tx) => {
+    // Reassign all record types
+    const safetyEvents = await tx.safetyEvents.updateMany({
+      where: { location_id: sourceLocationId, deletedAt: null },
+      data: { location_id: targetLocationId }
+    });
+    
+    const capas = await tx.capas.updateMany({
+      where: { location_id: sourceLocationId, deletedAt: null },
+      data: { location_id: targetLocationId }
+    });
+    
+    // Log bulk reassignment in audit trail
+    await tx.auditLogs.create({
+      data: {
+        event_type: 'location.records_reassigned',
+        actor_id: actorId,
+        metadata: {
+          source_location_id: sourceLocationId,
+          target_location_id: targetLocationId,
+          records_affected: {
+            safety_events: safetyEvents.count,
+            capas: capas.count
+          }
+        }
+      }
+    });
+    
+    return { safetyEvents: safetyEvents.count, capas: capas.count };
+  });
+  
+  return result;
+}
+```
+
+3. **Post-Reassignment:**
+   - Success toast: "X records reassigned successfully. You can now delete the location."
+   - Location deletion button re-enabled
+   - Audit trail records bulk reassignment event
+
+**Database Constraints:**
+```sql
+-- Enforce location_id presence
+ALTER TABLE safety_events ADD CONSTRAINT fk_location_id 
+  FOREIGN KEY (location_id) REFERENCES locations(id) ON DELETE RESTRICT;
+
+ALTER TABLE capas ADD CONSTRAINT fk_location_id 
+  FOREIGN KEY (location_id) REFERENCES locations(id) ON DELETE RESTRICT;
+  
+-- Index for performance
+CREATE INDEX idx_safety_events_location ON safety_events(location_id);
+CREATE INDEX idx_capas_location ON capas(location_id);
+```
+
+**Audit Trail Integrity:**
+- All location reassignments logged with before/after location IDs
+- Orphan prevention events logged (deletion attempts blocked)
+- Ensures no data becomes "un-auditable" due to missing location context
+
+---
+
+### 8.6 Editing Active Roles
 
 **Scenario:** Admin edits a Custom role currently assigned to 50 active users
 
@@ -1830,24 +2353,24 @@ const impact = await getRoleEditImpact(roleId);
 
 ---
 
-### 8.3 Deleting Last Super Admin
+### 8.7 Deleting Last Global Admin
 
-**Scenario:** Admin attempts to delete a role that is the only role with Super Admin permissions assigned to an active user
+**Scenario:** Admin attempts to delete a role that is the only role with Global Admin permissions assigned to an active user
 
 **Required Behavior:**
 
 **Step 1: Pre-Delete Check**
 ```typescript
-async function canDeleteSuperAdminRole(roleId: string): Promise<{
+async function canDeleteGlobalAdminRole(roleId: string): Promise<{
   canDelete: boolean;
   reason?: string;
-  isLastSuperAdmin?: boolean;
+  isLastGlobalAdmin?: boolean;
 }> {
-  // Check if this role has full access (Super Admin equivalent)
+  // Check if this role has full access (Global Admin equivalent)
   const role = await db.roles.findUnique({ where: { id: roleId } });
-  const isSuperAdminRole = checkIfFullAccessPermissions(role.permissions);
+  const isGlobalAdminRole = checkIfFullAccessPermissions(role.permissions);
   
-  if (!isSuperAdminRole) {
+  if (!isGlobalAdminRole) {
     return { canDelete: true };
   }
   
@@ -1856,8 +2379,8 @@ async function canDeleteSuperAdminRole(roleId: string): Promise<{
     where: { roleId, status: 'active', deletedAt: null }
   });
   
-  // Count all active users with any Super Admin role
-  const allActiveSuperAdmins = await db.users.count({
+  // Count all active users with any Global Admin role
+  const allActiveGlobalAdmins = await db.users.count({
     where: {
       status: 'active',
       deletedAt: null,
@@ -1865,11 +2388,11 @@ async function canDeleteSuperAdminRole(roleId: string): Promise<{
     }
   });
   
-  if (activeUsersWithThisRole === allActiveSuperAdmins && allActiveSuperAdmins === 1) {
+  if (activeUsersWithThisRole === allActiveGlobalAdmins && allActiveGlobalAdmins === 1) {
     return {
       canDelete: false,
-      reason: 'last_super_admin',
-      isLastSuperAdmin: true
+      reason: 'last_global_admin',
+      isLastGlobalAdmin: true
     };
   }
   
@@ -1878,25 +2401,25 @@ async function canDeleteSuperAdminRole(roleId: string): Promise<{
 ```
 
 **Step 2: Block Deletion**
-- If `isLastSuperAdmin === true`, prevent deletion
+- If `isLastGlobalAdmin === true`, prevent deletion
 - Display error modal (not confirmation dialog)
 
 **Error Modal:**
-- **Title:** "Cannot Delete Last Super Admin Role"
+- **Title:** "Cannot Delete Last Global Admin Role"
 - **Icon:** Red shield with X
-- **Message:** "This is the only role with Super Admin permissions assigned to an active user. At least one Super Admin must exist at all times. Please assign another user to this role before deleting."
+- **Message:** "This is the only role with Global Admin permissions assigned to an active user. At least one Global Admin must exist at all times. Please assign another user to this role before deleting."
 - **Action:** "Cancel" button (gray, closes modal)
 
 **No Workaround:** System Must not allow deletion under any circumstance
 
 **Alternative Path for Admin:**
-1. Create a new user with Super Admin role
+1. Create a new user with Global Admin role
 2. Verify new user can log in
 3. Then delete the old role
 
 ---
 
-### 8.4 Duplicate Role Names
+### 8.8 Duplicate Role Names
 
 **Validation Trigger:** Real-time on blur and on submit
 
@@ -1932,7 +2455,7 @@ function checkDuplicateName(name: string, excludeId?: string): boolean {
 
 ---
 
-### 8.5 OSHA Module Without Location Permissions
+### 8.9 OSHA Module Without Location Permissions
 
 **Scenario:** Admin enables OSHA module permissions but does not configure any establishment-level permissions
 
@@ -1994,7 +2517,7 @@ function validateOSHAPermissions(
 
 ---
 
-### 8.6 System Role Modification Attempts
+### 8.10 System Role Modification Attempts
 
 **Scenario:** Admin attempts to edit a System role
 
@@ -2026,7 +2549,7 @@ function validateOSHAPermissions(
 
 ---
 
-### 8.7 Location-less Users
+### 8.11 Location-less Users
 
 **Scenario:** Admin attempts to create or edit a user without selecting a location
 
@@ -2060,7 +2583,7 @@ function validateOSHAPermissions(
 
 ---
 
-### 8.8 Email Format Validation
+### 8.12 Email Format Validation
 
 **Validation Regex:** `/^[^\s@]+@[^\s@]+\.[^\s@]+$/`
 
@@ -2087,7 +2610,7 @@ function validateOSHAPermissions(
 
 ---
 
-### 8.9 Inactive Role Assignment
+### 8.13 Inactive Role Assignment
 
 **Scenario:** User has been assigned a role that was later soft-deleted
 
@@ -2288,9 +2811,9 @@ CREATE INDEX idx_audit_logs_metadata_gin ON audit_logs USING GIN (metadata);
 
 ## Document Approval
 
-**Version:** 1.0  
-**Date:** January 23, 2026  
-**Status:** ✅ Ready for Implementation
+**Version:** 2.0  
+**Date:** January 26, 2026  
+**Status:** ✅ Ready for Implementation (Updated with Expanded Requirements)
 
 **Approved By:**
 - Product Management: ________________
@@ -2305,6 +2828,24 @@ CREATE INDEX idx_audit_logs_metadata_gin ON audit_logs USING GIN (metadata);
 4. QA test plan creation
 5. Security audit
 6. Compliance validation
+
+---
+
+## Works Cited
+
+This specification incorporates requirements and design decisions from the following source documents:
+
+1. **Permissions and Location Hierarchy Work** - Architecture design for decoupled CMMS-EHS permission model and 6-level location hierarchy
+2. **Functional Specification: User Management & Custom Roles (RBAC)** - Original functional specification document (v1.0)
+3. **FSD: View-Only Role & Conditional Access** - Zero-trust visibility model and conditional access patterns for external auditors
+4. **FUNCTIONAL_SPECIFICATION_RBAC_LOCATIONS_COMPLETE.md** - Complete technical specification for location-based access control
+5. **EHS Permissions & Roles - 2026/01/21 09:30 PST - Notes by Gemini** - Requirements gathering session notes with stakeholders
+6. **Functional Specification: Lockout/Tagout (LOTO) & Permit to Work (PTW)** - Workflow notification requirements and approval patterns
+
+**Related Documentation:**
+- [`01_Location_Hierarchy_Business_Spec.md`](01_Location_Hierarchy_Business_Spec.md) - Detailed specification of 6-level location hierarchy
+- `EHS_USER_MANAGEMENT_IMPLEMENTATION.md` - Implementation guide and technical architecture
+- `CUSTOM_ROLES_IMPLEMENTATION.md` - Frontend component implementation details
 
 ---
 
