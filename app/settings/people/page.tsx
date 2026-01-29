@@ -50,9 +50,9 @@ function PeopleContent() {
   const [roleCreationMode, setRoleCreationMode] = useState<RoleCreationMode>(() => {
     if (typeof window !== 'undefined') {
       const saved = localStorage.getItem('ehs_role_creation_mode');
-      return (saved as RoleCreationMode) || 'modal';
+      return (saved as RoleCreationMode) || 'fullscreen';
     }
-    return 'modal';
+    return 'fullscreen';
   });
 
   // Toggle role creation mode and save to localStorage
@@ -86,7 +86,7 @@ function PeopleContent() {
   const [fullscreenDescription, setFullscreenDescription] = useState("");
   const [fullscreenPermissions, setFullscreenPermissions] = useState<RolePermissions>(createDefaultPermissions());
   const [fullscreenOshaLocationPermissions, setFullscreenOshaLocationPermissions] = useState<OSHALocationPermissions>({});
-  const [fullscreenErrors, setFullscreenErrors] = useState<{name?: string; permissions?: string; oshaLocations?: string}>({});
+  const [fullscreenErrors, setFullscreenErrors] = useState<{name?: string; permissions?: string}>({});
   const [baseRoleId, setBaseRoleId] = useState<string>("");
   const [advancedMode, setAdvancedMode] = useState(false);
 
@@ -282,6 +282,7 @@ function PeopleContent() {
     if (roleCreationMode === 'fullscreen') {
       // Fullscreen mode: populate form and switch view
       setFullscreenRoleName(role.name);
+      setFullscreenDescription(role.description || "");
       setFullscreenPermissions(role.permissions);
       setFullscreenOshaLocationPermissions(role.oshaLocationPermissions || {});
       setFullscreenErrors({});
@@ -307,7 +308,7 @@ function PeopleContent() {
   
   const handleFullscreenSaveRole = () => {
     // Validate
-    const errors: {name?: string; permissions?: string; oshaLocations?: string} = {};
+    const errors: {name?: string; permissions?: string} = {};
     
     if (!fullscreenRoleName.trim()) {
       errors.name = "Role name is required";
@@ -320,25 +321,6 @@ function PeopleContent() {
     const enabledCount = countEnabledPermissions(fullscreenPermissions);
     if (enabledCount === 0) {
       errors.permissions = "At least one permission must be enabled";
-    }
-    
-    // Validate OSHA location permissions if global OSHA permissions are enabled
-    const hasOSHAPermissions = fullscreenPermissions.osha && Object.keys(fullscreenPermissions.osha).some(entityName => {
-      const entityPerms = fullscreenPermissions.osha[entityName];
-      return Object.values(entityPerms).some(val => val === true);
-    });
-    
-    if (hasOSHAPermissions) {
-      const hasLocationPerms = Object.keys(fullscreenOshaLocationPermissions).length > 0 &&
-        Object.values(fullscreenOshaLocationPermissions).some(estPerms =>
-          Object.values(estPerms).some(entity =>
-            Object.values(entity).some(val => val === true)
-          )
-        );
-      
-      if (!hasLocationPerms) {
-        errors.oshaLocations = "At least one OSHA permission must be configured for at least one establishment when OSHA module is enabled";
-      }
     }
     
     if (Object.keys(errors).length > 0) {
@@ -861,6 +843,9 @@ function PeopleContent() {
                             Role Name
                           </th>
                           <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Description
+                          </th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                             Permissions
                           </th>
                           <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -891,6 +876,11 @@ function PeopleContent() {
                                     </span>
                                   )}
                                 </div>
+                              </td>
+                              <td className="px-6 py-4">
+                                <span className="text-sm text-gray-600 max-w-xs truncate block" title={role.description || ''}>
+                                  {role.description || <span className="text-gray-400 italic">No description</span>}
+                                </span>
                               </td>
                               <td className="px-6 py-4">
                                 <span className="inline-flex items-center px-2.5 py-0.5 rounded-md text-xs font-medium bg-blue-100 text-blue-700 border border-blue-200">
@@ -1180,11 +1170,6 @@ function PeopleContent() {
                       <p className="text-sm text-red-600">{fullscreenErrors.permissions}</p>
                     </div>
                   )}
-                  {fullscreenErrors.oshaLocations && (
-                    <div className="mb-4 p-3 bg-amber-50 border border-amber-200 rounded-md">
-                      <p className="text-sm text-amber-700">{fullscreenErrors.oshaLocations}</p>
-                    </div>
-                  )}
                   <RoleBuilderMatrix
                     permissions={fullscreenPermissions}
                     onChange={(newPermissions) => {
@@ -1196,9 +1181,6 @@ function PeopleContent() {
                     oshaLocationPermissions={fullscreenOshaLocationPermissions}
                     onOSHAPermissionsChange={(perms) => {
                       setFullscreenOshaLocationPermissions(perms);
-                      if (fullscreenErrors.oshaLocations) {
-                        setFullscreenErrors({...fullscreenErrors, oshaLocations: undefined});
-                      }
                     }}
                     disabled={editingRoleId ? roles.find(r => r.id === editingRoleId)?.isSystemRole : false}
                     advancedMode={advancedMode}

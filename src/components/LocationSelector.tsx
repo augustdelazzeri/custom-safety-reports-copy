@@ -29,7 +29,7 @@ export default function LocationSelector({
   storageKey = "ehs-location-selector-mode",
   label = "Location",
 }: LocationSelectorProps) {
-  const [mode, setMode] = useState<LocationSelectorMode>("cascade");
+  const [mode, setMode] = useState<LocationSelectorMode>("tree");
   const [mounted, setMounted] = useState(false);
 
   // Load mode from localStorage on mount

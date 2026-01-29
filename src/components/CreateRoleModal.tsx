@@ -153,26 +153,6 @@ export default function CreateRoleModal({
       setError("At least one permission must be enabled");
       return;
     }
-    
-    // Validate OSHA location permissions if global OSHA permissions are enabled
-    const hasOSHAPermissions = permissions.osha && Object.keys(permissions.osha).some(entityName => {
-      const entityPerms = permissions.osha[entityName];
-      return Object.values(entityPerms).some(val => val === true);
-    });
-    
-    if (hasOSHAPermissions) {
-      const hasLocationPerms = Object.keys(oshaLocationPermissions).length > 0 &&
-        Object.values(oshaLocationPermissions).some(estPerms =>
-          Object.values(estPerms).some(entity =>
-            Object.values(entity).some(val => val === true)
-          )
-        );
-      
-      if (!hasLocationPerms) {
-        setError("At least one OSHA permission must be configured for at least one establishment when OSHA module is enabled");
-        return;
-      }
-    }
 
     onSubmit(trimmedName, permissions, oshaLocationPermissions, description.trim() || undefined);
   };
