@@ -164,7 +164,6 @@ export default function CreateCAPA() {
                   onChange={(selection) => setFormData({ ...formData, location: selection })}
                   locationTree={mockLocationHierarchy}
                   required={false}
-                  storageKey="ehs-capa-location-mode"
                   label="Location"
                 />
                 <p className="text-xs text-gray-500 mt-1">
