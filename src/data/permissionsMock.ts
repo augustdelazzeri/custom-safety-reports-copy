@@ -25,7 +25,6 @@ export type PermissionCategory =
   | "create-edit-own" // Create and edit own safety events (free, event module only)
   | "create-edit"     // Create, Update, Edit, Draft, Duplicate (or "Edit all" for event)
   | "approvals"       // Approve, Reject, Submit Review
-  | "collaboration"   // Comments, Mentions, Tagging
   | "archive-delete"  // Archive, Delete (destructive)
   | "reporting";      // Export, Reports
 
@@ -50,11 +49,6 @@ export const CATEGORY_METADATA: Record<PermissionCategory, { label: string; desc
     label: "Approvals",
     description: "Authority to approve/reject workflows",
     icon: "check-circle"
-  },
-  "collaboration": {
-    label: "Collaboration",
-    description: "Commenting and tagging capabilities",
-    icon: "chat"
   },
   "archive-delete": {
     label: "Archive & Delete",
@@ -132,10 +126,7 @@ export const EHS_PERMISSIONS: PermissionModule[] = [
           { id: "event:edit-others", label: "Edit other users' Safety Events", description: "Modify events created by others", permission: "EDIT", category: "create-edit" },
           { id: "event:archive", label: "Archive Incident", description: "Soft-delete", permission: "EDIT", category: "archive-delete" },
           { id: "event:delete", label: "Permanently Delete", description: "Hard delete", permission: "DELETE", category: "archive-delete" },
-          { id: "event:export", label: "Export Data", description: "Download as CSV", permission: "EXPORT", category: "reporting" },
-          { id: "event:comment", label: "Add Comment", description: "Post comment", permission: "COMMENT", category: "collaboration" },
-          { id: "event:view-comments", label: "View Comments", description: "Read threads", permission: "VIEW", category: "collaboration", licenseFree: true },
-          { id: "event:delete-comment", label: "Delete Comment", description: "Remove comment", permission: "EDIT", category: "collaboration" }
+          { id: "event:export", label: "Export Data", description: "Download as CSV", permission: "EXPORT", category: "reporting" }
         ]
       }
     ]
@@ -156,10 +147,7 @@ export const EHS_PERMISSIONS: PermissionModule[] = [
           { id: "capa:duplicate", label: "Duplicate CAPA", description: "Copy with attachments", permission: "CREATE", category: "create-edit" },
           { id: "capa:archive", label: "Archive", description: "Soft-delete", permission: "EDIT", category: "archive-delete" },
           { id: "capa:delete", label: "Permanently Delete", description: "Hard delete", permission: "DELETE", category: "archive-delete" },
-          { id: "capa:export", label: "Export Data", description: "Download as CSV", permission: "EXPORT", category: "reporting" },
-          { id: "capa:comment", label: "Add Comment", description: "Post comment", permission: "COMMENT", category: "collaboration" },
-          { id: "capa:view-comments", label: "View Comments", description: "Read threads", permission: "VIEW", category: "collaboration", licenseFree: true },
-          { id: "capa:delete-comment", label: "Delete Comment", description: "Remove comment", permission: "EDIT", category: "collaboration" }
+          { id: "capa:export", label: "Export Data", description: "Download as CSV", permission: "EXPORT", category: "reporting" }
         ]
       }
     ]
@@ -417,7 +405,6 @@ export const PERMISSION_CATEGORIES: CategoryInfo[] = [
   { id: "create-edit-own", label: "Create & edit own safety events", description: "Create and edit your own safety events only" },
   { id: "create-edit", label: "Create & Edit", description: "Data entry and modification rights" },
   { id: "approvals", label: "Approvals", description: "Authority to approve/reject workflows" },
-  { id: "collaboration", label: "Collaboration", description: "Commenting and tagging capabilities" },
   { id: "archive-delete", label: "Archive & Delete", description: "Destructive capabilities" },
   { id: "reporting", label: "Reporting", description: "Data export and report generation" }
 ];
@@ -451,7 +438,7 @@ export function getModuleCategories(module: PermissionModule): PermissionCategor
     });
   });
   // Return in a consistent order (per spec)
-  const orderedCategories: PermissionCategory[] = ['view', 'create-edit-own', 'create-edit', 'approvals', 'collaboration', 'archive-delete', 'reporting'];
+  const orderedCategories: PermissionCategory[] = ['view', 'create-edit-own', 'create-edit', 'approvals', 'archive-delete', 'reporting'];
   return orderedCategories.filter(cat => categories.has(cat));
 }
 
@@ -485,7 +472,6 @@ export const LICENSE_PRICE_MONTHLY = 150; // $150 per month (display)
 export const PAID_CATEGORIES: PermissionCategory[] = [
   'create-edit',
   'approvals',
-  'collaboration',
   'archive-delete',
   'reporting'
 ];
