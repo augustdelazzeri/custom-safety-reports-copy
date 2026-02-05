@@ -217,3 +217,216 @@ Para referência cruzada com o código:
 5. **Sidebar Navigation (Audits menu item):** Estrutura de navegação não costuma estar em specs funcionais
 
 Essas decisões estão documentadas em `PROTOTYPE_ADJUSTMENTS.md` para referência da equipe de desenvolvimento.
+
+---
+
+## **APPENDIX: Prototype Validation Features**
+
+The functional prototype includes three **UI switchers** designed exclusively for design validation and stakeholder demonstration. These features allow rapid testing of different user scenarios and permission levels without requiring backend authentication or multiple user accounts.
+
+⚠️ **Important:** These switchers are **prototype-only tools** and should **NOT be implemented in the production application**. In production, these behaviors are determined by backend logic, user authentication, and database configuration.
+
+---
+
+### **A.1 Profile Switcher**
+
+**Purpose:** Simulate different user permission levels to validate role-based access control (RBAC) behavior across all modules.
+
+**Location:** Application header, positioned to the left of the notifications bell icon.
+
+**Available Profiles:**
+1. **Global Admin**
+   - Full system access with all permissions enabled (100%)
+   - Includes all OSHA location permissions
+   - Settings menu visible in sidebar
+   
+2. **Technician**
+   - Limited permissions (view-only on most modules)
+   - Can create Safety Events (but not edit/delete)
+   - View and comment on CAPAs (but cannot create/edit)
+   - Settings menu hidden from sidebar
+   - No OSHA access
+
+**How to Use:**
+1. Click the profile dropdown in the header (shows current profile with user icon)
+2. Select either "Global Admin" or "Technician"
+3. Navigate through different pages to observe permission-based UI behavior:
+   - **Enabled actions:** Blue buttons, fully clickable
+   - **Disabled actions:** Gray buttons with 50% opacity and "not-allowed" cursor
+   - **Tooltips:** Hover over disabled buttons shows "You do not have permission to perform this action"
+4. Profile selection persists in browser localStorage across page reloads
+
+**Validation Use Cases:**
+- Verify that Technicians cannot access sensitive configuration (Settings)
+- Confirm that permission restrictions are consistently applied across all modules
+- Test that users can create records in modules where they have "create" permission
+- Validate visual feedback for disabled actions
+
+**Production Implementation:**
+In production, user profile and permissions are determined by:
+- Backend authentication (login credentials)
+- Role assignment stored in database
+- Permission checks performed server-side before any data operation
+
+---
+
+### **A.2 Location Selector Mode Switcher**
+
+**Purpose:** Compare two different UI patterns for location hierarchy selection to determine optimal user experience.
+
+**Location:** Within any location selection interface (e.g., when assigning a user to a location, creating a Safety Event with location context).
+
+**Available Modes:**
+1. **Tree View**
+   - Hierarchical tree structure with expand/collapse nodes
+   - Shows full 6-level depth: Company → Business Unit → Facility → Area → Sub-Area → Asset
+   - Visual parent-child relationships
+   - Good for: Understanding organizational structure, navigating complex hierarchies
+   
+2. **Cascade Dropdowns**
+   - Sequential dropdown menus
+   - Each level filters the next: Select Company → then Business Unit → then Facility, etc.
+   - Progressive disclosure of hierarchy depth
+   - Good for: Faster selection when path is known, cleaner visual appearance
+
+**How to Use:**
+1. Locate the location selector interface (typically in forms or user management)
+2. Toggle between "Tree" and "Cascade" modes using the switcher control
+3. Test both experiences:
+   - Navigate deep hierarchies
+   - Select locations at different levels
+   - Observe loading/filtering behavior
+4. Provide feedback on which mode feels more intuitive for different use cases
+
+**Validation Use Cases:**
+- Determine which pattern is faster for power users vs occasional users
+- Test with real location data (deep hierarchies with 100+ locations)
+- Evaluate mobile responsiveness of each pattern
+- Assess accessibility (keyboard navigation, screen readers)
+
+**Production Implementation:**
+In production, select **one mode** based on validation results. The chosen pattern will be:
+- Consistently applied across all location selection interfaces
+- Optimized for performance with large datasets
+- Fully accessible (WCAG 2.1 AA compliance)
+
+---
+
+### **A.3 Role Creation Mode Switcher**
+
+**Purpose:** Toggle between Simple and Advanced permission configuration modes to validate appropriate complexity levels for different administrator personas.
+
+**Location:** Custom Roles creation/edit interface (Settings > Custom Roles > Create/Edit Role).
+
+**Available Modes:**
+
+1. **Simple Mode (Category-Level Grouping)**
+   - Groups permissions into 6 high-level functional categories:
+     * View
+     * Create & Edit
+     * Approvals
+     * Collaboration (Comments)
+     * Archive & Delete
+     * Reporting
+   - Covers 7 core modules: Access Points, Safety Events, CAPA, OSHA, LOTO, Audits & Inspections, Safety Work Orders
+   - Faster configuration: Check/uncheck entire categories
+   - Good for: Quick role creation, non-technical administrators, standard role patterns
+
+2. **Advanced Mode (Granular Entity-Action Matrix)**
+   - Full permission matrix: Module → Entity → Action
+   - All 10 modules available: Adds JHA, SOP, PTW
+   - Individual control over each permission (e.g., "CAPA → CAPA Record → Edit")
+   - OSHA Location Permissions selector for per-establishment access
+   - Good for: Complex custom roles, technical administrators, compliance-specific requirements
+
+**How to Use:**
+1. Navigate to Settings > Custom Roles > Create Role
+2. Toggle between "Simple" and "Advanced" modes using the mode switcher (typically at top of permission matrix)
+3. In Simple Mode:
+   - Select categories to grant bulk permissions
+   - Observe which modules are available
+4. In Advanced Mode:
+   - Expand individual modules to see entities
+   - Check/uncheck specific actions per entity
+   - Configure OSHA permissions per establishment
+5. Switch modes mid-configuration to see how selections translate between modes
+
+**Validation Use Cases:**
+- Test if Simple Mode covers 80% of common role creation scenarios
+- Validate that Advanced Mode provides sufficient granularity for edge cases
+- Confirm that switching modes preserves permission selections correctly
+- Assess cognitive load: Does Simple Mode reduce time-to-completion?
+
+**Production Implementation:**
+In production, **both modes will be available** as a toggle for administrators:
+- Default mode (Simple or Advanced) can be configured per customer
+- Mode preference may persist per admin user in localStorage
+- Permission data model supports both views (stored at granular level, displayed grouped in Simple Mode)
+- Mode switcher will be a permanent production feature (unlike Profile Switcher)
+
+---
+
+## **Summary: Prototype Switchers vs Production Features**
+
+| Switcher | Prototype Only? | Production Status |
+|----------|-----------------|-------------------|
+| **Profile Switcher** | ✅ YES | ❌ NOT in production (backend handles auth) |
+| **Location Selector Mode** | ✅ YES (for A/B testing) | ✅ One mode will be chosen for production |
+| **Role Creation Mode** | ❌ NO | ✅ WILL be in production (both modes available) |
+
+**Key Distinction:**
+- **Profile Switcher:** Pure validation tool, simulates backend behavior
+- **Location Selector Mode:** A/B test to choose final UX pattern
+- **Role Creation Mode:** Actual production feature being validated
+
+---
+
+## **Using the Prototype for Validation**
+
+When demonstrating the prototype to stakeholders or conducting user testing:
+
+1. **Start with Profile Switcher:**
+   - Show "Global Admin" view first (full access)
+   - Switch to "Technician" to demonstrate permission restrictions
+   - Navigate to same pages to show contrasting experiences
+
+2. **Test Location Selection:**
+   - Try both Tree and Cascade modes with real location data
+   - Gather feedback on preference and usability
+   - Note which mode stakeholders gravitate toward naturally
+
+3. **Explore Role Creation:**
+   - Create a simple role in Simple Mode (e.g., "Field Inspector")
+   - Create a complex role in Advanced Mode (e.g., "Regional Safety Manager with specific OSHA sites")
+   - Switch modes to show how permissions translate between views
+
+4. **Provide Context:**
+   - Clarify which features are validation tools vs production features
+   - Explain that Profile Switcher won't exist in production
+   - Emphasize that production will have one Location Selector mode (chosen after validation)
+
+---
+
+## **Questions to Answer During Validation**
+
+### Profile Switcher Validation:
+- ✅ Are disabled buttons clearly distinguishable from enabled ones?
+- ✅ Do tooltips provide sufficient explanation for restricted actions?
+- ✅ Is the sidebar filtering (hiding Settings for Technician) intuitive?
+- ✅ Are there any permission scenarios not covered by these two profiles?
+
+### Location Selector Validation:
+- ❓ Which mode is faster for users familiar with the location hierarchy?
+- ❓ Which mode is easier for new users or infrequent location selection?
+- ❓ Does Tree View perform well with 200+ locations?
+- ❓ Which mode works better on mobile/tablet devices?
+
+### Role Creation Mode Validation:
+- ❓ Does Simple Mode cover the majority of real-world role creation scenarios?
+- ❓ When do users need to switch to Advanced Mode?
+- ❓ Is the transition between modes smooth and permissions are preserved?
+- ❓ Should Simple Mode be the default for new administrators?
+
+---
+
+**End of Appendix**

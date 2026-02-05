@@ -3,6 +3,8 @@
 import React, { useState } from "react";
 import Link from "next/link";
 import Sidebar from "../src/components/Sidebar";
+import Header from "../src/components/Header";
+import { useActionPermission } from "../src/hooks/usePermissions";
 
 interface DummyEvent {
   id: string;
@@ -40,6 +42,13 @@ const dummyEvents = [
 
 export default function SafetyEventsPage() {
   const [searchQuery, setSearchQuery] = useState("");
+  
+  // Permission checks
+  const canCreate = useActionPermission("event", "Safety Event", "create");
+  const canEdit = useActionPermission("event", "Safety Event", "edit");
+  const canArchive = useActionPermission("event", "Safety Event", "archive");
+  const canDelete = useActionPermission("event", "Safety Event", "delete");
+  const canExport = useActionPermission("event", "Safety Event", "export");
 
   const getTypeBadgeColor = (type: string) => {
     switch (type) {
@@ -108,30 +117,11 @@ export default function SafetyEventsPage() {
   return (
     <div className="min-h-screen bg-gray-50">
       <Sidebar />
+      <div className="ml-64">
+        <Header />
       
-      {/* Header */}
-      <header className="bg-white border-b border-gray-200 ml-64">
-        <div className="px-8 py-3 flex items-center justify-between">
-          <div></div>
-          <div className="flex items-center gap-4">
-            <button className="relative p-2 hover:bg-gray-100 rounded-full transition-colors">
-              <svg className="w-6 h-6 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
-              </svg>
-              <span className="absolute top-1 right-1 w-5 h-5 bg-red-500 text-white text-xs rounded-full flex items-center justify-center font-semibold">4</span>
-            </button>
-            <Link href="/safetyevents/new" className="px-4 py-2 bg-blue-600 text-white rounded-md text-sm font-medium hover:bg-blue-700 transition-colors">
-              + Create
-            </Link>
-            <div className="w-9 h-9 bg-gray-300 rounded-full flex items-center justify-center">
-              <span className="text-gray-700 font-medium text-sm">J</span>
-            </div>
-          </div>
-        </div>
-      </header>
-      
-      {/* Main Content */}
-      <main className="ml-64 px-8 py-6">
+        {/* Main Content */}
+        <main className="px-8 py-6">
         {/* Page Header with Search and Actions */}
         <div className="flex items-center justify-between mb-6">
           <div>
@@ -152,13 +142,23 @@ export default function SafetyEventsPage() {
               />
             </div>
             <Link 
-              href="/safetyevents/new"
-              className="px-4 py-2 bg-blue-600 text-white rounded-md text-sm font-medium hover:bg-blue-700 transition-colors flex items-center gap-2"
+              href={canCreate.canPerform ? "/safetyevents/new" : "#"}
+              onClick={(e) => !canCreate.canPerform && e.preventDefault()}
+              title={canCreate.title}
+              className={`px-4 py-2 rounded-md text-sm font-medium transition-colors flex items-center gap-2 ${canCreate.buttonClass}`}
             >
               <span>+ Create Safety Event</span>
             </Link>
-            <button className="p-2 border border-gray-300 rounded-md hover:bg-gray-50 transition-colors">
-              <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <button 
+              disabled={canExport.disabled}
+              title={canExport.title || "Export"}
+              className={`p-2 border rounded-md transition-colors ${
+                canExport.canPerform 
+                  ? 'border-gray-300 hover:bg-gray-50' 
+                  : 'border-gray-200 opacity-50 cursor-not-allowed'
+              }`}
+            >
+              <svg className={`w-5 h-5 ${canExport.canPerform ? 'text-gray-600' : 'text-gray-400'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
               </svg>
             </button>
@@ -308,7 +308,8 @@ export default function SafetyEventsPage() {
             </tbody>
           </table>
         </div>
-      </main>
+        </main>
+      </div>
     </div>
   );
 }
