@@ -452,3 +452,51 @@ export function getCategoryLabel(category: PermissionCategory): string {
   const info = PERMISSION_CATEGORIES.find(c => c.id === category);
   return info?.label || category;
 }
+
+// --- EHS Role-Based Licensing (binary: Paid vs Free) ---
+export const LICENSE_PRICE_YEARLY = 1800; // $1,800 per year per seat
+export const LICENSE_PRICE_MONTHLY = 150; // $150 per month (display)
+
+/** Categories that trigger a Paid license (Create, Edit, Submit, Approve, etc.) */
+export const PAID_CATEGORIES: PermissionCategory[] = [
+  'create-edit',
+  'approvals',
+  'collaboration',
+  'archive-delete'
+];
+
+/** Categories that are Free (View Only / Reporting) */
+export const FREE_CATEGORIES: PermissionCategory[] = ['view', 'reporting'];
+
+export function isPaidCategory(category: PermissionCategory): boolean {
+  return PAID_CATEGORIES.includes(category);
+}
+
+export function isFreeCategory(category: PermissionCategory): boolean {
+  return FREE_CATEGORIES.includes(category);
+}
+
+export function getActionCategory(actionId: string): PermissionCategory | undefined {
+  for (const module of EHS_PERMISSIONS) {
+    for (const feature of module.features) {
+      const action = feature.actions.find(a => a.id === actionId);
+      if (action) return action.category;
+    }
+  }
+  return undefined;
+}
+
+export function isActionPaid(actionId: string): boolean {
+  const category = getActionCategory(actionId);
+  return category ? isPaidCategory(category) : false;
+}
+
+/** Get full action ID from moduleId, entityName, actionKey (for license counting) */
+export function getActionIdFromKeys(moduleId: string, entityName: string, actionKey: string): string | undefined {
+  const module = EHS_PERMISSIONS.find(m => m.moduleId === moduleId);
+  if (!module) return undefined;
+  const feature = module.features.find(f => f.entity === entityName);
+  if (!feature) return undefined;
+  const action = feature.actions.find(a => getActionKey(a.id) === actionKey);
+  return action?.id;
+}

@@ -5,7 +5,7 @@
  * Aligned with FUNCTIONAL_SPECS.md and permissionsMock.ts
  */
 
-import { EHS_PERMISSIONS, getActionKey } from '../data/permissionsMock';
+import { EHS_PERMISSIONS, getActionKey, getActionIdFromKeys, isActionPaid, LICENSE_PRICE_YEARLY, LICENSE_PRICE_MONTHLY } from '../data/permissionsMock';
 
 /**
  * Entity-level permissions: object with action keys as properties
@@ -363,4 +363,98 @@ export function toggleGlobalPermissions(permissions: RolePermissions, enable: bo
   });
   
   return updated;
+}
+
+// --- EHS Role-Based Licensing (binary: Paid vs Free) ---
+export type LicenseType = 'paid' | 'free';
+
+export { LICENSE_PRICE_YEARLY, LICENSE_PRICE_MONTHLY } from '../data/permissionsMock';
+
+export function countPaidPermissions(permissions: RolePermissions): number {
+  let count = 0;
+  for (const moduleId in permissions) {
+    for (const entityName in permissions[moduleId]) {
+      for (const actionKey in permissions[moduleId][entityName]) {
+        if (permissions[moduleId][entityName][actionKey] !== true) continue;
+        const actionId = getActionIdFromKeys(moduleId, entityName, actionKey);
+        if (actionId && isActionPaid(actionId)) count++;
+      }
+    }
+  }
+  return count;
+}
+
+export function countFreePermissions(permissions: RolePermissions): number {
+  let count = 0;
+  for (const moduleId in permissions) {
+    for (const entityName in permissions[moduleId]) {
+      for (const actionKey in permissions[moduleId][entityName]) {
+        if (permissions[moduleId][entityName][actionKey] !== true) continue;
+        const actionId = getActionIdFromKeys(moduleId, entityName, actionKey);
+        if (actionId && !isActionPaid(actionId)) count++;
+      }
+    }
+  }
+  return count;
+}
+
+export function getRoleLicenseType(permissions: RolePermissions): LicenseType {
+  return countPaidPermissions(permissions) > 0 ? 'paid' : 'free';
+}
+
+export interface LicenseStatusSummary {
+  type: LicenseType;
+  paidPermissions: number;
+  freePermissions: number;
+  priceYearly: number;
+  priceMonthly: number;
+}
+
+export function getLicenseStatusSummary(permissions: RolePermissions): LicenseStatusSummary {
+  const paid = countPaidPermissions(permissions);
+  const free = countFreePermissions(permissions);
+  const type: LicenseType = paid > 0 ? 'paid' : 'free';
+  return {
+    type,
+    paidPermissions: paid,
+    freePermissions: free,
+    priceYearly: type === 'paid' ? LICENSE_PRICE_YEARLY : 0,
+    priceMonthly: type === 'paid' ? LICENSE_PRICE_MONTHLY : 0
+  };
+}
+
+export function hasOSHAAccess(permissions: RolePermissions, oshaLocationPermissions?: OSHALocationPermissions): boolean {
+  const oshaModule = permissions['osha'];
+  if (oshaModule) {
+    for (const entityName in oshaModule) {
+      for (const actionKey in oshaModule[entityName]) {
+        if (oshaModule[entityName][actionKey] === true) return true;
+      }
+    }
+  }
+  if (oshaLocationPermissions && Object.keys(oshaLocationPermissions).length > 0) {
+    for (const estId in oshaLocationPermissions) {
+      const perms = oshaLocationPermissions[estId];
+      for (const entityName in perms) {
+        for (const actionKey in perms[entityName]) {
+          if (perms[entityName][actionKey] === true) return true;
+        }
+      }
+    }
+  }
+  return false;
+}
+
+export function validateViewOnlyRole(
+  permissions: RolePermissions,
+  oshaLocationPermissions?: OSHALocationPermissions
+): { valid: boolean; errors: string[] } {
+  const errors: string[] = [];
+  if (countPaidPermissions(permissions) > 0) {
+    errors.push('View Only roles cannot have Create, Edit, Submit, or Approve permissions.');
+  }
+  if (hasOSHAAccess(permissions, oshaLocationPermissions)) {
+    errors.push('View Only roles must have zero access to OSHA content or data.');
+  }
+  return { valid: errors.length === 0, errors };
 }

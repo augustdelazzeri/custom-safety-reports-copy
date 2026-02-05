@@ -31,6 +31,7 @@ import {
   getModuleCategories,
   getCategoryLabel,
   PERMISSION_CATEGORIES,
+  isPaidCategory,
   type PermissionCategory
 } from "../data/permissionsMock";
 import OSHALocationSelector from "./OSHALocationSelector";
@@ -336,6 +337,7 @@ export default function RoleBuilderMatrix({
                           partial={categoryPartiallySelected}
                           onChange={() => handleToggleCategory(module.moduleId, category)}
                           disabled={disabled}
+                          isPaid={isPaidCategory(category)}
                         />
                       );
                     })}
@@ -402,6 +404,7 @@ export default function RoleBuilderMatrix({
                                   checked={checked}
                                   onChange={() => handleToggleAction(module.moduleId, feature.entity, action.id)}
                                   disabled={disabled}
+                                  isPaid={isPaidCategory(action.category)}
                                 />
                               );
                             })}
@@ -440,6 +443,7 @@ interface CategoryToggleProps {
   partial?: boolean;
   onChange: () => void;
   disabled?: boolean;
+  isPaid?: boolean;
 }
 
 function CategoryToggle({ 
@@ -448,7 +452,8 @@ function CategoryToggle({
   checked, 
   partial = false,
   onChange, 
-  disabled = false
+  disabled = false,
+  isPaid = false
 }: CategoryToggleProps) {
   return (
     <button
@@ -479,10 +484,17 @@ function CategoryToggle({
         ) : null}
       </div>
       <div className="flex-1 min-w-0">
-        <div className={`text-sm font-semibold ${
-          disabled ? "text-gray-400" : "text-gray-900"
-        }`}>
-          {label}
+        <div className="flex items-center gap-2 flex-wrap">
+          <span className={`text-sm font-semibold ${
+            disabled ? "text-gray-400" : "text-gray-900"
+          }`}>
+            {label}
+          </span>
+          {isPaid && (
+            <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium bg-amber-50 text-amber-700 border border-amber-200" title="Paid license">
+              Paid
+            </span>
+          )}
         </div>
         <p className={`text-xs mt-0.5 ${
           disabled ? "text-gray-400" : "text-gray-600"
@@ -501,6 +513,7 @@ interface PermissionToggleProps {
   checked: boolean;
   onChange: () => void;
   disabled?: boolean;
+  isPaid?: boolean;
 }
 
 function PermissionToggle({ 
@@ -508,7 +521,8 @@ function PermissionToggle({
   description, 
   checked, 
   onChange, 
-  disabled = false
+  disabled = false,
+  isPaid = false
 }: PermissionToggleProps) {
   return (
     <button
@@ -535,10 +549,15 @@ function PermissionToggle({
         />
       </div>
       <div className="flex-1 min-w-0">
-        <div className={`text-sm font-medium ${
-          disabled ? "text-gray-400" : "text-gray-900"
-        }`}>
-          {label}
+        <div className="flex items-center gap-2 flex-wrap">
+          <span className={`text-sm font-medium ${
+            disabled ? "text-gray-400" : "text-gray-900"
+          }`}>
+            {label}
+          </span>
+          {isPaid && (
+            <span className="text-amber-600 font-medium" title="Paid license">$</span>
+          )}
         </div>
         <p className={`text-xs mt-0.5 ${
           disabled ? "text-gray-400" : "text-gray-600"

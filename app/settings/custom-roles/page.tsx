@@ -13,7 +13,7 @@ import Sidebar from "../../../src/components/Sidebar";
 import CreateRoleModal from "../../../src/components/CreateRoleModal";
 import { RoleProvider, useRole } from "../../../src/contexts/RoleContext";
 import { UserProvider, useUser } from "../../../src/contexts/UserContext";
-import { countEnabledPermissions } from "../../../src/schemas/roles";
+import { countEnabledPermissions, getRoleLicenseType } from "../../../src/schemas/roles";
 import { getVisibleModules } from "../../../src/data/permissionsMock";
 
 function CustomRolesContent() {
@@ -190,6 +190,9 @@ function CustomRolesContent() {
                     Permissions
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    License
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Type
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -203,6 +206,8 @@ function CustomRolesContent() {
               <tbody className="divide-y divide-gray-200">
                 {filteredRoles.map((role) => {
                   const permissionCount = countVisiblePermissions(role.permissions);
+                  const licenseType = getRoleLicenseType(role.permissions);
+                  const isPaid = licenseType === 'paid';
                   return (
                     <tr key={role.id} className="hover:bg-gray-50 transition-colors">
                       <td className="px-6 py-4">
@@ -226,6 +231,13 @@ function CustomRolesContent() {
                       <td className="px-6 py-4">
                         <span className="inline-flex items-center px-2.5 py-0.5 rounded-md text-xs font-medium bg-blue-100 text-blue-700 border border-blue-200">
                           {permissionCount} permission{permissionCount !== 1 ? 's' : ''}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4">
+                        <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-xs font-medium ${
+                          isPaid ? 'bg-amber-50 text-amber-700 border border-amber-200' : 'bg-green-50 text-green-700 border border-green-200'
+                        }`}>
+                          {isPaid ? 'Paid' : 'Free'}
                         </span>
                       </td>
                       <td className="px-6 py-4 text-sm text-gray-700">

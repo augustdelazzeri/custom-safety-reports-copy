@@ -7,7 +7,7 @@
 
 import React, { useState, useEffect } from "react";
 import RoleBuilderMatrix from "./RoleBuilderMatrix";
-import { createDefaultPermissions, countEnabledPermissions } from "../schemas/roles";
+import { createDefaultPermissions, countEnabledPermissions, getLicenseStatusSummary } from "../schemas/roles";
 import type { CustomRole, RolePermissions, OSHALocationPermissions } from "../schemas/roles";
 import { useRole } from "../contexts/RoleContext";
 import { useUser } from "../contexts/UserContext";
@@ -370,21 +370,75 @@ export default function CreateRoleModal({
           </div>
 
           {/* Footer - Fixed at bottom */}
-          <div className="px-6 py-4 border-t border-gray-200 flex justify-end gap-3 flex-shrink-0 bg-gray-50">
-            <button
-              type="button"
-              onClick={handleCancel}
-              className="px-4 py-2 border border-gray-300 text-gray-700 rounded-md text-sm font-medium hover:bg-white transition-colors"
-            >
-              Cancel
-            </button>
-            <button
-              type="submit"
-              disabled={existingRole?.isSystemRole}
-              className="px-4 py-2 bg-blue-600 text-white rounded-md text-sm font-medium hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {isEditMode ? "Save Changes" : "Create Role"}
-            </button>
+          <div className="border-t border-gray-200 flex-shrink-0 bg-gray-50">
+            {/* License Status Banner */}
+            {(() => {
+              const licenseStatus = getLicenseStatusSummary(permissions);
+              const isPaid = licenseStatus.type === 'paid';
+              return (
+                <div className={`px-6 py-3 border-b ${
+                  isPaid ? 'bg-amber-50 border-amber-200' : 'bg-green-50 border-green-200'
+                }`}>
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      {isPaid ? (
+                        <div className="w-8 h-8 bg-amber-100 rounded-full flex items-center justify-center">
+                          <svg className="w-4 h-4 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                          </svg>
+                        </div>
+                      ) : (
+                        <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
+                          <svg className="w-4 h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                          </svg>
+                        </div>
+                      )}
+                      <div>
+                        <div className={`text-sm font-semibold ${isPaid ? 'text-amber-900' : 'text-green-900'}`}>
+                          {isPaid ? 'Paid License' : 'Free License (View Only)'}
+                        </div>
+                        <div className={`text-xs ${isPaid ? 'text-amber-700' : 'text-green-700'}`}>
+                          {isPaid
+                            ? `${licenseStatus.paidPermissions} paid permission${licenseStatus.paidPermissions !== 1 ? 's' : ''} enabled${licenseStatus.freePermissions > 0 ? ` + ${licenseStatus.freePermissions} free` : ''}`
+                            : licenseStatus.freePermissions > 0
+                              ? `${licenseStatus.freePermissions} view/export permission${licenseStatus.freePermissions !== 1 ? 's' : ''} enabled`
+                              : 'No permissions enabled yet'}
+                        </div>
+                      </div>
+                    </div>
+                    {isPaid && (
+                      <div className="text-right">
+                        <div className="text-lg font-bold text-amber-900">
+                          ${licenseStatus.priceYearly.toLocaleString()}<span className="text-xs font-normal">/year</span>
+                        </div>
+                        <div className="text-xs text-amber-600">per user seat</div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              );
+            })()}
+            <div className="px-6 py-4 flex justify-end gap-3">
+              <button
+                type="button"
+                onClick={handleCancel}
+                className="px-4 py-2 border border-gray-300 text-gray-700 rounded-md text-sm font-medium hover:bg-white transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                disabled={existingRole?.isSystemRole}
+                className={`px-4 py-2 rounded-md text-sm font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${
+                  getLicenseStatusSummary(permissions).type === 'paid'
+                    ? 'bg-amber-600 text-white hover:bg-amber-700'
+                    : 'bg-blue-600 text-white hover:bg-blue-700'
+                }`}
+              >
+                {isEditMode ? "Save Changes" : "Create Role"}
+              </button>
+            </div>
           </div>
         </form>
 
