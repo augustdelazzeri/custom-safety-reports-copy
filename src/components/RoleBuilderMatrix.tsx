@@ -30,11 +30,13 @@ import {
   getActionsByCategory,
   getModuleCategories,
   getCategoryLabel,
+  getCategoryDescription,
   PERMISSION_CATEGORIES,
-  isPaidCategory,
+  isFreeCategory,
   type PermissionCategory
 } from "../data/permissionsMock";
 import OSHALocationSelector from "./OSHALocationSelector";
+import { isViewOnlyRoleName } from "../schemas/roles";
 
 interface RoleBuilderMatrixProps {
   permissions: RolePermissions;
@@ -43,6 +45,8 @@ interface RoleBuilderMatrixProps {
   onOSHAPermissionsChange?: (perms: OSHALocationPermissions) => void;
   disabled?: boolean;
   advancedMode?: boolean;
+  /** When provided and role is View-Only, shows that this role has zero OSHA access (read-only). */
+  roleName?: string;
 }
 
 export default function RoleBuilderMatrix({ 
@@ -51,7 +55,8 @@ export default function RoleBuilderMatrix({
   oshaLocationPermissions = {},
   onOSHAPermissionsChange,
   disabled = false,
-  advancedMode = false
+  advancedMode = false,
+  roleName
 }: RoleBuilderMatrixProps) {
   
   // Calculate simpleMode internally based on advancedMode
@@ -326,18 +331,17 @@ export default function RoleBuilderMatrix({
                     {getModuleCategories(module).map((category) => {
                       const categoryFullySelected = isCategoryFullySelected(module.moduleId, category);
                       const categoryPartiallySelected = isCategoryPartiallySelected(module.moduleId, category);
-                      const categoryInfo = PERMISSION_CATEGORIES.find(c => c.id === category);
                       
                       return (
                         <CategoryToggle
                           key={category}
-                          label={categoryInfo?.label || category}
-                          description={categoryInfo?.description || ''}
+                          label={getCategoryLabel(category, module.moduleId)}
+                          description={getCategoryDescription(category, module.moduleId) || PERMISSION_CATEGORIES.find(c => c.id === category)?.description || ''}
                           checked={categoryFullySelected}
                           partial={categoryPartiallySelected}
                           onChange={() => handleToggleCategory(module.moduleId, category)}
                           disabled={disabled}
-                          isPaid={isPaidCategory(category)}
+                          isFree={isFreeCategory(category)}
                         />
                       );
                     })}
@@ -404,7 +408,7 @@ export default function RoleBuilderMatrix({
                                   checked={checked}
                                   onChange={() => handleToggleAction(module.moduleId, feature.entity, action.id)}
                                   disabled={disabled}
-                                  isPaid={isPaidCategory(action.category)}
+                                  isFree={isFreeCategory(action.category) || !!action.licenseFree}
                                 />
                               );
                             })}
@@ -418,15 +422,29 @@ export default function RoleBuilderMatrix({
             )}
             
             {/* OSHA Location Permissions (appears for OSHA module only) */}
-            {module.moduleId === 'osha' && onOSHAPermissionsChange && (
-              <div className="px-4 py-4 bg-blue-50/50 border-t border-gray-200">
-                <OSHALocationSelector
-                  permissions={oshaLocationPermissions}
-                  onChange={onOSHAPermissionsChange}
-                  disabled={disabled}
-                  simpleMode={simpleMode}
-                />
-              </div>
+            {module.moduleId === 'osha' && (
+              <>
+                {disabled && roleName && isViewOnlyRoleName(roleName) && (
+                  <div className="px-4 py-3 bg-amber-50 border-t border-amber-200">
+                    <p className="text-sm text-amber-800 flex items-center gap-2">
+                      <svg className="w-4 h-4 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+                      </svg>
+                      View-Only roles have <strong>no access to OSHA</strong> (Occupational Safety and Health Administration) content or data.
+                    </p>
+                  </div>
+                )}
+                {onOSHAPermissionsChange && (
+                  <div className="px-4 py-4 bg-blue-50/50 border-t border-gray-200">
+                    <OSHALocationSelector
+                      permissions={oshaLocationPermissions}
+                      onChange={onOSHAPermissionsChange}
+                      disabled={disabled}
+                      simpleMode={simpleMode}
+                    />
+                  </div>
+                )}
+              </>
             )}
           </div>
         );
@@ -443,7 +461,7 @@ interface CategoryToggleProps {
   partial?: boolean;
   onChange: () => void;
   disabled?: boolean;
-  isPaid?: boolean;
+  isFree?: boolean;
 }
 
 function CategoryToggle({ 
@@ -453,8 +471,9 @@ function CategoryToggle({
   partial = false,
   onChange, 
   disabled = false,
-  isPaid = false
+  isFree = false
 }: CategoryToggleProps) {
+  const readOnlyHighlight = disabled && (checked || partial);
   return (
     <button
       type="button"
@@ -462,13 +481,15 @@ function CategoryToggle({
       disabled={disabled}
       className={`flex items-start gap-3 p-3 rounded-lg border transition-colors text-left w-full ${
         disabled
-          ? "bg-gray-50 border-gray-200 cursor-not-allowed"
+          ? readOnlyHighlight
+            ? "bg-green-50 border-green-300 cursor-not-allowed"
+            : "bg-gray-50 border-gray-200 cursor-not-allowed"
           : "border-gray-200 hover:border-blue-300 hover:bg-blue-50 cursor-pointer"
       }`}
     >
       <div className={`mt-0.5 relative inline-flex h-5 w-5 flex-shrink-0 items-center justify-center rounded border-2 transition-colors ${
         disabled 
-          ? "bg-gray-200 border-gray-300" 
+          ? readOnlyHighlight ? "bg-green-600 border-green-600" : "bg-gray-200 border-gray-300"
           : checked
             ? "bg-blue-600 border-blue-600"
             : partial
@@ -486,18 +507,18 @@ function CategoryToggle({
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2 flex-wrap">
           <span className={`text-sm font-semibold ${
-            disabled ? "text-gray-400" : "text-gray-900"
+            disabled ? (readOnlyHighlight ? "text-gray-900" : "text-gray-400") : "text-gray-900"
           }`}>
             {label}
           </span>
-          {isPaid && (
-            <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium bg-amber-50 text-amber-700 border border-amber-200" title="Paid license">
-              Paid
+          {isFree && (
+            <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium bg-green-50 text-green-700 border border-green-200" title="Free">
+              Free
             </span>
           )}
         </div>
         <p className={`text-xs mt-0.5 ${
-          disabled ? "text-gray-400" : "text-gray-600"
+          disabled ? (readOnlyHighlight ? "text-gray-700" : "text-gray-400") : "text-gray-600"
         }`}>
           {description}
         </p>
@@ -513,7 +534,7 @@ interface PermissionToggleProps {
   checked: boolean;
   onChange: () => void;
   disabled?: boolean;
-  isPaid?: boolean;
+  isFree?: boolean;
 }
 
 function PermissionToggle({ 
@@ -522,22 +543,25 @@ function PermissionToggle({
   checked, 
   onChange, 
   disabled = false,
-  isPaid = false
+  isFree = false
 }: PermissionToggleProps) {
+  const readOnlyHighlight = disabled && checked;
   return (
     <button
       type="button"
       onClick={onChange}
       disabled={disabled}
-      className={`flex items-start gap-3 p-2 -m-2 rounded-md transition-colors text-left w-full ${
+      className={`flex items-start gap-3 p-2 -m-2 rounded-md transition-colors text-left w-full border-l-4 ${
         disabled
-          ? "cursor-not-allowed"
-          : "hover:bg-gray-50 cursor-pointer"
+          ? readOnlyHighlight
+            ? "cursor-not-allowed bg-green-50 border-green-500"
+            : "cursor-not-allowed border-transparent"
+          : "hover:bg-gray-50 cursor-pointer border-transparent"
       }`}
     >
       <div className={`mt-0.5 relative inline-flex h-5 w-9 flex-shrink-0 items-center rounded-full transition-colors ${
         disabled 
-          ? "bg-gray-200" 
+          ? readOnlyHighlight ? "bg-green-600" : "bg-gray-200"
           : checked 
             ? "bg-blue-600" 
             : "bg-gray-300"
@@ -551,16 +575,19 @@ function PermissionToggle({
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2 flex-wrap">
           <span className={`text-sm font-medium ${
-            disabled ? "text-gray-400" : "text-gray-900"
+            disabled ? (readOnlyHighlight ? "text-gray-900" : "text-gray-400") : "text-gray-900"
           }`}>
             {label}
           </span>
-          {isPaid && (
-            <span className="text-amber-600 font-medium" title="Paid license">$</span>
+          {isFree && (
+            <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium bg-green-50 text-green-700 border border-green-200" title="Free">Free</span>
+          )}
+          {readOnlyHighlight && (
+            <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium bg-green-100 text-green-800 border border-green-300" title="This role can do this">Allowed</span>
           )}
         </div>
         <p className={`text-xs mt-0.5 ${
-          disabled ? "text-gray-400" : "text-gray-600"
+          disabled ? (readOnlyHighlight ? "text-gray-700" : "text-gray-400") : "text-gray-600"
         }`}>
           {description}
         </p>

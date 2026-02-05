@@ -402,6 +402,24 @@ export function getRoleLicenseType(permissions: RolePermissions): LicenseType {
   return countPaidPermissions(permissions) > 0 ? 'paid' : 'free';
 }
 
+/** System View-Only role is always free (view-only access only). */
+export function isViewOnlyRoleName(roleName: string): boolean {
+  const n = roleName.trim().toLowerCase().replace(/\s+/g, ' ');
+  return n === 'view-only' || n === 'view only';
+}
+
+/** System Technician role is always free (View-Only + create/edit own Safety Events). */
+export function isTechnicianSystemRoleName(roleName: string): boolean {
+  const n = roleName.trim().toLowerCase();
+  return n === 'technician';
+}
+
+/** Role is free if it's View-Only or Technician (system free roles); otherwise based on permissions. */
+export function getRoleLicenseTypeDisplay(role: { name: string; permissions: RolePermissions }): LicenseType {
+  if (isViewOnlyRoleName(role.name) || isTechnicianSystemRoleName(role.name)) return 'free';
+  return getRoleLicenseType(role.permissions);
+}
+
 export interface LicenseStatusSummary {
   type: LicenseType;
   paidPermissions: number;

@@ -345,6 +345,7 @@ export default function CreateRoleModal({
                 onOSHAPermissionsChange={setOshaLocationPermissions}
                 disabled={existingRole?.isSystemRole}
                 advancedMode={false}
+                roleName={existingRole?.name}
               />
               {existingRole?.isSystemRole && (
                 <p className="text-xs text-amber-600 mt-3 flex items-center gap-1">
@@ -369,53 +370,22 @@ export default function CreateRoleModal({
             )}
           </div>
 
-          {/* Footer - Fixed at bottom */}
+          {/* Footer - Fixed bar with real-time price (per user/month) */}
           <div className="border-t border-gray-200 flex-shrink-0 bg-gray-50">
-            {/* License Status Banner */}
             {(() => {
               const licenseStatus = getLicenseStatusSummary(permissions);
               const isPaid = licenseStatus.type === 'paid';
               return (
-                <div className={`px-6 py-3 border-b ${
-                  isPaid ? 'bg-amber-50 border-amber-200' : 'bg-green-50 border-green-200'
+                <div className={`px-6 py-3 flex items-center justify-between ${
+                  isPaid ? 'bg-amber-50 border-b border-amber-200' : 'bg-green-50 border-b border-green-200'
                 }`}>
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      {isPaid ? (
-                        <div className="w-8 h-8 bg-amber-100 rounded-full flex items-center justify-center">
-                          <svg className="w-4 h-4 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                          </svg>
-                        </div>
-                      ) : (
-                        <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
-                          <svg className="w-4 h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                          </svg>
-                        </div>
-                      )}
-                      <div>
-                        <div className={`text-sm font-semibold ${isPaid ? 'text-amber-900' : 'text-green-900'}`}>
-                          {isPaid ? 'Paid License' : 'Free License (View Only)'}
-                        </div>
-                        <div className={`text-xs ${isPaid ? 'text-amber-700' : 'text-green-700'}`}>
-                          {isPaid
-                            ? `${licenseStatus.paidPermissions} paid permission${licenseStatus.paidPermissions !== 1 ? 's' : ''} enabled${licenseStatus.freePermissions > 0 ? ` + ${licenseStatus.freePermissions} free` : ''}`
-                            : licenseStatus.freePermissions > 0
-                              ? `${licenseStatus.freePermissions} view/export permission${licenseStatus.freePermissions !== 1 ? 's' : ''} enabled`
-                              : 'No permissions enabled yet'}
-                        </div>
-                      </div>
-                    </div>
-                    {isPaid && (
-                      <div className="text-right">
-                        <div className="text-lg font-bold text-amber-900">
-                          ${licenseStatus.priceYearly.toLocaleString()}<span className="text-xs font-normal">/year</span>
-                        </div>
-                        <div className="text-xs text-amber-600">per user seat</div>
-                      </div>
-                    )}
-                  </div>
+                  <span className={`text-sm font-semibold ${isPaid ? 'text-amber-900' : 'text-green-900'}`}>
+                    {isPaid ? 'Paid license' : 'Free license'}
+                  </span>
+                  <span className={`text-xl font-bold ${isPaid ? 'text-amber-900' : 'text-green-900'}`}>
+                    {isPaid ? `$${licenseStatus.priceMonthly.toLocaleString()}` : '$0'}
+                    <span className="text-sm font-normal text-gray-600 ml-1">per user/month</span>
+                  </span>
                 </div>
               );
             })()}

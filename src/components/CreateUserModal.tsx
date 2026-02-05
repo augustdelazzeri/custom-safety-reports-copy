@@ -15,7 +15,7 @@ import { useUser } from "../contexts/UserContext";
 import type { CreateUserFormData, EHSUser } from "../schemas/users";
 import { isValidEmail } from "../schemas/users";
 import type { LocationNode, LocationSelection } from "../schemas/locations";
-import { getLicenseStatusSummary, LICENSE_PRICE_YEARLY } from "../schemas/roles";
+import { getLicenseStatusSummary, LICENSE_PRICE_MONTHLY, isViewOnlyRoleName, isTechnicianSystemRoleName } from "../schemas/roles";
 
 interface CreateUserModalProps {
   isOpen: boolean;
@@ -366,11 +366,12 @@ export default function CreateUserModal({
                 </div>
               )}
 
-              {/* License cost warning when role is paid */}
+              {/* License cost warning when role is paid (View-Only and Technician are always free) */}
               {roleId && (() => {
                 const role = roles.find(r => r.id === roleId);
                 if (!role) return null;
-                const licenseStatus = getLicenseStatusSummary(role.permissions);
+                if (isViewOnlyRoleName(role.name) || isTechnicianSystemRoleName(role.name)) return null;
+                const licenseStatus = getLicenseStatusSummary(role.permissions ?? {});
                 if (licenseStatus.type !== 'paid') return null;
                 return (
                   <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
@@ -384,13 +385,13 @@ export default function CreateUserModal({
                         <div>
                           <div className="text-sm font-semibold text-amber-900">Paid license</div>
                           <div className="text-xs text-amber-700">
-                            This role will be charged at ${LICENSE_PRICE_YEARLY.toLocaleString()} per user per year.
+                            This role will be charged at ${LICENSE_PRICE_MONTHLY.toLocaleString()} per user per month.
                           </div>
                         </div>
                       </div>
                       <div className="text-right">
                         <div className="text-xl font-bold text-amber-900">
-                          ${licenseStatus.priceYearly.toLocaleString()}<span className="text-sm font-normal">/year</span>
+                          ${licenseStatus.priceMonthly.toLocaleString()}<span className="text-sm font-normal">/month</span>
                         </div>
                         <div className="text-xs text-amber-600">per user seat</div>
                       </div>
@@ -424,16 +425,22 @@ export default function CreateUserModal({
               <button
                 type="submit"
                 className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
-                  roleId && getLicenseStatusSummary(roles.find(r => r.id === roleId)?.permissions ?? {}).type === 'paid'
-                    ? 'bg-amber-600 text-white hover:bg-amber-700'
-                    : 'bg-blue-600 text-white hover:bg-blue-700'
+                  (() => {
+                    const role = roleId ? roles.find(r => r.id === roleId) : null;
+                    const isFreeRole = role && (isViewOnlyRoleName(role.name) || isTechnicianSystemRoleName(role.name));
+                    const isPaid = role && !isFreeRole && getLicenseStatusSummary(role.permissions ?? {}).type === 'paid';
+                    return isPaid ? 'bg-amber-600 text-white hover:bg-amber-700' : 'bg-blue-600 text-white hover:bg-blue-700';
+                  })()
                 }`}
               >
                 {isEditMode
                   ? "Save Changes"
-                  : roleId && getLicenseStatusSummary(roles.find(r => r.id === roleId)?.permissions ?? {}).type === 'paid'
-                    ? `Add User — $${LICENSE_PRICE_YEARLY.toLocaleString()}/year`
-                    : "Add User"}
+                  : (() => {
+                      const role = roleId ? roles.find(r => r.id === roleId) : null;
+                      const isFreeRole = role && (isViewOnlyRoleName(role.name) || isTechnicianSystemRoleName(role.name));
+                      const isPaid = role && !isFreeRole && getLicenseStatusSummary(role.permissions ?? {}).type === 'paid';
+                      return isPaid ? `Add User — $${LICENSE_PRICE_MONTHLY.toLocaleString()}/month` : "Add User";
+                    })()}
               </button>
             </div>
           </form>

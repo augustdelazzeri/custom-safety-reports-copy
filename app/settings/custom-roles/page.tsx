@@ -13,7 +13,7 @@ import Sidebar from "../../../src/components/Sidebar";
 import CreateRoleModal from "../../../src/components/CreateRoleModal";
 import { RoleProvider, useRole } from "../../../src/contexts/RoleContext";
 import { UserProvider, useUser } from "../../../src/contexts/UserContext";
-import { countEnabledPermissions, getRoleLicenseType } from "../../../src/schemas/roles";
+import { countEnabledPermissions, getRoleLicenseTypeDisplay } from "../../../src/schemas/roles";
 import { getVisibleModules } from "../../../src/data/permissionsMock";
 
 function CustomRolesContent() {
@@ -206,7 +206,7 @@ function CustomRolesContent() {
               <tbody className="divide-y divide-gray-200">
                 {filteredRoles.map((role) => {
                   const permissionCount = countVisiblePermissions(role.permissions);
-                  const licenseType = getRoleLicenseType(role.permissions);
+                  const licenseType = getRoleLicenseTypeDisplay(role);
                   const isPaid = licenseType === 'paid';
                   return (
                     <tr key={role.id} className="hover:bg-gray-50 transition-colors">

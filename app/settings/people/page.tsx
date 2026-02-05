@@ -26,7 +26,7 @@ import { mockLocationHierarchy } from "../../../src/samples/locationHierarchy";
 import { buildLocationPath } from "../../../src/schemas/locations";
 import type { LocationSelection } from "../../../src/schemas/locations";
 import LocationFilterDropdown from "../../../src/components/LocationFilterDropdown";
-import { countEnabledPermissions, createDefaultPermissions, getLicenseStatusSummary, getRoleLicenseType } from "../../../src/schemas/roles";
+import { countEnabledPermissions, createDefaultPermissions, getLicenseStatusSummary, getRoleLicenseTypeDisplay } from "../../../src/schemas/roles";
 import { getVisibleModules } from "../../../src/data/permissionsMock";
 import type { CreateUserFormData } from "../../../src/schemas/users";
 import type { RolePermissions, OSHALocationPermissions } from "../../../src/schemas/roles";
@@ -81,9 +81,9 @@ function PeopleContent() {
   const roles = getRolesList();
   const teams = getTeamsList();
 
-  // Count permissions based on current mode (only visible modules)
+  // Count permissions based on simple mode (only visible modules)
   const countVisiblePermissions = (permissions: RolePermissions) => {
-    const visibleModules = getVisibleModules(advancedMode);
+    const visibleModules = getVisibleModules(false);
     const visibleModuleIds = new Set(visibleModules.map(m => m.moduleId));
     
     let count = 0;
@@ -597,6 +597,9 @@ function PeopleContent() {
                     Role
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    License
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Location
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -631,6 +634,21 @@ function PeopleContent() {
                           )}
                           {user.roleName || "Unknown"}
                         </span>
+                      </td>
+                      <td className="px-6 py-4">
+                        {(() => {
+                          const role = getRoleById(user.roleId);
+                          const licenseType = role ? getRoleLicenseTypeDisplay(role) : null;
+                          if (licenseType == null) return <span className="text-sm text-gray-400">—</span>;
+                          const isPaid = licenseType === 'paid';
+                          return (
+                            <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-xs font-medium ${
+                              isPaid ? 'bg-amber-50 text-amber-700 border border-amber-200' : 'bg-green-50 text-green-700 border border-green-200'
+                            }`}>
+                              {isPaid ? 'Paid' : 'Free'}
+                            </span>
+                          );
+                        })()}
                       </td>
                       <td className="px-6 py-4">
                         <div className="text-sm text-gray-700 flex items-center gap-1 flex-wrap">
@@ -798,7 +816,7 @@ function PeopleContent() {
                       <tbody className="divide-y divide-gray-200">
                         {filteredRoles.map((role) => {
                           const permissionCount = countEnabledPermissions(role.permissions);
-                          const licenseType = getRoleLicenseType(role.permissions);
+                          const licenseType = getRoleLicenseTypeDisplay(role);
                           const isPaidRole = licenseType === 'paid';
                           return (
                             <tr key={role.id} className="hover:bg-gray-50 transition-colors">
@@ -944,6 +962,7 @@ function PeopleContent() {
 
             {/* Fullscreen Create/Edit View */}
             {(roleViewMode === 'create' || roleViewMode === 'edit') && (
+              <div className="relative pb-20">
               <div className="bg-white rounded-lg border border-gray-200 p-6">
                 {/* Header */}
                 <div className="mb-6 pb-4 border-b border-gray-200">
@@ -1091,57 +1110,9 @@ function PeopleContent() {
                     }}
                     disabled={editingRoleId ? roles.find(r => r.id === editingRoleId)?.isSystemRole : false}
                     advancedMode={false}
+                    roleName={editingRoleId ? roles.find(r => r.id === editingRoleId)?.name : fullscreenRoleName || undefined}
                   />
                 </div>
-
-                {/* License Status Banner */}
-                {(() => {
-                  const licenseStatus = getLicenseStatusSummary(fullscreenPermissions);
-                  const isPaid = licenseStatus.type === 'paid';
-                  return (
-                    <div className={`mb-6 p-4 rounded-lg border ${
-                      isPaid ? 'bg-amber-50 border-amber-200' : 'bg-green-50 border-green-200'
-                    }`}>
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-3">
-                          {isPaid ? (
-                            <div className="w-10 h-10 bg-amber-100 rounded-full flex items-center justify-center">
-                              <svg className="w-5 h-5 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                              </svg>
-                            </div>
-                          ) : (
-                            <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
-                              <svg className="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                              </svg>
-                            </div>
-                          )}
-                          <div>
-                            <div className={`text-sm font-semibold ${isPaid ? 'text-amber-900' : 'text-green-900'}`}>
-                              {isPaid ? 'Paid License' : 'Free License (View Only)'}
-                            </div>
-                            <div className={`text-xs ${isPaid ? 'text-amber-700' : 'text-green-700'}`}>
-                              {isPaid
-                                ? `${licenseStatus.paidPermissions} paid permission${licenseStatus.paidPermissions !== 1 ? 's' : ''} enabled${licenseStatus.freePermissions > 0 ? ` + ${licenseStatus.freePermissions} free` : ''}`
-                                : licenseStatus.freePermissions > 0
-                                  ? `${licenseStatus.freePermissions} view/export permission${licenseStatus.freePermissions !== 1 ? 's' : ''} enabled`
-                                  : 'No permissions enabled yet'}
-                            </div>
-                          </div>
-                        </div>
-                        {isPaid && (
-                          <div className="text-right">
-                            <div className="text-xl font-bold text-amber-900">
-                              ${licenseStatus.priceYearly.toLocaleString()}<span className="text-sm font-normal">/year</span>
-                            </div>
-                            <div className="text-xs text-amber-600">per user seat</div>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  );
-                })()}
 
                 {/* Action Buttons */}
                 <div className="flex items-center justify-end gap-3 pt-4 border-t border-gray-200">
@@ -1162,6 +1133,39 @@ function PeopleContent() {
                     {roleViewMode === 'create' ? 'Create Role' : 'Save Changes'}
                   </button>
                 </div>
+              </div>
+
+                {/* Fixed bottom bar: real-time license price (monthly) */}
+                {(() => {
+                  const licenseStatus = getLicenseStatusSummary(fullscreenPermissions);
+                  const isPaid = licenseStatus.type === 'paid';
+                  return (
+                    <div
+                      className={`fixed left-64 right-0 bottom-0 z-20 flex items-center justify-between px-6 py-4 border-t shadow-lg ${
+                        isPaid ? 'bg-amber-50 border-amber-200' : 'bg-green-50 border-green-200'
+                      }`}
+                    >
+                      <div className="flex items-center gap-3">
+                        {isPaid ? (
+                          <span className="text-sm font-semibold text-amber-900">Paid license</span>
+                        ) : (
+                          <span className="text-sm font-semibold text-green-900">Free license</span>
+                        )}
+                        <span className="text-xs text-gray-600">
+                          {isPaid
+                            ? 'Any paid permission enables a single per-user fee. Adding more does not increase cost.'
+                            : 'Only view and export permissions selected.'}
+                        </span>
+                      </div>
+                      <div className="text-right">
+                        <span className={`text-2xl font-bold ${isPaid ? 'text-amber-900' : 'text-green-900'}`}>
+                          {isPaid ? `$${licenseStatus.priceMonthly.toLocaleString()}` : '$0'}
+                        </span>
+                        <span className="text-sm text-gray-600 ml-1">per user/month</span>
+                      </div>
+                    </div>
+                  );
+                })()}
               </div>
             )}
           </>
