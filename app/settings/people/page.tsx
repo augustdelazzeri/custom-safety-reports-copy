@@ -17,7 +17,6 @@ import Sidebar from "../../../src/components/Sidebar";
 import CreateUserModal from "../../../src/components/CreateUserModal";
 import BulkUserImportModal from "../../../src/components/BulkUserImportModal";
 import type { ParsedUserRow } from "../../../src/components/BulkUserImportModal";
-import CreateRoleModal from "../../../src/components/CreateRoleModal";
 import CreateTeamModal from "../../../src/components/CreateTeamModal";
 import RoleBuilderMatrix from "../../../src/components/RoleBuilderMatrix";
 import { RoleProvider, useRole } from "../../../src/contexts/RoleContext";
@@ -36,7 +35,6 @@ import { formatTeamType, formatPrimaryFunction, getTeamMemberCount } from "../..
 
 type TabType = 'users' | 'roles' | 'teams';
 type RoleViewMode = 'list' | 'create' | 'edit';
-type RoleCreationMode = 'modal' | 'fullscreen';
 
 function PeopleContent() {
   const { getUsersList, createUser, updateUser, toggleUserStatus, bulkImportUsers, checkDuplicateEmail } = useUser();
@@ -45,24 +43,6 @@ function PeopleContent() {
   
   // Tab state
   const [activeTab, setActiveTab] = useState<TabType>('users');
-  
-  // Role creation mode (persisted in localStorage)
-  const [roleCreationMode, setRoleCreationMode] = useState<RoleCreationMode>(() => {
-    if (typeof window !== 'undefined') {
-      const saved = localStorage.getItem('ehs_role_creation_mode');
-      return (saved as RoleCreationMode) || 'fullscreen';
-    }
-    return 'fullscreen';
-  });
-
-  // Toggle role creation mode and save to localStorage
-  const toggleRoleCreationMode = () => {
-    const newMode: RoleCreationMode = roleCreationMode === 'modal' ? 'fullscreen' : 'modal';
-    setRoleCreationMode(newMode);
-    if (typeof window !== 'undefined') {
-      localStorage.setItem('ehs_role_creation_mode', newMode);
-    }
-  };
 
   // Users tab state
   const [searchQuery, setSearchQuery] = useState("");
@@ -76,7 +56,6 @@ function PeopleContent() {
 
   // Roles tab state
   const [roleSearchQuery, setRoleSearchQuery] = useState("");
-  const [showCreateRoleModal, setShowCreateRoleModal] = useState(false);
   const [editingRoleId, setEditingRoleId] = useState<string | null>(null);
   const [openRoleMenuId, setOpenRoleMenuId] = useState<string | null>(null);
   
@@ -88,7 +67,6 @@ function PeopleContent() {
   const [fullscreenOshaLocationPermissions, setFullscreenOshaLocationPermissions] = useState<OSHALocationPermissions>({});
   const [fullscreenErrors, setFullscreenErrors] = useState<{name?: string; permissions?: string}>({});
   const [baseRoleId, setBaseRoleId] = useState<string>("");
-  const [advancedMode, setAdvancedMode] = useState(false);
 
   // Teams tab state
   const [teamSearchQuery, setTeamSearchQuery] = useState("");
@@ -241,22 +219,15 @@ function PeopleContent() {
 
   // Roles tab handlers
   const handleCreateRole = () => {
-    if (roleCreationMode === 'fullscreen') {
-      // Fullscreen mode: switch view and reset form
-      setFullscreenRoleName("");
-      setFullscreenDescription("");
-      setFullscreenPermissions(createDefaultPermissions());
-      setFullscreenOshaLocationPermissions({});
-      setFullscreenErrors({});
-      setEditingRoleId(null);
-      setBaseRoleId("");
-      setRoleViewMode('create');
-    } else {
-      // Modal mode: open modal
-      setEditingRoleId(null);
-      setBaseRoleId("");
-      setShowCreateRoleModal(true);
-    }
+    // Fullscreen mode: switch view and reset form
+    setFullscreenRoleName("");
+    setFullscreenDescription("");
+    setFullscreenPermissions(createDefaultPermissions());
+    setFullscreenOshaLocationPermissions({});
+    setFullscreenErrors({});
+    setEditingRoleId(null);
+    setBaseRoleId("");
+    setRoleViewMode('create');
   };
   
   const handleBaseRoleChange = (roleId: string) => {
@@ -279,33 +250,17 @@ function PeopleContent() {
     const role = roles.find(r => r.id === roleId);
     if (!role) return;
 
-    if (roleCreationMode === 'fullscreen') {
-      // Fullscreen mode: populate form and switch view
-      setFullscreenRoleName(role.name);
-      setFullscreenDescription(role.description || "");
-      setFullscreenPermissions(role.permissions);
-      setFullscreenOshaLocationPermissions(role.oshaLocationPermissions || {});
-      setFullscreenErrors({});
-      setEditingRoleId(roleId);
-      setRoleViewMode('edit');
-    } else {
-      // Modal mode: open modal
-      setEditingRoleId(roleId);
-      setShowCreateRoleModal(true);
-    }
+    // Fullscreen mode: populate form and switch view
+    setFullscreenRoleName(role.name);
+    setFullscreenDescription(role.description || "");
+    setFullscreenPermissions(role.permissions);
+    setFullscreenOshaLocationPermissions(role.oshaLocationPermissions || {});
+    setFullscreenErrors({});
+    setEditingRoleId(roleId);
+    setRoleViewMode('edit');
     setOpenRoleMenuId(null);
   };
 
-  const handleSubmitRole = (name: string, permissions: typeof roles[0]['permissions'], oshaLocationPermissions?: OSHALocationPermissions, description?: string) => {
-    if (editingRoleId) {
-      updateRole(editingRoleId, name, permissions, oshaLocationPermissions, description);
-    } else {
-      createRole(name, permissions, oshaLocationPermissions, description);
-    }
-    setShowCreateRoleModal(false);
-    setEditingRoleId(null);
-  };
-  
   const handleFullscreenSaveRole = () => {
     // Validate
     const errors: {name?: string; permissions?: string} = {};
@@ -779,8 +734,8 @@ function PeopleContent() {
         {/* Custom Roles Tab Content */}
         {activeTab === 'roles' && (
           <>
-            {/* List View - Show when roleViewMode === 'list' OR modal mode */}
-            {(roleViewMode === 'list' || roleCreationMode === 'modal') && (
+            {/* List View */}
+            {roleViewMode === 'list' && (
               <>
                 {/* Search & Actions */}
                 <div className="flex items-center justify-between mb-6">
@@ -798,28 +753,6 @@ function PeopleContent() {
                   </div>
                   
                   <div className="flex items-center gap-3">
-                    {/* Mode Toggle Switch */}
-                    <div className="flex items-center gap-3 px-3 py-2 bg-gray-50 rounded-md border border-gray-200">
-                      <span className="text-xs font-medium text-gray-700">Modal</span>
-                      <button
-                        type="button"
-                        onClick={toggleRoleCreationMode}
-                        className={`relative inline-flex h-5 w-9 flex-shrink-0 items-center rounded-full transition-colors ${
-                          roleCreationMode === 'fullscreen'
-                            ? "bg-blue-600" 
-                            : "bg-gray-300"
-                        }`}
-                        title={`Switch to ${roleCreationMode === 'modal' ? 'fullscreen' : 'modal'} mode`}
-                      >
-                        <span
-                          className={`inline-block h-3.5 w-3.5 transform rounded-full bg-white transition-transform ${
-                            roleCreationMode === 'fullscreen' ? "translate-x-5" : "translate-x-1"
-                          }`}
-                        />
-                      </button>
-                      <span className="text-xs font-medium text-gray-700">Fullscreen</span>
-                    </div>
-
                     {/* Create Role Button */}
                     <button
                       onClick={handleCreateRole}
@@ -997,8 +930,8 @@ function PeopleContent() {
               </>
             )}
 
-            {/* Fullscreen Create/Edit View - Show only in fullscreen mode */}
-            {roleCreationMode === 'fullscreen' && (roleViewMode === 'create' || roleViewMode === 'edit') && (
+            {/* Fullscreen Create/Edit View */}
+            {(roleViewMode === 'create' || roleViewMode === 'edit') && (
               <div className="bg-white rounded-lg border border-gray-200 p-6">
                 {/* Header */}
                 <div className="mb-6 pb-4 border-b border-gray-200">
@@ -1121,48 +1054,10 @@ function PeopleContent() {
 
                 {/* Permissions Matrix */}
                 <div className="mb-6">
-                  <div className="flex items-center justify-between mb-3">
+                  <div className="mb-3">
                     <h3 className="text-sm font-medium text-gray-900">
                       Permissions <span className="text-red-500">*</span>
                     </h3>
-                    
-                    {/* Advanced Mode Toggle */}
-                    <div className="flex items-center gap-3 bg-gray-50 border border-gray-200 rounded-lg px-3 py-2">
-                      <span className={`text-xs font-medium transition-colors ${!advancedMode ? 'text-gray-900' : 'text-gray-500'}`}>
-                        Simple
-                      </span>
-                      <button
-                        type="button"
-                        onClick={() => setAdvancedMode(!advancedMode)}
-                        className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors ${
-                          advancedMode ? "bg-blue-600" : "bg-gray-300"
-                        }`}
-                      >
-                        <span
-                          className={`inline-block h-3.5 w-3.5 transform rounded-full bg-white transition-transform ${
-                            advancedMode ? "translate-x-5" : "translate-x-1"
-                          }`}
-                        />
-                      </button>
-                      <span className={`text-xs font-medium transition-colors ${advancedMode ? 'text-blue-600' : 'text-gray-500'}`}>
-                        Advanced
-                      </span>
-                    </div>
-                  </div>
-                  
-                  {/* Mode Description Banner */}
-                  <div className="mb-3 bg-blue-50 border border-blue-200 rounded-lg px-3 py-2">
-                    <p className="text-xs text-blue-800">
-                      {advancedMode ? (
-                        <>
-                          <span className="font-semibold">Advanced Mode:</span> All 9 EHS modules (Events, CAPA, OSHA, Access Points, LOTO, PTW, JHA, SOP, Audit)
-                        </>
-                      ) : (
-                        <>
-                          <span className="font-semibold">Simple Mode:</span> 5 core modules (Events, CAPA, OSHA, Access Points, LOTO)
-                        </>
-                      )}
-                    </p>
                   </div>
                   
                   {fullscreenErrors.permissions && (
@@ -1183,7 +1078,7 @@ function PeopleContent() {
                       setFullscreenOshaLocationPermissions(perms);
                     }}
                     disabled={editingRoleId ? roles.find(r => r.id === editingRoleId)?.isSystemRole : false}
-                    advancedMode={advancedMode}
+                    advancedMode={false}
                   />
                 </div>
 
@@ -1490,18 +1385,6 @@ function PeopleContent() {
         existingEmails={new Set(users.map(u => u.email))}
         validRoleNames={new Set(roles.map(r => r.name))}
         locationNodes={mockLocationHierarchy}
-      />
-
-      {/* Create/Edit Role Modal */}
-      <CreateRoleModal
-        isOpen={showCreateRoleModal}
-        onClose={() => {
-          setShowCreateRoleModal(false);
-          setEditingRoleId(null);
-        }}
-        onSubmit={handleSubmitRole}
-        existingRole={editingRoleId ? roles.find(r => r.id === editingRoleId) : undefined}
-        checkDuplicateName={checkDuplicateName}
       />
 
       {/* Create/Edit Team Modal */}
