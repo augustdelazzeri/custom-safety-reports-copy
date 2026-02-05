@@ -366,8 +366,8 @@ export default function CreateUserModal({
                 </div>
               )}
 
-              {/* License cost: always show when a role is selected (paid or free) */}
-              {roleId && !isEditMode && (() => {
+              {/* License cost: always show when a role is selected (add or edit, paid or free) */}
+              {roleId && (() => {
                 const role = roles.find(r => r.id === roleId);
                 if (!role) return null;
                 const licenseType = getRoleLicenseTypeDisplay(role);
@@ -386,7 +386,9 @@ export default function CreateUserModal({
                           <div>
                             <div className="text-sm font-semibold text-amber-900">Paid license</div>
                             <div className="text-xs text-amber-700">
-                              This role will be charged at ${LICENSE_PRICE_MONTHLY.toLocaleString()} per user per month.
+                              {isEditMode
+                                ? `This user's role is charged at $${LICENSE_PRICE_MONTHLY.toLocaleString()} per user per month.`
+                                : `This role will be charged at $${LICENSE_PRICE_MONTHLY.toLocaleString()} per user per month.`}
                             </div>
                           </div>
                         </div>
@@ -412,7 +414,7 @@ export default function CreateUserModal({
                         <div>
                           <div className="text-sm font-semibold text-green-900">Free license</div>
                           <div className="text-xs text-green-700">
-                            This role has no per-user license cost.
+                            {isEditMode ? "This user's role has no per-user license cost." : "This role has no per-user license cost."}
                           </div>
                         </div>
                       </div>
@@ -460,15 +462,13 @@ export default function CreateUserModal({
                   })()
                 }`}
               >
-                {isEditMode
-                  ? "Save Changes"
-                  : (() => {
-                      const role = roleId ? roles.find(r => r.id === roleId) : null;
-                      const licenseType = role ? getRoleLicenseTypeDisplay(role) : null;
-                      const isPaid = licenseType === 'paid';
-                      if (!role) return "Add User";
-                      return isPaid ? `Add User — $${LICENSE_PRICE_MONTHLY.toLocaleString()}/month` : "Add User — $0/month";
-                    })()}
+                {(() => {
+                    const role = roleId ? roles.find(r => r.id === roleId) : null;
+                    const licenseType = role ? getRoleLicenseTypeDisplay(role) : null;
+                    const isPaid = licenseType === 'paid';
+                    const valueText = !role ? '' : isPaid ? ` — $${LICENSE_PRICE_MONTHLY.toLocaleString()}/month` : ' — $0/month';
+                    return isEditMode ? `Save Changes${valueText}` : (!role ? 'Add User' : `Add User${valueText}`);
+                  })()}
               </button>
             </div>
           </form>
