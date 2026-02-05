@@ -14,7 +14,7 @@ import Header from "../../../src/components/Header";
 import CreateRoleModal from "../../../src/components/CreateRoleModal";
 import { RoleProvider, useRole } from "../../../src/contexts/RoleContext";
 import { UserProvider, useUser } from "../../../src/contexts/UserContext";
-import { countEnabledPermissions } from "../../../src/schemas/roles";
+import { countEnabledPermissions, getRoleLicenseTypeDisplay } from "../../../src/schemas/roles";
 import { getVisibleModules } from "../../../src/data/permissionsMock";
 
 function CustomRolesContent() {
@@ -25,14 +25,13 @@ function CustomRolesContent() {
   const [openMenuId, setOpenMenuId] = useState<string | null>(null);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [editingRole, setEditingRole] = useState<string | null>(null);
-  const [advancedMode, setAdvancedMode] = useState(false);
 
   const roles = getRolesList();
   const users = getUsersList();
 
-  // Count permissions based on current mode (only visible modules)
+  // Count permissions based on simple mode (only visible modules)
   const countVisiblePermissions = (permissions: typeof roles[0]['permissions']) => {
-    const visibleModules = getVisibleModules(advancedMode);
+    const visibleModules = getVisibleModules(false); // Always use Simple Mode
     const visibleModuleIds = new Set(visibleModules.map(m => m.moduleId));
     
     let count = 0;
@@ -125,52 +124,10 @@ function CustomRolesContent() {
         <main className="p-8">
         {/* Page Header */}
         <div className="mb-6">
-          <div className="flex items-start justify-between">
-            <div className="flex-1">
-              <h1 className="text-2xl font-bold text-gray-900">Custom Roles</h1>
-              <p className="text-sm text-gray-600 mt-1">
-                Create and manage custom roles with granular permissions for your EHS team
-              </p>
-            </div>
-            
-            {/* Simple/Advanced Mode Toggle */}
-            <div className="flex items-center gap-3 bg-white border border-gray-200 rounded-lg px-4 py-2.5">
-              <span className={`text-sm font-medium transition-colors ${!advancedMode ? 'text-gray-900' : 'text-gray-500'}`}>
-                Simple Mode
-              </span>
-              <button
-                type="button"
-                onClick={() => setAdvancedMode(!advancedMode)}
-                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                  advancedMode ? "bg-blue-600" : "bg-gray-300"
-                }`}
-              >
-                <span
-                  className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                    advancedMode ? "translate-x-6" : "translate-x-1"
-                  }`}
-                />
-              </button>
-              <span className={`text-sm font-medium transition-colors ${advancedMode ? 'text-blue-600' : 'text-gray-500'}`}>
-                Advanced Mode
-              </span>
-            </div>
-          </div>
-          
-          {/* Mode Description */}
-          <div className="mt-3 bg-blue-50 border border-blue-200 rounded-lg px-4 py-2.5">
-            <p className="text-sm text-blue-800">
-              {advancedMode ? (
-                <>
-                  <span className="font-semibold">Advanced Mode:</span> Shows all 10 EHS modules with individual action controls including Work Orders, PTW, JHA, SOP, and Audit for comprehensive permission control.
-                </>
-              ) : (
-                <>
-                  <span className="font-semibold">Simple Mode:</span> Shows 6 core modules (Events, CAPA, OSHA, Work Orders, Access Points, LOTO) with permissions grouped by category for streamlined role creation.
-                </>
-              )}
-            </p>
-          </div>
+          <h1 className="text-2xl font-bold text-gray-900">Custom Roles</h1>
+          <p className="text-sm text-gray-600 mt-1">
+            Create and manage custom roles with granular permissions for your EHS team
+          </p>
         </div>
 
         {/* Search & Actions */}
@@ -214,6 +171,9 @@ function CustomRolesContent() {
                     Permissions
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    License
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Type
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -227,6 +187,8 @@ function CustomRolesContent() {
               <tbody className="divide-y divide-gray-200">
                 {filteredRoles.map((role) => {
                   const permissionCount = countVisiblePermissions(role.permissions);
+                  const licenseType = getRoleLicenseTypeDisplay(role);
+                  const isPaid = licenseType === 'paid';
                   return (
                     <tr key={role.id} className="hover:bg-gray-50 transition-colors">
                       <td className="px-6 py-4">
@@ -250,6 +212,13 @@ function CustomRolesContent() {
                       <td className="px-6 py-4">
                         <span className="inline-flex items-center px-2.5 py-0.5 rounded-md text-xs font-medium bg-blue-100 text-blue-700 border border-blue-200">
                           {permissionCount} permission{permissionCount !== 1 ? 's' : ''}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4">
+                        <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-xs font-medium ${
+                          isPaid ? 'bg-amber-50 text-amber-700 border border-amber-200' : 'bg-green-50 text-green-700 border border-green-200'
+                        }`}>
+                          {isPaid ? 'Paid' : 'Free'}
                         </span>
                       </td>
                       <td className="px-6 py-4 text-sm text-gray-700">
@@ -357,7 +326,6 @@ function CustomRolesContent() {
         onSubmit={handleSubmitRole}
         existingRole={editingRole ? roles.find(r => r.id === editingRole) : undefined}
         checkDuplicateName={checkDuplicateName}
-        initialAdvancedMode={advancedMode}
       />
     </div>
   );

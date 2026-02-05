@@ -7,7 +7,7 @@
 
 import React, { useState, useEffect } from "react";
 import RoleBuilderMatrix from "./RoleBuilderMatrix";
-import { createDefaultPermissions, countEnabledPermissions } from "../schemas/roles";
+import { createDefaultPermissions, countEnabledPermissions, getLicenseStatusSummary } from "../schemas/roles";
 import type { CustomRole, RolePermissions, OSHALocationPermissions } from "../schemas/roles";
 import { useRole } from "../contexts/RoleContext";
 import { useUser } from "../contexts/UserContext";
@@ -19,7 +19,6 @@ interface CreateRoleModalProps {
   onSubmit: (name: string, permissions: RolePermissions, oshaLocationPermissions?: OSHALocationPermissions, description?: string) => void;
   existingRole?: CustomRole; // For edit mode
   checkDuplicateName: (name: string, excludeId?: string) => boolean;
-  initialAdvancedMode?: boolean; // Initial state for advanced mode toggle
 }
 
 export default function CreateRoleModal({ 
@@ -27,15 +26,13 @@ export default function CreateRoleModal({
   onClose, 
   onSubmit, 
   existingRole,
-  checkDuplicateName,
-  initialAdvancedMode = false
+  checkDuplicateName
 }: CreateRoleModalProps) {
   const [roleName, setRoleName] = useState("");
   const [description, setDescription] = useState("");
   const [permissions, setPermissions] = useState<RolePermissions>(createDefaultPermissions());
   const [oshaLocationPermissions, setOshaLocationPermissions] = useState<OSHALocationPermissions>({});
   const [error, setError] = useState("");
-  const [advancedMode, setAdvancedMode] = useState(initialAdvancedMode);
   const [baseRoleId, setBaseRoleId] = useState("");
 
   const { getRolesList } = useRole();
@@ -81,10 +78,8 @@ export default function CreateRoleModal({
         setBaseRoleId("");
       }
       setError("");
-      // Sync with parent's advanced mode state
-      setAdvancedMode(initialAdvancedMode);
     }
-  }, [isOpen, existingRole, initialAdvancedMode]);
+  }, [isOpen, existingRole]);
   
   const handleBaseRoleChange = (roleId: string) => {
     setBaseRoleId(roleId);
@@ -102,9 +97,9 @@ export default function CreateRoleModal({
     }
   };
 
-  // Count permissions based on current mode (only visible modules)
+  // Count permissions based on simple mode (only visible modules)
   const countVisiblePermissions = (perms: RolePermissions) => {
-    const visibleModules = getVisibleModules(advancedMode);
+    const visibleModules = getVisibleModules(false); // Always use Simple Mode
     const visibleModuleIds = new Set(visibleModules.map(m => m.moduleId));
     
     let count = 0;
@@ -337,49 +332,10 @@ export default function CreateRoleModal({
 
             {/* Permissions Matrix */}
             <div>
-              <div className="flex items-center justify-between mb-3">
+              <div className="mb-3">
                 <label className="block text-sm font-medium text-gray-700">
                   Permissions <span className="text-red-500">*</span>
                 </label>
-                
-                {/* Advanced Mode Toggle */}
-                <div className="flex items-center gap-3 bg-gray-50 border border-gray-200 rounded-lg px-3 py-2">
-                  <span className={`text-xs font-medium transition-colors ${!advancedMode ? 'text-gray-900' : 'text-gray-500'}`}>
-                    Simple
-                  </span>
-                  <button
-                    type="button"
-                    onClick={() => setAdvancedMode(!advancedMode)}
-                    className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors ${
-                      advancedMode ? "bg-blue-600" : "bg-gray-300"
-                    }`}
-                    disabled={existingRole?.isSystemRole}
-                  >
-                    <span
-                      className={`inline-block h-3.5 w-3.5 transform rounded-full bg-white transition-transform ${
-                        advancedMode ? "translate-x-5" : "translate-x-1"
-                      }`}
-                    />
-                  </button>
-                  <span className={`text-xs font-medium transition-colors ${advancedMode ? 'text-blue-600' : 'text-gray-500'}`}>
-                    Advanced
-                  </span>
-                </div>
-              </div>
-              
-              {/* Mode Description Banner */}
-              <div className="mb-3 bg-blue-50 border border-blue-200 rounded-lg px-3 py-2">
-                <p className="text-xs text-blue-800">
-                  {advancedMode ? (
-                    <>
-                      <span className="font-semibold">Advanced Mode:</span> All 9 EHS modules with individual action controls (Events, CAPA, OSHA, Access Points, LOTO, PTW, JHA, SOP, Audit)
-                    </>
-                  ) : (
-                    <>
-                      <span className="font-semibold">Simple Mode:</span> 5 core modules with grouped permissions by category (View, Create & Edit, Approvals, Collaboration, Archive & Delete, Reporting)
-                    </>
-                  )}
-                </p>
               </div>
               
               <RoleBuilderMatrix 
@@ -388,7 +344,8 @@ export default function CreateRoleModal({
                 oshaLocationPermissions={oshaLocationPermissions}
                 onOSHAPermissionsChange={setOshaLocationPermissions}
                 disabled={existingRole?.isSystemRole}
-                advancedMode={advancedMode}
+                advancedMode={false}
+                roleName={existingRole?.name}
               />
               {existingRole?.isSystemRole && (
                 <p className="text-xs text-amber-600 mt-3 flex items-center gap-1">
@@ -413,22 +370,45 @@ export default function CreateRoleModal({
             )}
           </div>
 
-          {/* Footer - Fixed at bottom */}
-          <div className="px-6 py-4 border-t border-gray-200 flex justify-end gap-3 flex-shrink-0 bg-gray-50">
-            <button
-              type="button"
-              onClick={handleCancel}
-              className="px-4 py-2 border border-gray-300 text-gray-700 rounded-md text-sm font-medium hover:bg-white transition-colors"
-            >
-              Cancel
-            </button>
-            <button
-              type="submit"
-              disabled={existingRole?.isSystemRole}
-              className="px-4 py-2 bg-blue-600 text-white rounded-md text-sm font-medium hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {isEditMode ? "Save Changes" : "Create Role"}
-            </button>
+          {/* Footer - Fixed bar with real-time price (per user/month) */}
+          <div className="border-t border-gray-200 flex-shrink-0 bg-gray-50">
+            {(() => {
+              const licenseStatus = getLicenseStatusSummary(permissions);
+              const isPaid = licenseStatus.type === 'paid';
+              return (
+                <div className={`px-6 py-3 flex items-center justify-between ${
+                  isPaid ? 'bg-amber-50 border-b border-amber-200' : 'bg-green-50 border-b border-green-200'
+                }`}>
+                  <span className={`text-sm font-semibold ${isPaid ? 'text-amber-900' : 'text-green-900'}`}>
+                    {isPaid ? 'Paid license' : 'Free license'}
+                  </span>
+                  <span className={`text-xl font-bold ${isPaid ? 'text-amber-900' : 'text-green-900'}`}>
+                    {isPaid ? `$${licenseStatus.priceMonthly.toLocaleString()}` : '$0'}
+                    <span className="text-sm font-normal text-gray-600 ml-1">per user/month</span>
+                  </span>
+                </div>
+              );
+            })()}
+            <div className="px-6 py-4 flex justify-end gap-3">
+              <button
+                type="button"
+                onClick={handleCancel}
+                className="px-4 py-2 border border-gray-300 text-gray-700 rounded-md text-sm font-medium hover:bg-white transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                disabled={existingRole?.isSystemRole}
+                className={`px-4 py-2 rounded-md text-sm font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${
+                  getLicenseStatusSummary(permissions).type === 'paid'
+                    ? 'bg-amber-600 text-white hover:bg-amber-700'
+                    : 'bg-blue-600 text-white hover:bg-blue-700'
+                }`}
+              >
+                {isEditMode ? "Save Changes" : "Create Role"}
+              </button>
+            </div>
           </div>
         </form>
 

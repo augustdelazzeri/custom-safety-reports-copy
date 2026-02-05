@@ -22,9 +22,9 @@
  */
 export type PermissionCategory = 
   | "view"            // View, Browse, List
-  | "create-edit"     // Create, Update, Edit, Draft, Duplicate
+  | "create-edit-own" // Create and edit own safety events (free, event module only)
+  | "create-edit"     // Create, Update, Edit, Draft, Duplicate (or "Edit all" for event)
   | "approvals"       // Approve, Reject, Submit Review
-  | "collaboration"   // Comments, Mentions, Tagging
   | "archive-delete"  // Archive, Delete (destructive)
   | "reporting";      // Export, Reports
 
@@ -35,6 +35,11 @@ export const CATEGORY_METADATA: Record<PermissionCategory, { label: string; desc
     description: "Read-only access to view records",
     icon: "eye"
   },
+  "create-edit-own": {
+    label: "Create & edit own safety events",
+    description: "Create and edit your own safety events only",
+    icon: "pencil"
+  },
   "create-edit": {
     label: "Create & Edit",
     description: "Data entry and modification rights",
@@ -44,11 +49,6 @@ export const CATEGORY_METADATA: Record<PermissionCategory, { label: string; desc
     label: "Approvals",
     description: "Authority to approve/reject workflows",
     icon: "check-circle"
-  },
-  "collaboration": {
-    label: "Collaboration",
-    description: "Commenting and tagging capabilities",
-    icon: "chat"
   },
   "archive-delete": {
     label: "Archive & Delete",
@@ -68,6 +68,8 @@ export interface PermissionAction {
   description: string;  // e.g., "Create a new safety event"
   permission: string;   // e.g., "CREATE", "VIEW", "EDIT", etc.
   category: PermissionCategory;  // For Simple Mode grouping
+  /** If true, this action does not trigger a paid license (e.g. view-only, create/edit own Safety Events) */
+  licenseFree?: boolean;
 }
 
 export interface PermissionEntity {
@@ -117,16 +119,14 @@ export const EHS_PERMISSIONS: PermissionModule[] = [
       {
         entity: "Safety Event",
         actions: [
-          { id: "event:create", label: "Report Incident", description: "Create new safety event", permission: "CREATE", category: "create-edit" },
+          { id: "event:create", label: "Report Incident", description: "Create and edit my own Safety Events", permission: "CREATE", category: "create-edit-own", licenseFree: true },
           { id: "event:view", label: "View Incident Details", description: "Access full details", permission: "VIEW", category: "view" },
           { id: "event:view-list", label: "Browse Incident Log", description: "List all events", permission: "VIEW", category: "view" },
-          { id: "event:edit", label: "Update Incident", description: "Modify event details", permission: "EDIT", category: "create-edit" },
+          { id: "event:edit-own", label: "Edit my Safety Events", description: "Modify my own event details", permission: "EDIT", category: "create-edit-own", licenseFree: true },
+          { id: "event:edit-others", label: "Edit other users' Safety Events", description: "Modify events created by others", permission: "EDIT", category: "create-edit" },
           { id: "event:archive", label: "Archive Incident", description: "Soft-delete", permission: "EDIT", category: "archive-delete" },
           { id: "event:delete", label: "Permanently Delete", description: "Hard delete", permission: "DELETE", category: "archive-delete" },
-          { id: "event:export", label: "Export Data", description: "Download as CSV", permission: "EXPORT", category: "reporting" },
-          { id: "event:comment", label: "Add Comment", description: "Post comment", permission: "COMMENT", category: "collaboration" },
-          { id: "event:view-comments", label: "View Comments", description: "Read threads", permission: "VIEW", category: "collaboration" },
-          { id: "event:delete-comment", label: "Delete Comment", description: "Remove comment", permission: "EDIT", category: "collaboration" }
+          { id: "event:export", label: "Export Data", description: "Download as CSV", permission: "EXPORT", category: "reporting" }
         ]
       }
     ]
@@ -147,10 +147,7 @@ export const EHS_PERMISSIONS: PermissionModule[] = [
           { id: "capa:duplicate", label: "Duplicate CAPA", description: "Copy with attachments", permission: "CREATE", category: "create-edit" },
           { id: "capa:archive", label: "Archive", description: "Soft-delete", permission: "EDIT", category: "archive-delete" },
           { id: "capa:delete", label: "Permanently Delete", description: "Hard delete", permission: "DELETE", category: "archive-delete" },
-          { id: "capa:export", label: "Export Data", description: "Download as CSV", permission: "EXPORT", category: "reporting" },
-          { id: "capa:comment", label: "Add Comment", description: "Post comment", permission: "COMMENT", category: "collaboration" },
-          { id: "capa:view-comments", label: "View Comments", description: "Read threads", permission: "VIEW", category: "collaboration" },
-          { id: "capa:delete-comment", label: "Delete Comment", description: "Remove comment", permission: "EDIT", category: "collaboration" }
+          { id: "capa:export", label: "Export Data", description: "Download as CSV", permission: "EXPORT", category: "reporting" }
         ]
       }
     ]
@@ -405,9 +402,9 @@ export interface CategoryInfo {
 
 export const PERMISSION_CATEGORIES: CategoryInfo[] = [
   { id: "view", label: "View", description: "Read-only access to view records and lists" },
+  { id: "create-edit-own", label: "Create & edit own safety events", description: "Create and edit your own safety events only" },
   { id: "create-edit", label: "Create & Edit", description: "Data entry and modification rights" },
   { id: "approvals", label: "Approvals", description: "Authority to approve/reject workflows" },
-  { id: "collaboration", label: "Collaboration", description: "Commenting and tagging capabilities" },
   { id: "archive-delete", label: "Archive & Delete", description: "Destructive capabilities" },
   { id: "reporting", label: "Reporting", description: "Data export and report generation" }
 ];
@@ -441,14 +438,86 @@ export function getModuleCategories(module: PermissionModule): PermissionCategor
     });
   });
   // Return in a consistent order (per spec)
-  const orderedCategories: PermissionCategory[] = ['view', 'create-edit', 'approvals', 'collaboration', 'archive-delete', 'reporting'];
+  const orderedCategories: PermissionCategory[] = ['view', 'create-edit-own', 'create-edit', 'approvals', 'archive-delete', 'reporting'];
   return orderedCategories.filter(cat => categories.has(cat));
 }
 
 /**
- * Get category label
+ * Get category label (optionally module-specific: event module shows "Edit all safety events" for create-edit)
  */
-export function getCategoryLabel(category: PermissionCategory): string {
+export function getCategoryLabel(category: PermissionCategory, moduleId?: string): string {
+  if (moduleId === 'event' && category === 'create-edit') {
+    return 'Edit all safety events';
+  }
   const info = PERMISSION_CATEGORIES.find(c => c.id === category);
   return info?.label || category;
+}
+
+/**
+ * Get category description (optionally module-specific for create-edit in event)
+ */
+export function getCategoryDescription(category: PermissionCategory, moduleId?: string): string {
+  if (moduleId === 'event' && category === 'create-edit') {
+    return 'Edit any user\'s safety events (not only own)';
+  }
+  const info = PERMISSION_CATEGORIES.find(c => c.id === category);
+  return info?.description || '';
+}
+
+// --- EHS Role-Based Licensing (binary: Paid vs Free) ---
+export const LICENSE_PRICE_YEARLY = 1800; // $1,800 per year per seat
+export const LICENSE_PRICE_MONTHLY = 150; // $150 per month (display)
+
+/** Categories that trigger a Paid license (Create, Edit, Submit, Approve, Data Export, Reporting, etc.) */
+export const PAID_CATEGORIES: PermissionCategory[] = [
+  'create-edit',
+  'approvals',
+  'archive-delete',
+  'reporting'
+];
+
+/** Categories that are Free (view + create/edit own safety events) */
+export const FREE_CATEGORIES: PermissionCategory[] = ['view', 'create-edit-own'];
+
+export function isPaidCategory(category: PermissionCategory): boolean {
+  return PAID_CATEGORIES.includes(category);
+}
+
+export function isFreeCategory(category: PermissionCategory): boolean {
+  return FREE_CATEGORIES.includes(category);
+}
+
+export function getActionById(actionId: string): PermissionAction | undefined {
+  for (const module of EHS_PERMISSIONS) {
+    for (const feature of module.features) {
+      const action = feature.actions.find(a => a.id === actionId);
+      if (action) return action;
+    }
+  }
+  return undefined;
+}
+
+export function getActionCategory(actionId: string): PermissionCategory | undefined {
+  return getActionById(actionId)?.category;
+}
+
+export function isActionPaid(actionId: string): boolean {
+  const action = getActionById(actionId);
+  if (action?.licenseFree) return false;
+  const category = action?.category;
+  return category ? isPaidCategory(category) : false;
+}
+
+export function isActionFree(actionId: string): boolean {
+  return !isActionPaid(actionId);
+}
+
+/** Get full action ID from moduleId, entityName, actionKey (for license counting) */
+export function getActionIdFromKeys(moduleId: string, entityName: string, actionKey: string): string | undefined {
+  const module = EHS_PERMISSIONS.find(m => m.moduleId === moduleId);
+  if (!module) return undefined;
+  const feature = module.features.find(f => f.entity === entityName);
+  if (!feature) return undefined;
+  const action = feature.actions.find(a => getActionKey(a.id) === actionKey);
+  return action?.id;
 }

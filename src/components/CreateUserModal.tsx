@@ -15,6 +15,7 @@ import { useUser } from "../contexts/UserContext";
 import type { CreateUserFormData, EHSUser } from "../schemas/users";
 import { isValidEmail } from "../schemas/users";
 import type { LocationNode, LocationSelection } from "../schemas/locations";
+import { getLicenseStatusSummary, getRoleLicenseTypeDisplay, LICENSE_PRICE_MONTHLY, isViewOnlyRoleName, isTechnicianSystemRoleName } from "../schemas/roles";
 
 interface CreateUserModalProps {
   isOpen: boolean;
@@ -365,6 +366,69 @@ export default function CreateUserModal({
                 </div>
               )}
 
+              {/* License cost: always show when a role is selected (add or edit, paid or free) */}
+              {roleId && (() => {
+                const role = roles.find(r => r.id === roleId);
+                if (!role) return null;
+                const licenseType = getRoleLicenseTypeDisplay(role);
+                const licenseStatus = getLicenseStatusSummary(role.permissions ?? {});
+                const isPaid = licenseType === 'paid';
+                if (isPaid) {
+                  return (
+                    <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                          <div className="w-10 h-10 bg-amber-100 rounded-full flex items-center justify-center">
+                            <svg className="w-5 h-5 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                          </div>
+                          <div>
+                            <div className="text-sm font-semibold text-amber-900">Paid license</div>
+                            <div className="text-xs text-amber-700">
+                              {isEditMode
+                                ? `This user's role is charged at $${LICENSE_PRICE_MONTHLY.toLocaleString()} per user per month.`
+                                : `This role will be charged at $${LICENSE_PRICE_MONTHLY.toLocaleString()} per user per month.`}
+                            </div>
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <div className="text-xl font-bold text-amber-900">
+                            ${licenseStatus.priceMonthly.toLocaleString()}<span className="text-sm font-normal">/month</span>
+                          </div>
+                          <div className="text-xs text-amber-600">per user seat</div>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                }
+                return (
+                  <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
+                          <svg className="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                          </svg>
+                        </div>
+                        <div>
+                          <div className="text-sm font-semibold text-green-900">Free license</div>
+                          <div className="text-xs text-green-700">
+                            {isEditMode ? "This user's role has no per-user license cost." : "This role has no per-user license cost."}
+                          </div>
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <div className="text-xl font-bold text-green-900">
+                          $0<span className="text-sm font-normal">/month</span>
+                        </div>
+                        <div className="text-xs text-green-600">per user seat</div>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })()}
+
               {/* General Error Message */}
               {error && !showLocationWarning && (
                 <div className="bg-red-50 border border-red-200 rounded-md px-4 py-3">
@@ -389,9 +453,22 @@ export default function CreateUserModal({
               </button>
               <button
                 type="submit"
-                className="px-4 py-2 bg-blue-600 text-white rounded-md text-sm font-medium hover:bg-blue-700 transition-colors"
+                className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+                  (() => {
+                    const role = roleId ? roles.find(r => r.id === roleId) : null;
+                    const isFreeRole = role && (isViewOnlyRoleName(role.name) || isTechnicianSystemRoleName(role.name));
+                    const isPaid = role && !isFreeRole && getLicenseStatusSummary(role.permissions ?? {}).type === 'paid';
+                    return isPaid ? 'bg-amber-600 text-white hover:bg-amber-700' : 'bg-blue-600 text-white hover:bg-blue-700';
+                  })()
+                }`}
               >
-                {isEditMode ? "Save Changes" : "Add User"}
+                {(() => {
+                    const role = roleId ? roles.find(r => r.id === roleId) : null;
+                    const licenseType = role ? getRoleLicenseTypeDisplay(role) : null;
+                    const isPaid = licenseType === 'paid';
+                    const valueText = !role ? '' : isPaid ? ` — $${LICENSE_PRICE_MONTHLY.toLocaleString()}/month` : ' — $0/month';
+                    return isEditMode ? `Save Changes${valueText}` : (!role ? 'Add User' : `Add User${valueText}`);
+                  })()}
               </button>
             </div>
           </form>

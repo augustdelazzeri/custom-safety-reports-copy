@@ -22,13 +22,11 @@ export const mockRoles: CustomRole[] = [
           create: true,
           view: true,
           "view-list": true,
-          edit: true,
+          "edit-own": true,
+          "edit-others": true,
           archive: true,
           delete: true,
-          export: true,
-          comment: true,
-          "view-comments": true,
-          "delete-comment": true
+          export: true
         }
       },
       // CAPA
@@ -41,10 +39,7 @@ export const mockRoles: CustomRole[] = [
           duplicate: true,
           archive: true,
           delete: true,
-          export: true,
-          comment: true,
-          "view-comments": true,
-          "delete-comment": true
+          export: true
         }
       },
       // OSHA Compliance
@@ -267,13 +262,11 @@ export const mockRoles: CustomRole[] = [
           create: true,
           view: true,
           "view-list": true,
-          edit: true,
+          "edit-own": true,
+          "edit-others": true,
           archive: true,
           delete: false,
-          export: true,
-          comment: true,
-          "view-comments": true,
-          "delete-comment": false
+          export: true
         }
       },
       // CAPA
@@ -286,10 +279,7 @@ export const mockRoles: CustomRole[] = [
           duplicate: true,
           archive: true,
           delete: false,
-          export: true,
-          comment: true,
-          "view-comments": true,
-          "delete-comment": false
+          export: true
         }
       },
       // OSHA Compliance
@@ -455,13 +445,11 @@ export const mockRoles: CustomRole[] = [
           create: true,
           view: true,
           "view-list": true,
-          edit: false,
+          "edit-own": true,
+          "edit-others": false,
           archive: false,
           delete: false,
-          export: false,
-          comment: true,
-          "view-comments": true,
-          "delete-comment": false
+          export: false
         }
       },
       // CAPA
@@ -474,10 +462,7 @@ export const mockRoles: CustomRole[] = [
           duplicate: false,
           archive: false,
           delete: false,
-          export: false,
-          comment: true,
-          "view-comments": true,
-          "delete-comment": false
+          export: false
         }
       },
       // OSHA Compliance
@@ -519,14 +504,14 @@ export const mockRoles: CustomRole[] = [
           create: false
         }
       },
-      // Work Orders
+      // Work Orders (only view/search — no link/create, those are paid)
       "work-order": {
         "Work Order": {
           search: true,
           view: true,
           create: false,
           "create-from-entity": false,
-          link: true,
+          link: false,
           unlink: false,
           "get-by-capa": false,
           "count-by-capa": false,
@@ -643,13 +628,11 @@ export const mockRoles: CustomRole[] = [
           create: false,
           view: true,
           "view-list": true,
-          edit: false,
+          "edit-own": false,
+          "edit-others": false,
           archive: false,
           delete: false,
-          export: false,
-          comment: false,
-          "view-comments": true,
-          "delete-comment": false
+          export: false
         }
       },
       // CAPA
@@ -662,10 +645,7 @@ export const mockRoles: CustomRole[] = [
           duplicate: false,
           archive: false,
           delete: false,
-          export: false,
-          comment: false,
-          "view-comments": true,
-          "delete-comment": false
+          export: false
         }
       },
       // OSHA Compliance

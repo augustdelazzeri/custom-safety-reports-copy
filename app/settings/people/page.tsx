@@ -18,7 +18,6 @@ import Header from "../../../src/components/Header";
 import CreateUserModal from "../../../src/components/CreateUserModal";
 import BulkUserImportModal from "../../../src/components/BulkUserImportModal";
 import type { ParsedUserRow } from "../../../src/components/BulkUserImportModal";
-import CreateRoleModal from "../../../src/components/CreateRoleModal";
 import CreateTeamModal from "../../../src/components/CreateTeamModal";
 import RoleBuilderMatrix from "../../../src/components/RoleBuilderMatrix";
 import { RoleProvider, useRole } from "../../../src/contexts/RoleContext";
@@ -28,7 +27,7 @@ import { mockLocationHierarchy } from "../../../src/samples/locationHierarchy";
 import { buildLocationPath } from "../../../src/schemas/locations";
 import type { LocationSelection } from "../../../src/schemas/locations";
 import LocationFilterDropdown from "../../../src/components/LocationFilterDropdown";
-import { countEnabledPermissions, createDefaultPermissions } from "../../../src/schemas/roles";
+import { countEnabledPermissions, createDefaultPermissions, getLicenseStatusSummary, getRoleLicenseTypeDisplay } from "../../../src/schemas/roles";
 import { getVisibleModules } from "../../../src/data/permissionsMock";
 import type { CreateUserFormData } from "../../../src/schemas/users";
 import type { RolePermissions, OSHALocationPermissions } from "../../../src/schemas/roles";
@@ -37,7 +36,6 @@ import { formatTeamType, formatPrimaryFunction, getTeamMemberCount } from "../..
 
 type TabType = 'users' | 'roles' | 'teams';
 type RoleViewMode = 'list' | 'create' | 'edit';
-type RoleCreationMode = 'modal' | 'fullscreen';
 
 function PeopleContent() {
   const { getUsersList, createUser, updateUser, toggleUserStatus, bulkImportUsers, checkDuplicateEmail } = useUser();
@@ -46,24 +44,6 @@ function PeopleContent() {
   
   // Tab state
   const [activeTab, setActiveTab] = useState<TabType>('users');
-  
-  // Role creation mode (persisted in localStorage)
-  const [roleCreationMode, setRoleCreationMode] = useState<RoleCreationMode>(() => {
-    if (typeof window !== 'undefined') {
-      const saved = localStorage.getItem('ehs_role_creation_mode');
-      return (saved as RoleCreationMode) || 'fullscreen';
-    }
-    return 'fullscreen';
-  });
-
-  // Toggle role creation mode and save to localStorage
-  const toggleRoleCreationMode = () => {
-    const newMode: RoleCreationMode = roleCreationMode === 'modal' ? 'fullscreen' : 'modal';
-    setRoleCreationMode(newMode);
-    if (typeof window !== 'undefined') {
-      localStorage.setItem('ehs_role_creation_mode', newMode);
-    }
-  };
 
   // Users tab state
   const [searchQuery, setSearchQuery] = useState("");
@@ -77,7 +57,6 @@ function PeopleContent() {
 
   // Roles tab state
   const [roleSearchQuery, setRoleSearchQuery] = useState("");
-  const [showCreateRoleModal, setShowCreateRoleModal] = useState(false);
   const [editingRoleId, setEditingRoleId] = useState<string | null>(null);
   const [openRoleMenuId, setOpenRoleMenuId] = useState<string | null>(null);
   
@@ -89,7 +68,6 @@ function PeopleContent() {
   const [fullscreenOshaLocationPermissions, setFullscreenOshaLocationPermissions] = useState<OSHALocationPermissions>({});
   const [fullscreenErrors, setFullscreenErrors] = useState<{name?: string; permissions?: string}>({});
   const [baseRoleId, setBaseRoleId] = useState<string>("");
-  const [advancedMode, setAdvancedMode] = useState(false);
 
   // Teams tab state
   const [teamSearchQuery, setTeamSearchQuery] = useState("");
@@ -104,9 +82,9 @@ function PeopleContent() {
   const roles = getRolesList();
   const teams = getTeamsList();
 
-  // Count permissions based on current mode (only visible modules)
+  // Count permissions based on simple mode (only visible modules)
   const countVisiblePermissions = (permissions: RolePermissions) => {
-    const visibleModules = getVisibleModules(advancedMode);
+    const visibleModules = getVisibleModules(false);
     const visibleModuleIds = new Set(visibleModules.map(m => m.moduleId));
     
     let count = 0;
@@ -242,22 +220,15 @@ function PeopleContent() {
 
   // Roles tab handlers
   const handleCreateRole = () => {
-    if (roleCreationMode === 'fullscreen') {
-      // Fullscreen mode: switch view and reset form
-      setFullscreenRoleName("");
-      setFullscreenDescription("");
-      setFullscreenPermissions(createDefaultPermissions());
-      setFullscreenOshaLocationPermissions({});
-      setFullscreenErrors({});
-      setEditingRoleId(null);
-      setBaseRoleId("");
-      setRoleViewMode('create');
-    } else {
-      // Modal mode: open modal
-      setEditingRoleId(null);
-      setBaseRoleId("");
-      setShowCreateRoleModal(true);
-    }
+    // Fullscreen mode: switch view and reset form
+    setFullscreenRoleName("");
+    setFullscreenDescription("");
+    setFullscreenPermissions(createDefaultPermissions());
+    setFullscreenOshaLocationPermissions({});
+    setFullscreenErrors({});
+    setEditingRoleId(null);
+    setBaseRoleId("");
+    setRoleViewMode('create');
   };
   
   const handleBaseRoleChange = (roleId: string) => {
@@ -280,33 +251,17 @@ function PeopleContent() {
     const role = roles.find(r => r.id === roleId);
     if (!role) return;
 
-    if (roleCreationMode === 'fullscreen') {
-      // Fullscreen mode: populate form and switch view
-      setFullscreenRoleName(role.name);
-      setFullscreenDescription(role.description || "");
-      setFullscreenPermissions(role.permissions);
-      setFullscreenOshaLocationPermissions(role.oshaLocationPermissions || {});
-      setFullscreenErrors({});
-      setEditingRoleId(roleId);
-      setRoleViewMode('edit');
-    } else {
-      // Modal mode: open modal
-      setEditingRoleId(roleId);
-      setShowCreateRoleModal(true);
-    }
+    // Fullscreen mode: populate form and switch view
+    setFullscreenRoleName(role.name);
+    setFullscreenDescription(role.description || "");
+    setFullscreenPermissions(role.permissions);
+    setFullscreenOshaLocationPermissions(role.oshaLocationPermissions || {});
+    setFullscreenErrors({});
+    setEditingRoleId(roleId);
+    setRoleViewMode('edit');
     setOpenRoleMenuId(null);
   };
 
-  const handleSubmitRole = (name: string, permissions: typeof roles[0]['permissions'], oshaLocationPermissions?: OSHALocationPermissions, description?: string) => {
-    if (editingRoleId) {
-      updateRole(editingRoleId, name, permissions, oshaLocationPermissions, description);
-    } else {
-      createRole(name, permissions, oshaLocationPermissions, description);
-    }
-    setShowCreateRoleModal(false);
-    setEditingRoleId(null);
-  };
-  
   const handleFullscreenSaveRole = () => {
     // Validate
     const errors: {name?: string; permissions?: string} = {};
@@ -623,6 +578,9 @@ function PeopleContent() {
                     Role
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    License
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Location
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -657,6 +615,21 @@ function PeopleContent() {
                           )}
                           {user.roleName || "Unknown"}
                         </span>
+                      </td>
+                      <td className="px-6 py-4">
+                        {(() => {
+                          const role = getRoleById(user.roleId);
+                          const licenseType = role ? getRoleLicenseTypeDisplay(role) : null;
+                          if (licenseType == null) return <span className="text-sm text-gray-400">—</span>;
+                          const isPaid = licenseType === 'paid';
+                          return (
+                            <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-xs font-medium ${
+                              isPaid ? 'bg-amber-50 text-amber-700 border border-amber-200' : 'bg-green-50 text-green-700 border border-green-200'
+                            }`}>
+                              {isPaid ? 'Paid' : 'Free'}
+                            </span>
+                          );
+                        })()}
                       </td>
                       <td className="px-6 py-4">
                         <div className="text-sm text-gray-700 flex items-center gap-1 flex-wrap">
@@ -760,8 +733,8 @@ function PeopleContent() {
         {/* Custom Roles Tab Content */}
         {activeTab === 'roles' && (
           <>
-            {/* List View - Show when roleViewMode === 'list' OR modal mode */}
-            {(roleViewMode === 'list' || roleCreationMode === 'modal') && (
+            {/* List View */}
+            {roleViewMode === 'list' && (
               <>
                 {/* Search & Actions */}
                 <div className="flex items-center justify-between mb-6">
@@ -779,28 +752,6 @@ function PeopleContent() {
                   </div>
                   
                   <div className="flex items-center gap-3">
-                    {/* Mode Toggle Switch */}
-                    <div className="flex items-center gap-3 px-3 py-2 bg-gray-50 rounded-md border border-gray-200">
-                      <span className="text-xs font-medium text-gray-700">Modal</span>
-                      <button
-                        type="button"
-                        onClick={toggleRoleCreationMode}
-                        className={`relative inline-flex h-5 w-9 flex-shrink-0 items-center rounded-full transition-colors ${
-                          roleCreationMode === 'fullscreen'
-                            ? "bg-blue-600" 
-                            : "bg-gray-300"
-                        }`}
-                        title={`Switch to ${roleCreationMode === 'modal' ? 'fullscreen' : 'modal'} mode`}
-                      >
-                        <span
-                          className={`inline-block h-3.5 w-3.5 transform rounded-full bg-white transition-transform ${
-                            roleCreationMode === 'fullscreen' ? "translate-x-5" : "translate-x-1"
-                          }`}
-                        />
-                      </button>
-                      <span className="text-xs font-medium text-gray-700">Fullscreen</span>
-                    </div>
-
                     {/* Create Role Button */}
                     <button
                       onClick={handleCreateRole}
@@ -830,6 +781,9 @@ function PeopleContent() {
                             Permissions
                           </th>
                           <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            License
+                          </th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                             Type
                           </th>
                           <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -843,6 +797,8 @@ function PeopleContent() {
                       <tbody className="divide-y divide-gray-200">
                         {filteredRoles.map((role) => {
                           const permissionCount = countEnabledPermissions(role.permissions);
+                          const licenseType = getRoleLicenseTypeDisplay(role);
+                          const isPaidRole = licenseType === 'paid';
                           return (
                             <tr key={role.id} className="hover:bg-gray-50 transition-colors">
                               <td className="px-6 py-4">
@@ -866,6 +822,13 @@ function PeopleContent() {
                               <td className="px-6 py-4">
                                 <span className="inline-flex items-center px-2.5 py-0.5 rounded-md text-xs font-medium bg-blue-100 text-blue-700 border border-blue-200">
                                   {permissionCount} permission{permissionCount !== 1 ? 's' : ''}
+                                </span>
+                              </td>
+                              <td className="px-6 py-4">
+                                <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-xs font-medium ${
+                                  isPaidRole ? 'bg-amber-50 text-amber-700 border border-amber-200' : 'bg-green-50 text-green-700 border border-green-200'
+                                }`}>
+                                  {isPaidRole ? 'Paid' : 'Free'}
                                 </span>
                               </td>
                               <td className="px-6 py-4 text-sm text-gray-700">
@@ -978,8 +941,9 @@ function PeopleContent() {
               </>
             )}
 
-            {/* Fullscreen Create/Edit View - Show only in fullscreen mode */}
-            {roleCreationMode === 'fullscreen' && (roleViewMode === 'create' || roleViewMode === 'edit') && (
+            {/* Fullscreen Create/Edit View */}
+            {(roleViewMode === 'create' || roleViewMode === 'edit') && (
+              <div className="relative pb-20">
               <div className="bg-white rounded-lg border border-gray-200 p-6">
                 {/* Header */}
                 <div className="mb-6 pb-4 border-b border-gray-200">
@@ -1102,48 +1066,10 @@ function PeopleContent() {
 
                 {/* Permissions Matrix */}
                 <div className="mb-6">
-                  <div className="flex items-center justify-between mb-3">
+                  <div className="mb-3">
                     <h3 className="text-sm font-medium text-gray-900">
                       Permissions <span className="text-red-500">*</span>
                     </h3>
-                    
-                    {/* Advanced Mode Toggle */}
-                    <div className="flex items-center gap-3 bg-gray-50 border border-gray-200 rounded-lg px-3 py-2">
-                      <span className={`text-xs font-medium transition-colors ${!advancedMode ? 'text-gray-900' : 'text-gray-500'}`}>
-                        Simple
-                      </span>
-                      <button
-                        type="button"
-                        onClick={() => setAdvancedMode(!advancedMode)}
-                        className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors ${
-                          advancedMode ? "bg-blue-600" : "bg-gray-300"
-                        }`}
-                      >
-                        <span
-                          className={`inline-block h-3.5 w-3.5 transform rounded-full bg-white transition-transform ${
-                            advancedMode ? "translate-x-5" : "translate-x-1"
-                          }`}
-                        />
-                      </button>
-                      <span className={`text-xs font-medium transition-colors ${advancedMode ? 'text-blue-600' : 'text-gray-500'}`}>
-                        Advanced
-                      </span>
-                    </div>
-                  </div>
-                  
-                  {/* Mode Description Banner */}
-                  <div className="mb-3 bg-blue-50 border border-blue-200 rounded-lg px-3 py-2">
-                    <p className="text-xs text-blue-800">
-                      {advancedMode ? (
-                        <>
-                          <span className="font-semibold">Advanced Mode:</span> All 9 EHS modules (Events, CAPA, OSHA, Access Points, LOTO, PTW, JHA, SOP, Audit)
-                        </>
-                      ) : (
-                        <>
-                          <span className="font-semibold">Simple Mode:</span> 5 core modules (Events, CAPA, OSHA, Access Points, LOTO)
-                        </>
-                      )}
-                    </p>
                   </div>
                   
                   {fullscreenErrors.permissions && (
@@ -1164,7 +1090,8 @@ function PeopleContent() {
                       setFullscreenOshaLocationPermissions(perms);
                     }}
                     disabled={editingRoleId ? roles.find(r => r.id === editingRoleId)?.isSystemRole : false}
-                    advancedMode={advancedMode}
+                    advancedMode={false}
+                    roleName={editingRoleId ? roles.find(r => r.id === editingRoleId)?.name : fullscreenRoleName || undefined}
                   />
                 </div>
 
@@ -1178,11 +1105,48 @@ function PeopleContent() {
                   </button>
                   <button
                     onClick={handleFullscreenSaveRole}
-                    className="px-4 py-2 bg-blue-600 text-white rounded-md text-sm font-medium hover:bg-blue-700 transition-colors"
+                    className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+                      getLicenseStatusSummary(fullscreenPermissions).type === 'paid'
+                        ? 'bg-amber-600 text-white hover:bg-amber-700'
+                        : 'bg-blue-600 text-white hover:bg-blue-700'
+                    }`}
                   >
                     {roleViewMode === 'create' ? 'Create Role' : 'Save Changes'}
                   </button>
                 </div>
+              </div>
+
+                {/* Fixed bottom bar: real-time license price (monthly) */}
+                {(() => {
+                  const licenseStatus = getLicenseStatusSummary(fullscreenPermissions);
+                  const isPaid = licenseStatus.type === 'paid';
+                  return (
+                    <div
+                      className={`fixed left-64 right-0 bottom-0 z-20 flex items-center justify-between px-6 py-4 border-t shadow-lg ${
+                        isPaid ? 'bg-amber-50 border-amber-200' : 'bg-green-50 border-green-200'
+                      }`}
+                    >
+                      <div className="flex items-center gap-3">
+                        {isPaid ? (
+                          <span className="text-sm font-semibold text-amber-900">Paid license</span>
+                        ) : (
+                          <span className="text-sm font-semibold text-green-900">Free license</span>
+                        )}
+                        <span className="text-xs text-gray-600">
+                          {isPaid
+                            ? 'Any paid permission enables a single per-user fee. Adding more does not increase cost.'
+                            : 'Only view and export permissions selected.'}
+                        </span>
+                      </div>
+                      <div className="text-right">
+                        <span className={`text-2xl font-bold ${isPaid ? 'text-amber-900' : 'text-green-900'}`}>
+                          {isPaid ? `$${licenseStatus.priceMonthly.toLocaleString()}` : '$0'}
+                        </span>
+                        <span className="text-sm text-gray-600 ml-1">per user/month</span>
+                      </div>
+                    </div>
+                  );
+                })()}
               </div>
             )}
           </>
@@ -1472,18 +1436,6 @@ function PeopleContent() {
         existingEmails={new Set(users.map(u => u.email))}
         validRoleNames={new Set(roles.map(r => r.name))}
         locationNodes={mockLocationHierarchy}
-      />
-
-      {/* Create/Edit Role Modal */}
-      <CreateRoleModal
-        isOpen={showCreateRoleModal}
-        onClose={() => {
-          setShowCreateRoleModal(false);
-          setEditingRoleId(null);
-        }}
-        onSubmit={handleSubmitRole}
-        existingRole={editingRoleId ? roles.find(r => r.id === editingRoleId) : undefined}
-        checkDuplicateName={checkDuplicateName}
       />
 
       {/* Create/Edit Team Modal */}

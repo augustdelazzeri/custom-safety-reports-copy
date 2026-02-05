@@ -137,7 +137,6 @@ export default function CreateAccessPointModal({
                 onChange={setLocation}
                 locationTree={mockLocationHierarchy}
                 required={true}
-                storageKey="ehs-access-point-location-mode"
                 label="Location"
               />
             </div>
