@@ -47,6 +47,7 @@ export default function Sidebar() {
     { label: "Settings", icon: "settings", hasDropdown: true },
     { label: "Privacy Settings", icon: "shield" },
     { label: "UpKeep CMMS", icon: "upkeep", isRed: true },
+    { label: "Manage Subscription", icon: "credit-card", href: "/settings/subscription", isSubscription: true },
   ];
 
   const getIcon = (iconName: string) => {
@@ -133,6 +134,11 @@ export default function Sidebar() {
       upkeep: (
         <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
           <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" />
+        </svg>
+      ),
+      "credit-card": (
+        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
         </svg>
       ),
     };
@@ -224,6 +230,18 @@ export default function Sidebar() {
                   </div>
                 )}
               </>
+            ) : item.isSubscription && item.href ? (
+              <Link
+                href={item.href}
+                className={`flex items-center gap-2 px-3 py-2 text-sm font-medium transition-colors rounded-md ${
+                  pathname === item.href
+                    ? "bg-blue-600 text-white"
+                    : "text-blue-600 hover:bg-blue-50"
+                }`}
+              >
+                {getFooterIcon(item.icon)}
+                <span>{item.label}</span>
+              </Link>
             ) : (
               <a
                 href="#"
