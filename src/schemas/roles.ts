@@ -68,7 +68,8 @@ export type PermissionModuleId =
   | 'ptw'
   | 'jha'
   | 'sop'
-  | 'audit';
+  | 'audit'
+  | 'admin';
 
 /**
  * Create default (empty) permissions structure based on EHS_PERMISSIONS

@@ -186,6 +186,13 @@ export const mockRoles: CustomRole[] = [
           delete: true,
           export: true
         }
+      },
+      // Account Administration
+      admin: {
+        "Administration": {
+          "manage-users": true,
+          "manage-subscription": true
+        }
       }
     },
     // OSHA Location Permissions - Global Admin has access to ALL establishments
@@ -426,6 +433,13 @@ export const mockRoles: CustomRole[] = [
           delete: false,
           export: true
         }
+      },
+      // Account Administration
+      admin: {
+        "Administration": {
+          "manage-users": false,
+          "manage-subscription": false
+        }
       }
     },
     createdAt: new Date('2025-01-01T10:00:00Z').toISOString(),
@@ -609,6 +623,13 @@ export const mockRoles: CustomRole[] = [
           delete: false,
           export: false
         }
+      },
+      // Account Administration
+      admin: {
+        "Administration": {
+          "manage-users": false,
+          "manage-subscription": false
+        }
       }
     },
     createdAt: new Date('2025-01-01T10:00:00Z').toISOString(),
@@ -791,6 +812,13 @@ export const mockRoles: CustomRole[] = [
           archive: false,
           delete: false,
           export: false
+        }
+      },
+      // Account Administration
+      admin: {
+        "Administration": {
+          "manage-users": false,
+          "manage-subscription": false
         }
       }
     },

@@ -357,6 +357,22 @@ export const EHS_PERMISSIONS: PermissionModule[] = [
         ]
       }
     ]
+  },
+
+  // Account Administration
+  {
+    moduleId: "admin",
+    moduleName: "Account Administration",
+    description: "User management and subscription administration",
+    features: [
+      {
+        entity: "Administration",
+        actions: [
+          { id: "admin:manage-users", label: "Manage Users", description: "Create, edit, and deactivate users and roles", permission: "CREATE", category: "create-edit" },
+          { id: "admin:manage-subscription", label: "Manage Subscription", description: "View and modify subscription seats and billing", permission: "CREATE", category: "create-edit" }
+        ]
+      }
+    ]
   }
 ];
 
