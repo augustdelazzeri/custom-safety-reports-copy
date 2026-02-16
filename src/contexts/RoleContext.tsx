@@ -28,7 +28,7 @@ const RoleContext = createContext<RoleContextType | undefined>(undefined);
 
 const STORAGE_KEY = "ehs_custom_roles";
 const STORAGE_VERSION_KEY = "ehs_custom_roles_version";
-const CURRENT_VERSION = "3.3"; // Technician: Work Orders view-only (no Create & Edit)
+const CURRENT_VERSION = "3.4"; // Add Account Administration module (Manage Users, Manage Subscription)
 
 export function RoleProvider({ children }: { children: ReactNode }) {
   const [roles, setRoles] = useState<Record<string, CustomRole>>({});

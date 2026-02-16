@@ -325,8 +325,8 @@ export default function RoleBuilderMatrix({
             {/* OSHA module: Skip regular permissions, only show location-based permissions below */}
             {module.moduleId !== 'osha' && (
               <>
-                {/* SIMPLE MODE: Show Categories */}
-                {simpleMode ? (
+                {/* SIMPLE MODE: Show Categories (except admin, which shows individual actions as checkboxes) */}
+                {simpleMode && module.moduleId !== 'admin' ? (
                   <div className="bg-white px-4 py-3 grid grid-cols-2 gap-3">
                     {getModuleCategories(module).map((category) => {
                       const categoryFullySelected = isCategoryFullySelected(module.moduleId, category);
@@ -345,6 +345,26 @@ export default function RoleBuilderMatrix({
                         />
                       );
                     })}
+                  </div>
+                ) : simpleMode && module.moduleId === 'admin' ? (
+                  <div className="bg-white px-4 py-3 grid grid-cols-2 gap-3">
+                    {module.features.flatMap((feature) =>
+                      feature.actions.map((action) => {
+                        const actionKey = getActionKey(action.id);
+                        const checked = getPermissionValue(permissions, module.moduleId, feature.entity, actionKey);
+                        return (
+                          <CategoryToggle
+                            key={action.id}
+                            label={action.label}
+                            description={action.description}
+                            checked={checked}
+                            onChange={() => handleToggleAction(module.moduleId, feature.entity, action.id)}
+                            disabled={disabled}
+                            isFree={false}
+                          />
+                        );
+                      })
+                    )}
                   </div>
                 ) : (
                   // ADVANCED MODE: Show Individual Actions
