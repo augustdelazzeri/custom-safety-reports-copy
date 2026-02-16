@@ -7,7 +7,9 @@ import { useProfile } from "../contexts/ProfileContext";
 
 export default function Sidebar() {
   const pathname = usePathname();
-  const [settingsExpanded, setSettingsExpanded] = useState(false);
+  const [showAppSwitcher, setShowAppSwitcher] = useState(false);
+  const [showSettingsMenu, setShowSettingsMenu] = useState(false);
+  const [hoveredIcon, setHoveredIcon] = useState<string | null>(null);
   const { currentProfile } = useProfile();
   
   const baseNavItems = [
@@ -43,12 +45,7 @@ export default function Sidebar() {
       ]
     : baseNavItems;
   
-  const footerItems = [
-    { label: "Settings", icon: "settings", hasDropdown: true },
-    { label: "Privacy Settings", icon: "shield" },
-    { label: "UpKeep CMMS", icon: "upkeep", isRed: true },
-    { label: "Manage Subscription", icon: "credit-card", href: "/settings/subscription", isSubscription: true },
-  ];
+  const currentApp = "ehs" as "cmms" | "ehs";
 
   const getIcon = (iconName: string) => {
     const icons: Record<string, React.ReactNode> = {
@@ -118,31 +115,9 @@ export default function Sidebar() {
     return icons[iconName] || icons.document;
   };
 
-  const getFooterIcon = (iconName: string) => {
-    const icons: Record<string, React.ReactNode> = {
-      settings: (
-        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-        </svg>
-      ),
-      shield: (
-        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
-        </svg>
-      ),
-      upkeep: (
-        <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
-          <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" />
-        </svg>
-      ),
-      "credit-card": (
-        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
-        </svg>
-      ),
-    };
-    return icons[iconName] || icons.settings;
+  const closeAllPopups = () => {
+    setShowAppSwitcher(false);
+    setShowSettingsMenu(false);
   };
 
   return (
@@ -194,67 +169,174 @@ export default function Sidebar() {
         ))}
       </div>
       
-      {/* Footer */}
-      <div className="p-4 border-t border-gray-200 space-y-1">
-        {footerItems.map((item) => (
-          <div key={item.label}>
-            {item.hasDropdown ? (
+      {/* Footer — Icon toolbar */}
+      <div className="border-t border-gray-200 px-3 py-3">
+        <div className="flex items-center justify-between">
+          {/* App switcher (left, separated) */}
+          <div className="relative">
+            <button
+              onClick={() => { setShowAppSwitcher(!showAppSwitcher); setShowSettingsMenu(false); }}
+              onMouseEnter={() => setHoveredIcon("app-switcher")}
+              onMouseLeave={() => setHoveredIcon(null)}
+              className="w-9 h-9 flex items-center justify-center rounded-lg border border-gray-200 text-gray-500 hover:bg-gray-100 transition-colors cursor-pointer"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 5a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM14 5a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 01-1-1V5zM4 15a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1H5a1 1 0 01-1-1v-4zM14 15a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 01-1-1v-4z" />
+              </svg>
+            </button>
+
+            {/* App switcher popup */}
+            {showAppSwitcher && (
               <>
-                <button
-                  onClick={() => setSettingsExpanded(!settingsExpanded)}
-                  className="w-full flex items-center gap-2 px-3 py-2 text-sm transition-colors text-gray-700 hover:bg-gray-100 rounded-md"
-                >
-                  {getFooterIcon(item.icon)}
-                  <span>{item.label}</span>
-                  <svg 
-                    className={`w-4 h-4 ml-auto transition-transform ${settingsExpanded ? "rotate-180" : ""}`}
-                    fill="none" 
-                    stroke="currentColor" 
-                    viewBox="0 0 24 24"
-                  >
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                  </svg>
-                </button>
-                {settingsExpanded && (
-                  <div className="ml-6 mt-1 space-y-1">
-                    <Link
-                      href="/settings/safety-templates"
-                      className={`flex items-center gap-2 px-3 py-2 text-sm transition-colors rounded-md ${
-                        pathname === "/settings/safety-templates"
-                          ? "bg-blue-600 text-white"
-                          : "text-gray-700 hover:bg-gray-100"
+                <div className="fixed inset-0 z-10" onClick={closeAllPopups} />
+                <div className="absolute bottom-12 left-0 bg-white rounded-xl shadow-lg border border-gray-200 p-3 z-20 w-48">
+                  <div className="flex gap-2">
+                    <a
+                      href="#"
+                      className={`flex-1 flex flex-col items-center gap-1.5 p-3 rounded-lg border-2 transition-colors ${
+                        currentApp === "cmms"
+                          ? "border-blue-400 bg-blue-50"
+                          : "border-gray-200 hover:border-gray-300 hover:bg-gray-50"
                       }`}
                     >
-                      <span>Safety Templates</span>
-                    </Link>
+                      <svg className="w-8 h-8 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                      </svg>
+                      <span className="text-xs font-medium text-gray-700">CMMS</span>
+                    </a>
+                    <a
+                      href="#"
+                      className={`flex-1 flex flex-col items-center gap-1.5 p-3 rounded-lg border-2 transition-colors ${
+                        currentApp === "ehs"
+                          ? "border-blue-400 bg-blue-50"
+                          : "border-gray-200 hover:border-gray-300 hover:bg-gray-50"
+                      }`}
+                    >
+                      <svg className="w-8 h-8 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                      </svg>
+                      <span className="text-xs font-medium text-gray-700">EHS</span>
+                    </a>
                   </div>
-                )}
+                </div>
               </>
-            ) : item.isSubscription && item.href ? (
-              <Link
-                href={item.href}
-                className={`flex items-center gap-2 px-3 py-2 text-sm font-medium transition-colors rounded-md ${
-                  pathname === item.href
-                    ? "bg-blue-600 text-white"
-                    : "text-blue-600 hover:bg-blue-50"
-                }`}
-              >
-                {getFooterIcon(item.icon)}
-                <span>{item.label}</span>
-              </Link>
-            ) : (
-              <a
-                href="#"
-                className={`flex items-center gap-2 px-3 py-2 text-sm transition-colors rounded-md ${
-                  item.isRed ? "text-red-600 hover:bg-red-50" : "text-gray-700 hover:bg-gray-100"
-                }`}
-              >
-                {getFooterIcon(item.icon)}
-                <span>{item.label}</span>
-              </a>
             )}
           </div>
-        ))}
+
+          {/* Right icons group */}
+          <div className="flex items-center gap-1">
+            {/* Help */}
+            <div className="relative">
+              <button
+                onMouseEnter={() => setHoveredIcon("help")}
+                onMouseLeave={() => setHoveredIcon(null)}
+                className="w-9 h-9 flex items-center justify-center rounded-lg text-gray-400 hover:bg-gray-100 hover:text-gray-600 transition-colors cursor-pointer"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              </button>
+              {hoveredIcon === "help" && (
+                <div className="absolute bottom-11 left-1/2 -translate-x-1/2 bg-gray-900 text-white text-xs px-2 py-1 rounded whitespace-nowrap pointer-events-none">
+                  Help
+                  <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-gray-900" />
+                </div>
+              )}
+            </div>
+
+            {/* Contact Us */}
+            <div className="relative">
+              <button
+                onMouseEnter={() => setHoveredIcon("contact")}
+                onMouseLeave={() => setHoveredIcon(null)}
+                className="w-9 h-9 flex items-center justify-center rounded-lg text-gray-400 hover:bg-gray-100 hover:text-gray-600 transition-colors cursor-pointer"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                </svg>
+              </button>
+              {hoveredIcon === "contact" && (
+                <div className="absolute bottom-11 left-1/2 -translate-x-1/2 bg-gray-900 text-white text-xs px-2 py-1 rounded whitespace-nowrap pointer-events-none">
+                  Contact Us
+                  <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-gray-900" />
+                </div>
+              )}
+            </div>
+
+            {/* Manage Subscription */}
+            <div className="relative">
+              <Link
+                href="/settings/subscription"
+                onMouseEnter={() => setHoveredIcon("subscription")}
+                onMouseLeave={() => setHoveredIcon(null)}
+                className={`w-9 h-9 flex items-center justify-center rounded-lg transition-colors cursor-pointer ${
+                  pathname === "/settings/subscription"
+                    ? "bg-blue-50 text-blue-600"
+                    : "text-gray-400 hover:bg-gray-100 hover:text-gray-600"
+                }`}
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+                </svg>
+              </Link>
+              {hoveredIcon === "subscription" && (
+                <div className="absolute bottom-11 left-1/2 -translate-x-1/2 bg-gray-900 text-white text-xs px-2 py-1 rounded whitespace-nowrap pointer-events-none">
+                  Manage Subscription
+                  <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-gray-900" />
+                </div>
+              )}
+            </div>
+
+            {/* Settings */}
+            <div className="relative">
+              <button
+                onClick={() => { setShowSettingsMenu(!showSettingsMenu); setShowAppSwitcher(false); }}
+                onMouseEnter={() => setHoveredIcon("settings")}
+                onMouseLeave={() => setHoveredIcon(null)}
+                className={`w-9 h-9 flex items-center justify-center rounded-lg transition-colors cursor-pointer ${
+                  showSettingsMenu || pathname.startsWith("/settings/safety-templates")
+                    ? "bg-gray-100 text-gray-700"
+                    : "text-gray-400 hover:bg-gray-100 hover:text-gray-600"
+                }`}
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                </svg>
+              </button>
+              {hoveredIcon === "settings" && !showSettingsMenu && (
+                <div className="absolute bottom-11 left-1/2 -translate-x-1/2 bg-gray-900 text-white text-xs px-2 py-1 rounded whitespace-nowrap pointer-events-none">
+                  Settings
+                  <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-gray-900" />
+                </div>
+              )}
+
+              {/* Settings dropdown */}
+              {showSettingsMenu && (
+                <>
+                  <div className="fixed inset-0 z-10" onClick={closeAllPopups} />
+                  <div className="absolute bottom-12 right-0 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-20 w-52">
+                    <Link
+                      href="/settings/safety-templates"
+                      onClick={closeAllPopups}
+                      className={`flex items-center gap-2 px-3 py-2 text-sm transition-colors ${
+                        pathname === "/settings/safety-templates"
+                          ? "bg-blue-50 text-blue-700 font-medium"
+                          : "text-gray-700 hover:bg-gray-50"
+                      }`}
+                    >
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                      </svg>
+                      Safety Templates
+                    </Link>
+                  </div>
+                </>
+              )}
+            </div>
+          </div>
+        </div>
       </div>
     </aside>
   );
