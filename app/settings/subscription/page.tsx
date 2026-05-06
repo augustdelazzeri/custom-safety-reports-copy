@@ -1,23 +1,30 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Sidebar from "../../../src/components/Sidebar";
 import Header from "../../../src/components/Header";
 import Link from "next/link";
 
-type BillingPeriod = "annual" | "monthly";
-
 export default function SubscriptionPage() {
-  const [billingPeriod, setBillingPeriod] = useState<BillingPeriod>("annual");
   const [seats, setSeats] = useState(3);
+  const [showToast, setShowToast] = useState(false);
 
-  const pricePerSeat = billingPeriod === "annual" ? 1800 : 150;
-  const priceLabel = billingPeriod === "annual" ? "/ seat / year" : "/ seat / month";
-  const totalPrice = pricePerSeat * seats;
-  const totalLabel = billingPeriod === "annual" ? "/ year" : "/ month";
+  // Load seats from localStorage on mount
+  useEffect(() => {
+    const savedSeats = localStorage.getItem("ehs_paid_seats");
+    if (savedSeats) {
+      setSeats(parseInt(savedSeats, 10));
+    }
+  }, []);
 
   const handleSeatsChange = (delta: number) => {
     setSeats((prev) => Math.max(1, prev + delta));
+  };
+
+  const handleUpdateSeats = () => {
+    localStorage.setItem("ehs_paid_seats", seats.toString());
+    setShowToast(true);
+    setTimeout(() => setShowToast(false), 4000);
   };
 
   return (
@@ -26,7 +33,19 @@ export default function SubscriptionPage() {
       <div className="ml-64">
         <Header title="Subscription" />
 
-        <main className="p-8 max-w-5xl mx-auto">
+        <main className="p-8 max-w-5xl mx-auto relative">
+          {/* Toast Notification */}
+          {showToast && (
+            <div className="fixed top-24 right-8 z-50 animate-in fade-in slide-in-from-top-4 duration-300">
+              <div className="bg-gray-900 text-white px-6 py-3 rounded-lg shadow-xl border border-gray-700 flex items-center gap-3">
+                <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse" />
+                <p className="text-sm font-medium">
+                  The UpKeep sales team will contact you regarding the payment for these seats.
+                </p>
+              </div>
+            </div>
+          )}
+
           {/* Single unified card */}
           <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
             {/* Top bar — subtle */}
@@ -41,32 +60,9 @@ export default function SubscriptionPage() {
                 </div>
               </div>
               <div className="flex items-center gap-4">
-                {/* Billing Toggle */}
-                <div className="flex items-center bg-white/10 rounded-lg p-1 gap-1">
-                  <button
-                    onClick={() => setBillingPeriod("annual")}
-                    className={`px-3 py-1.5 rounded-md text-xs font-medium transition-colors cursor-pointer ${
-                      billingPeriod === "annual"
-                        ? "bg-white text-gray-800 shadow-sm"
-                        : "text-gray-400 hover:text-white"
-                    }`}
-                  >
-                    Annual
-                  </button>
-                  <button
-                    onClick={() => setBillingPeriod("monthly")}
-                    className={`px-3 py-1.5 rounded-md text-xs font-medium transition-colors cursor-pointer ${
-                      billingPeriod === "monthly"
-                        ? "bg-white text-gray-800 shadow-sm"
-                        : "text-gray-400 hover:text-white"
-                    }`}
-                  >
-                    Monthly
-                  </button>
-                </div>
                 <div className="text-right">
-                  <span className="text-xl font-bold text-white">${pricePerSeat.toLocaleString()}</span>
-                  <span className="text-gray-400 text-xs ml-1">{priceLabel}</span>
+                  <span className="text-xl font-bold text-white">Paid License</span>
+                  <p className="text-gray-400 text-xs">Seat-based billing</p>
                 </div>
               </div>
             </div>
@@ -81,55 +77,62 @@ export default function SubscriptionPage() {
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                     </svg>
                   </span>
-                  <h3 className="text-sm font-semibold text-gray-900">Free for all users</h3>
+                  <h3 className="text-sm font-semibold text-gray-900">Free Users</h3>
                 </div>
 
                 <ul className="space-y-3">
                   <li className="flex items-start gap-2.5 text-sm text-gray-600">
                     <span className="w-1.5 h-1.5 rounded-full bg-green-400 mt-1.5 shrink-0" />
-                    <span><strong className="text-gray-800">View</strong> — read-only access to all modules</span>
+                    <span><strong className="text-gray-800">View Details</strong> — Read-only access to all modules</span>
                   </li>
                   <li className="flex items-start gap-2.5 text-sm text-gray-600">
                     <span className="w-1.5 h-1.5 rounded-full bg-green-400 mt-1.5 shrink-0" />
-                    <span><strong className="text-gray-800">Create &amp; edit own Safety Events</strong> — report and edit your own incidents</span>
+                    <span><strong className="text-gray-800">Browse Lists</strong> — Access to tables and logs</span>
                   </li>
                 </ul>
 
-                <p className="text-xs text-gray-400 mt-4">
-                  Includes system roles <strong>View-Only</strong> and <strong>Technician</strong>.
-                </p>
+                <div className="mt-6 p-3 bg-gray-50 rounded-lg border border-gray-100">
+                  <p className="text-xs text-gray-500">
+                    <span className="font-semibold text-gray-700">Example Role:</span> View-Only
+                  </p>
+                </div>
               </div>
 
               {/* Right — Paid permissions */}
               <div className="p-6">
                 <div className="flex items-center gap-2 mb-4">
-                  <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-blue-100">
-                    <svg className="w-3.5 h-3.5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-amber-100">
+                    <svg className="w-3.5 h-3.5 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
                   </span>
-                  <h3 className="text-sm font-semibold text-gray-900">Paid per seat</h3>
-                  <span className="text-xs text-gray-400 ml-auto">any of these = billed user</span>
+                  <h3 className="text-sm font-semibold text-gray-900">Paid Seats</h3>
                 </div>
 
                 <ul className="space-y-3">
                   <li className="flex items-start gap-2.5 text-sm text-gray-600">
-                    <span className="w-1.5 h-1.5 rounded-full bg-blue-400 mt-1.5 shrink-0" />
-                    <span><strong className="text-gray-800">Create &amp; Edit</strong> — create, edit, or duplicate others&apos; records</span>
+                    <span className="w-1.5 h-1.5 rounded-full bg-amber-400 mt-1.5 shrink-0" />
+                    <span><strong className="text-gray-800">Create & Edit</strong> — Report incidents or manage records</span>
                   </li>
                   <li className="flex items-start gap-2.5 text-sm text-gray-600">
-                    <span className="w-1.5 h-1.5 rounded-full bg-blue-400 mt-1.5 shrink-0" />
-                    <span><strong className="text-gray-800">Approvals</strong> — approve, reject, or submit workflows</span>
+                    <span className="w-1.5 h-1.5 rounded-full bg-amber-400 mt-1.5 shrink-0" />
+                    <span><strong className="text-gray-800">Approvals</strong> — Approve, reject, or submit workflows</span>
                   </li>
                   <li className="flex items-start gap-2.5 text-sm text-gray-600">
-                    <span className="w-1.5 h-1.5 rounded-full bg-blue-400 mt-1.5 shrink-0" />
-                    <span><strong className="text-gray-800">Archive &amp; Delete</strong> — archive or delete records</span>
+                    <span className="w-1.5 h-1.5 rounded-full bg-amber-400 mt-1.5 shrink-0" />
+                    <span><strong className="text-gray-800">Archive & Delete</strong> — Manage record lifecycle</span>
                   </li>
                   <li className="flex items-start gap-2.5 text-sm text-gray-600">
-                    <span className="w-1.5 h-1.5 rounded-full bg-blue-400 mt-1.5 shrink-0" />
-                    <span><strong className="text-gray-800">Reporting</strong> — export data and generate reports</span>
+                    <span className="w-1.5 h-1.5 rounded-full bg-amber-400 mt-1.5 shrink-0" />
+                    <span><strong className="text-gray-800">Reporting</strong> — Export data and generate reports</span>
                   </li>
                 </ul>
+
+                <div className="mt-6 p-3 bg-gray-50 rounded-lg border border-gray-100">
+                  <p className="text-xs text-gray-500">
+                    <span className="font-semibold text-gray-700">Example Roles:</span> Global Admin, Location Admin, Technician
+                  </p>
+                </div>
               </div>
             </div>
 
@@ -138,7 +141,7 @@ export default function SubscriptionPage() {
               <div className="flex items-center justify-between">
                 {/* Seat counter */}
                 <div className="flex items-center gap-4">
-                  <span className="text-sm font-medium text-gray-700">Paid seats</span>
+                  <span className="text-sm font-medium text-gray-700">Configure paid seats</span>
                   <div className="flex items-center border border-gray-300 rounded-lg overflow-hidden">
                     <button
                       onClick={() => handleSeatsChange(-1)}
@@ -163,16 +166,12 @@ export default function SubscriptionPage() {
                   </div>
                 </div>
 
-                {/* Total + action */}
+                {/* action */}
                 <div className="flex items-center gap-6">
-                  <div className="text-right">
-                    <p className="text-xs text-gray-500">Total</p>
-                    <p className="text-lg font-bold text-gray-900">
-                      ${totalPrice.toLocaleString()}
-                      <span className="text-xs font-normal text-gray-500 ml-1">{totalLabel}</span>
-                    </p>
-                  </div>
-                  <button className="px-5 py-2.5 bg-blue-600 text-white text-sm font-semibold rounded-md hover:bg-blue-700 transition-colors cursor-pointer">
+                  <button 
+                    onClick={handleUpdateSeats}
+                    className="px-5 py-2.5 bg-blue-600 text-white text-sm font-semibold rounded-md hover:bg-blue-700 transition-colors cursor-pointer"
+                  >
                     Update seats
                   </button>
                 </div>

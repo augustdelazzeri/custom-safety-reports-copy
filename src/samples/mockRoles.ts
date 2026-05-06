@@ -461,7 +461,7 @@ export const mockRoles: CustomRole[] = [
           "view-list": true,
           "edit-own": true,
           "edit-others": false,
-          archive: false,
+          archive: true,
           delete: false,
           export: false
         }
@@ -476,7 +476,7 @@ export const mockRoles: CustomRole[] = [
           duplicate: false,
           archive: false,
           delete: false,
-          export: false
+          export: true
         }
       },
       // OSHA Compliance
@@ -554,11 +554,11 @@ export const mockRoles: CustomRole[] = [
           edit: false,
           duplicate: false,
           "submit-review": false,
-          approve: false,
-          reject: false,
+          approve: true,
+          reject: true,
           archive: false,
           delete: false,
-          export: false
+          export: true
         }
       },
       // PTW (Advanced)
@@ -570,11 +570,11 @@ export const mockRoles: CustomRole[] = [
           edit: false,
           duplicate: false,
           "submit-review": false,
-          approve: false,
-          reject: false,
+          approve: true,
+          reject: true,
           archive: false,
           delete: false,
-          export: false
+          export: true
         }
       },
       // JHA (Advanced)
@@ -585,11 +585,11 @@ export const mockRoles: CustomRole[] = [
           "view-list": true,
           edit: false,
           "submit-review": false,
-          approve: false,
-          reject: false,
+          approve: true,
+          reject: true,
           archive: false,
           delete: false,
-          export: false
+          export: true
         }
       },
       // SOP (Advanced)
@@ -601,11 +601,11 @@ export const mockRoles: CustomRole[] = [
           edit: false,
           duplicate: false,
           "submit-review": false,
-          approve: false,
-          reject: false,
+          approve: true,
+          reject: true,
           archive: false,
           delete: false,
-          export: false
+          export: true
         }
       },
       // Audit (Advanced)
@@ -617,11 +617,11 @@ export const mockRoles: CustomRole[] = [
           edit: false,
           duplicate: false,
           "submit-review": false,
-          approve: false,
-          reject: false,
+          approve: true,
+          reject: true,
           archive: false,
           delete: false,
-          export: false
+          export: true
         }
       },
       // Account Administration

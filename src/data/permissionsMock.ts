@@ -119,10 +119,10 @@ export const EHS_PERMISSIONS: PermissionModule[] = [
       {
         entity: "Safety Event",
         actions: [
-          { id: "event:create", label: "Report Incident", description: "Create and edit my own Safety Events", permission: "CREATE", category: "create-edit-own", licenseFree: true },
+          { id: "event:create", label: "Report Incident", description: "Create and edit my own Safety Events", permission: "CREATE", category: "create-edit" },
           { id: "event:view", label: "View Incident Details", description: "Access full details", permission: "VIEW", category: "view" },
           { id: "event:view-list", label: "Browse Incident Log", description: "List all events", permission: "VIEW", category: "view" },
-          { id: "event:edit-own", label: "Edit my Safety Events", description: "Modify my own event details", permission: "EDIT", category: "create-edit-own", licenseFree: true },
+          { id: "event:edit-own", label: "Edit my Safety Events", description: "Modify my own event details", permission: "EDIT", category: "create-edit" },
           { id: "event:edit-others", label: "Edit other users' Safety Events", description: "Modify events created by others", permission: "EDIT", category: "create-edit" },
           { id: "event:archive", label: "Archive Incident", description: "Soft-delete", permission: "EDIT", category: "archive-delete" },
           { id: "event:delete", label: "Permanently Delete", description: "Hard delete", permission: "DELETE", category: "archive-delete" },
@@ -492,8 +492,8 @@ export const PAID_CATEGORIES: PermissionCategory[] = [
   'reporting'
 ];
 
-/** Categories that are Free (view + create/edit own safety events) */
-export const FREE_CATEGORIES: PermissionCategory[] = ['view', 'create-edit-own'];
+/** Categories that are Free (view-only) */
+export const FREE_CATEGORIES: PermissionCategory[] = ['view'];
 
 export function isPaidCategory(category: PermissionCategory): boolean {
   return PAID_CATEGORIES.includes(category);

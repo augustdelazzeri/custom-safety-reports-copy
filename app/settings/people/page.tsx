@@ -1139,10 +1139,9 @@ function PeopleContent() {
                         </span>
                       </div>
                       <div className="text-right">
-                        <span className={`text-2xl font-bold ${isPaid ? 'text-amber-900' : 'text-green-900'}`}>
-                          {isPaid ? `$${licenseStatus.priceMonthly.toLocaleString()}` : '$0'}
+                        <span className={`text-lg font-bold ${isPaid ? 'text-amber-900' : 'text-green-900'}`}>
+                          {isPaid ? 'Paid Seat' : 'Free User'}
                         </span>
-                        <span className="text-sm text-gray-600 ml-1">per user/month</span>
                       </div>
                     </div>
                   );
