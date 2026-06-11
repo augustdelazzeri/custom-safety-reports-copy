@@ -8,9 +8,11 @@ import { TemplateProvider } from "../../src/contexts/TemplateContext";
 import CreateAccessPointModal from "../../src/components/CreateAccessPointModal";
 import QRCodeModal from "../../src/components/QRCodeModal";
 import { useActionPermission } from "../../src/hooks/usePermissions";
+import { useOnboarding } from "../../src/hooks/useOnboarding";
 
 function AccessPointsListContent() {
   const { getAllAccessPoints, archiveAccessPoint } = useAccessPoint();
+  const { setStepComplete } = useOnboarding();
   const canCreate = useActionPermission("access-point", "Access Point", "create");
   const canEdit = useActionPermission("access-point", "Access Point", "edit");
   const canArchive = useActionPermission("access-point", "Access Point", "archive");
@@ -287,6 +289,7 @@ function AccessPointsListContent() {
         onSuccess={(id) => {
           setShowCreateModal(false);
           setSelectedAccessPoint(id);
+          setStepComplete(1);
         }}
       />
 

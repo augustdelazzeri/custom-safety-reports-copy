@@ -2,6 +2,7 @@
 
 import React, { useState } from "react";
 import { useProfile } from "../contexts/ProfileContext";
+import { useOnboarding, OnboardingStyle } from "../hooks/useOnboarding";
 
 interface HeaderProps {
   title?: string;
@@ -9,7 +10,9 @@ interface HeaderProps {
 
 export default function Header({ title }: HeaderProps) {
   const { currentProfile, switchProfile, profileName } = useProfile();
+  const { resetOnboarding, style, setOnboardingStyle } = useOnboarding();
   const [showProfileMenu, setShowProfileMenu] = useState(false);
+  const [showStyleMenu, setShowStyleMenu] = useState(false);
 
   const handleProfileSwitch = (profile: 'global_admin' | 'technician') => {
     switchProfile(profile);
@@ -22,6 +25,76 @@ export default function Header({ title }: HeaderProps) {
         <h1 className="text-xl font-semibold text-gray-900">{title}</h1>
       )}
       <div className={`flex items-center gap-4 ${!title ? "ml-auto" : ""}`}>
+        {/* Onboarding Style Switcher */}
+        <div className="relative">
+          <button
+            onClick={() => setShowStyleMenu(!showStyleMenu)}
+            className="flex items-center gap-2 px-3 py-2 rounded-md border border-gray-300 hover:bg-gray-50 cursor-pointer transition-colors text-sm font-medium text-gray-700"
+          >
+            <svg className="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
+            </svg>
+            <span>
+              {style === 'floating_checklist' && "Floating Checklist + tips"}
+              {style === 'setup_center' && "Setup Center"}
+              {style === 'empty_states' && "Empty States"}
+              {style === 'guided_tour' && "Guided Tour"}
+            </span>
+            <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+            </svg>
+          </button>
+
+          {showStyleMenu && (
+            <>
+              <div className="fixed inset-0 z-10" onClick={() => setShowStyleMenu(false)} />
+              <div className="absolute right-0 mt-2 w-64 bg-white rounded-md shadow-lg z-20 border border-gray-200 py-1 overflow-hidden">
+                <div className="px-3 py-2 border-b border-gray-200">
+                  <p className="text-xs font-medium text-gray-500 uppercase">Onboarding Experience</p>
+                </div>
+                {[
+                  { id: 'floating_checklist', label: 'Floating Checklist + tips' },
+                  { id: 'setup_center', label: 'Setup Center' },
+                  { id: 'empty_states', label: 'Empty States' },
+                  { id: 'guided_tour', label: 'Guided Tour' },
+                ].map((option) => (
+                  <button
+                    key={option.id}
+                    onClick={() => {
+                      setOnboardingStyle(option.id as OnboardingStyle);
+                      setShowStyleMenu(false);
+                    }}
+                    className={`w-full px-4 py-2.5 text-left text-sm flex items-center gap-2 transition-colors ${
+                      style === option.id
+                        ? 'bg-blue-50 text-blue-700 font-medium'
+                        : 'text-gray-700 hover:bg-gray-50'
+                    }`}
+                  >
+                    {option.label}
+                    {style === option.id && (
+                      <svg className="w-4 h-4 ml-auto text-blue-600" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                      </svg>
+                    )}
+                  </button>
+                ))}
+              </div>
+            </>
+          )}
+        </div>
+
+        {/* Reset Onboarding */}
+        <button
+          onClick={resetOnboarding}
+          className="flex items-center gap-2 px-3 py-2 rounded-md border border-gray-300 hover:bg-red-50 hover:text-red-600 hover:border-red-200 text-gray-600 cursor-pointer transition-all text-sm font-medium"
+          title="Reset Onboarding Progress"
+        >
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+          </svg>
+          Reset Onboarding
+        </button>
+
         {/* Profile Switcher */}
         <div className="relative">
           <button

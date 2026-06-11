@@ -23,6 +23,7 @@ import RoleBuilderMatrix from "../../../src/components/RoleBuilderMatrix";
 import { RoleProvider, useRole } from "../../../src/contexts/RoleContext";
 import { UserProvider, useUser } from "../../../src/contexts/UserContext";
 import { TeamProvider, useTeam } from "../../../src/contexts/TeamContext";
+import { useOnboarding } from "../../../src/hooks/useOnboarding";
 import { mockLocationHierarchy } from "../../../src/samples/locationHierarchy";
 import { buildLocationPath } from "../../../src/schemas/locations";
 import type { LocationSelection } from "../../../src/schemas/locations";
@@ -41,6 +42,7 @@ function PeopleContent() {
   const { getUsersList, createUser, updateUser, toggleUserStatus, bulkImportUsers, checkDuplicateEmail } = useUser();
   const { getRolesList, getRoleById, createRole, updateRole, duplicateRole, deleteRole, checkDuplicateName } = useRole();
   const { getTeamsList, getTeamById, createTeam, updateTeam, duplicateTeam, deleteTeam, toggleTeamStatus, checkDuplicateName: checkDuplicateTeamName } = useTeam();
+  const { setStepComplete } = useOnboarding();
   
   // Tab state
   const [activeTab, setActiveTab] = useState<TabType>('users');
@@ -164,6 +166,7 @@ function PeopleContent() {
       updateUser(editingUserId, formData);
     } else {
       const userId = createUser(formData);
+      setStepComplete(0);
       // Update with location path
       const user = users.find(u => u.id === userId);
       if (user) {
@@ -213,6 +216,10 @@ function PeopleContent() {
     }));
 
     const result = bulkImportUsers(rowsWithIds);
+    
+    if (result.created > 0) {
+      setStepComplete(0);
+    }
     
     // Show success toast
     alert(`Import complete! Created ${result.created} new users, updated ${result.updated} existing users.`);
