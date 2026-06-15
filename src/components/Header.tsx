@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
+import { useRouter } from "next/navigation";
 import { useProfile } from "../contexts/ProfileContext";
 import { useOnboarding, OnboardingStyle } from "../hooks/useOnboarding";
 
@@ -9,6 +10,7 @@ interface HeaderProps {
 }
 
 export default function Header({ title }: HeaderProps) {
+  const router = useRouter();
   const { currentProfile, switchProfile, profileName } = useProfile();
   const { resetOnboarding, style, setOnboardingStyle } = useOnboarding();
   const [showProfileMenu, setShowProfileMenu] = useState(false);
@@ -17,6 +19,18 @@ export default function Header({ title }: HeaderProps) {
   const handleProfileSwitch = (profile: 'global_admin' | 'technician') => {
     switchProfile(profile);
     setShowProfileMenu(false);
+  };
+
+  const handleStyleSwitch = (newStyle: OnboardingStyle) => {
+    setOnboardingStyle(newStyle);
+    setShowStyleMenu(false);
+    
+    // Navigate based on selected style
+    if (newStyle === 'setup_center') {
+      router.push('/setup-center');
+    } else {
+      router.push('/');
+    }
   };
 
   return (
@@ -58,10 +72,7 @@ export default function Header({ title }: HeaderProps) {
                 ].map((option) => (
                   <button
                     key={option.id}
-                    onClick={() => {
-                      setOnboardingStyle(option.id as OnboardingStyle);
-                      setShowStyleMenu(false);
-                    }}
+                    onClick={() => handleStyleSwitch(option.id as OnboardingStyle)}
                     className={`w-full px-4 py-2.5 text-left text-sm flex items-center gap-2 transition-colors ${
                       style === option.id
                         ? 'bg-blue-50 text-blue-700 font-medium'
