@@ -63,10 +63,10 @@ export function UserProvider({ children }: { children: ReactNode }) {
           setUsers(parsed);
         } catch (error) {
           console.error("Failed to parse stored users:", error);
-          initializeDefaultUsers();
+          setUsers({});
         }
       } else {
-        initializeDefaultUsers();
+        setUsers({});
       }
     }
   };

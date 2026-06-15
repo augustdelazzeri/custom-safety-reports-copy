@@ -37,8 +37,7 @@ export default function Header({ title }: HeaderProps) {
             <span>
               {style === 'floating_checklist' && "Floating Checklist + tips"}
               {style === 'setup_center' && "Setup Center"}
-              {style === 'empty_states' && "Empty States"}
-              {style === 'guided_tour' && "Guided Tour"}
+              {style === 'sample_data' && "Sample Data"}
             </span>
             <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
@@ -55,8 +54,7 @@ export default function Header({ title }: HeaderProps) {
                 {[
                   { id: 'floating_checklist', label: 'Floating Checklist + tips' },
                   { id: 'setup_center', label: 'Setup Center' },
-                  { id: 'empty_states', label: 'Empty States' },
-                  { id: 'guided_tour', label: 'Guided Tour' },
+                  { id: 'sample_data', label: 'Sample Data' },
                 ].map((option) => (
                   <button
                     key={option.id}
@@ -83,11 +81,266 @@ export default function Header({ title }: HeaderProps) {
           )}
         </div>
 
+        {/* Sample Data Controls */}
+        {style === 'sample_data' && (
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => {
+                // Clear existing data first
+                localStorage.removeItem('ehs_users');
+                localStorage.removeItem('accessPoints');
+                localStorage.removeItem('ehs_teams');
+                localStorage.removeItem('ehs_custom_roles');
+                localStorage.removeItem('capas');
+                localStorage.removeItem('safetyEvents');
+                
+                // Explicitly set sample data
+                // Import sample data here or use the mock data directly
+                // Since we can't easily import in an inline event handler, 
+                // we'll rely on the fact that we can just set the keys.
+                
+                // For users, we need to convert the array to a map
+                const usersMap: any = {};
+                const { mockUsers } = require("../samples/mockUsers");
+                mockUsers.forEach((u: any) => usersMap[u.id] = u);
+                localStorage.setItem('ehs_users', JSON.stringify(usersMap));
+                
+                // For teams
+                const teamsMap: any = {};
+                const { mockTeams } = require("../samples/mockTeams");
+                mockTeams.forEach((t: any) => teamsMap[t.id] = t);
+                localStorage.setItem('ehs_teams', JSON.stringify(teamsMap));
+                
+                // For Access Points
+                // We'll use a simplified version of createDefaultAccessPoints
+                const accessPoints = [
+                  {
+                    id: "access-point-1",
+                    name: "[Sample] Production Line 3 QR",
+                    location: {
+                      selectedLevel: 4,
+                      locationId: "loc_chicago",
+                      locationName: "Chicago Plant",
+                      fullPath: "Global Operations > North America > United States > Chicago Plant",
+                      parentIds: ["loc_global", "loc_na", "loc_usa"],
+                    },
+                    templateIds: ["injury-report"],
+                    createdBy: "Joty Grewal",
+                    createdAt: new Date().toISOString(),
+                    status: "active",
+                    qrCodeUrl: "/safety-events/template-form?templateId=injury-report&accessPointId=access-point-1&location=Global%20Operations%20%3E%20North%20America%20%3E%20United%20States%20%3E%20Chicago%20Plant"
+                  },
+                  {
+                    id: "access-point-2",
+                    name: "[Sample] Main Warehouse Entrance",
+                    location: {
+                      selectedLevel: 5,
+                      locationId: "loc_chicago_prod",
+                      locationName: "Production",
+                      fullPath: "Global Operations > North America > United States > Chicago Plant > Production",
+                      parentIds: ["loc_global", "loc_na", "loc_usa", "loc_chicago"],
+                    },
+                    templateIds: ["near-miss"],
+                    createdBy: "Joty Grewal",
+                    createdAt: new Date().toISOString(),
+                    status: "active",
+                    qrCodeUrl: "/safety-events/template-form?templateId=near-miss&accessPointId=access-point-2&location=Global%20Operations%20%3E%20North%20America%20%3E%20United%20States%20%3E%20Chicago%20Plant%20%3E%20Production"
+                  },
+                  {
+                    id: "access-point-3",
+                    name: "[Sample] Chemical Storage Area",
+                    location: {
+                      selectedLevel: 4,
+                      locationId: "loc_berlin",
+                      locationName: "Berlin Factory",
+                      fullPath: "Global Operations > Europe > Germany > Berlin Factory",
+                      parentIds: ["loc_global", "loc_eu", "loc_germany"],
+                    },
+                    templateIds: ["injury-report"],
+                    createdBy: "Joty Grewal",
+                    createdAt: new Date().toISOString(),
+                    status: "active",
+                    qrCodeUrl: "/safety-events/template-form?templateId=injury-report&accessPointId=access-point-3&location=Global%20Operations%20%3E%20Europe%20%3E%20Germany%20%3E%20Berlin%20Factory"
+                  }
+                ];
+                localStorage.setItem('accessPoints', JSON.stringify(accessPoints));
+                
+                // For CAPAs
+                const capas = [
+                  {
+                    id: "CAPA-0001",
+                    title: "[Sample] Repair Leaking Air Conditioning Unit",
+                    type: "corrective",
+                    status: "open",
+                    priority: "high",
+                    location: {
+                      selectedLevel: 4,
+                      locationId: "loc_chicago",
+                      locationName: "Chicago Plant",
+                      fullPath: "Global Operations > North America > United States > Chicago Plant",
+                      parentIds: ["loc_global", "loc_na", "loc_usa"],
+                    },
+                    rcaMethod: "5 Whys",
+                    rcaFindings: "1) Why did someone slip? Because there was water on the floor...",
+                    rootCauseCategories: ["Equipment Failure", "Procedural"],
+                    proposedActions: "1. Clean and dry the affected area immediately...",
+                    ownerId: "user_003",
+                    ownerName: "Jennifer Chen",
+                    dueDate: "2026-06-20",
+                    tags: ["Hazard", "Equipment"],
+                    teamMembersToNotify: [],
+                    createdDate: new Date().toISOString(),
+                    createdBy: "user_003",
+                    updatedDate: new Date().toISOString(),
+                  },
+                  {
+                    id: "CAPA-0002",
+                    title: "[Sample] Install Safety Guard on Mixer 2",
+                    type: "preventive",
+                    status: "in-review",
+                    priority: "medium",
+                    location: {
+                      selectedLevel: 6,
+                      locationId: "loc_berlin_manufacturing_floor1",
+                      locationName: "Floor 1",
+                      fullPath: "Global Operations > Europe > Germany > Berlin Factory > Manufacturing > Floor 1",
+                      parentIds: ["loc_global", "loc_eu", "loc_germany", "loc_berlin", "loc_berlin_manufacturing"],
+                    },
+                    rcaMethod: "Fishbone Diagram",
+                    rcaFindings: "Potential for hand injury during cleaning process...",
+                    rootCauseCategories: ["Equipment Design"],
+                    proposedActions: "Design and install a more robust interlocking safety guard...",
+                    ownerId: "user_004",
+                    ownerName: "Marcus Schmidt",
+                    dueDate: "2026-06-25",
+                    tags: ["Equipment", "Preventive"],
+                    teamMembersToNotify: [],
+                    createdDate: new Date().toISOString(),
+                    createdBy: "user_004",
+                    updatedDate: new Date().toISOString(),
+                  },
+                  {
+                    id: "CAPA-0003",
+                    title: "[Sample] Update Forklift Training SOP",
+                    type: "both",
+                    status: "closed",
+                    priority: "low",
+                    location: {
+                      selectedLevel: 5,
+                      locationId: "loc_austin_qa",
+                      locationName: "Quality Assurance",
+                      fullPath: "Global Operations > North America > United States > Austin Facility > Quality Assurance",
+                      parentIds: ["loc_global", "loc_na", "loc_usa", "loc_austin"],
+                    },
+                    rcaMethod: "Direct Observation",
+                    rcaFindings: "Recent near-miss incident revealed that operators were not following speed limits...",
+                    rootCauseCategories: ["Training", "Procedural"],
+                    proposedActions: "Update the SOP to include specific speed limits...",
+                    ownerId: "user_005",
+                    ownerName: "Sarah Austin",
+                    dueDate: "2026-06-18",
+                    tags: ["Training", "Procedure"],
+                    teamMembersToNotify: [],
+                    createdDate: new Date().toISOString(),
+                    createdBy: "user_005",
+                    updatedDate: new Date().toISOString(),
+                  }
+                ];
+                localStorage.setItem('capas', JSON.stringify(capas));
+                
+                // For Safety Events
+                const safetyEvents = [
+                  { 
+                    id: "SE-0001", 
+                    title: "[Sample] Slip and Fall in Production Line 3", 
+                    type: "Incident", 
+                    status: "Open", 
+                    severity: "Medium", 
+                    location: "Chicago Plant > Production > Line 3", 
+                    dateTime: "Jun 10, 2026 10:30 AM", 
+                    osha: "No" 
+                  },
+                  { 
+                    id: "SE-0002", 
+                    title: "[Sample] Unsecured Chemical Container", 
+                    type: "Observation", 
+                    status: "In Review", 
+                    severity: "Low", 
+                    location: "Berlin Factory > Storage", 
+                    dateTime: "Jun 11, 2026 2:15 PM", 
+                    osha: "No" 
+                  },
+                  { 
+                    id: "SE-0003", 
+                    title: "[Sample] Forklift Near Miss in Warehouse", 
+                    type: "Near Miss", 
+                    status: "Closed", 
+                    severity: "High", 
+                    location: "Austin Facility > Warehouse", 
+                    dateTime: "Jun 12, 2026 9:00 AM", 
+                    osha: "Yes" 
+                  }
+                ];
+                localStorage.setItem('safetyEvents', JSON.stringify(safetyEvents));
+                
+                // Preserve onboarding style but reset progress
+                const onboardingStr = localStorage.getItem('upkeep_ehs_onboarding');
+                if (onboardingStr) {
+                  const onboarding = JSON.parse(onboardingStr);
+                  onboarding.completedSteps = [false, false, false];
+                  localStorage.setItem('upkeep_ehs_onboarding', JSON.stringify(onboarding));
+                }
+                
+                window.location.reload();
+              }}
+              className="px-3 py-2 rounded-md bg-blue-600 text-white hover:bg-blue-700 transition-colors text-sm font-medium shadow-sm"
+            >
+              Load Sample Data
+            </button>
+            <button
+              onClick={() => {
+                localStorage.setItem('ehs_users', '{}');
+                localStorage.setItem('accessPoints', '[]');
+                localStorage.setItem('ehs_teams', '{}');
+                localStorage.setItem('capas', '[]');
+                localStorage.setItem('safetyEvents', '[]');
+                localStorage.removeItem('ehs_custom_roles');
+                
+                // Preserve onboarding style
+                const onboardingStr = localStorage.getItem('upkeep_ehs_onboarding');
+                if (onboardingStr) {
+                  const onboarding = JSON.parse(onboardingStr);
+                  localStorage.setItem('upkeep_ehs_onboarding', JSON.stringify(onboarding));
+                }
+                
+                window.location.reload();
+              }}
+              className="px-3 py-2 rounded-md bg-white border border-red-300 text-red-600 hover:bg-red-50 transition-colors text-sm font-medium"
+            >
+              Clear All Data
+            </button>
+          </div>
+        )}
+
         {/* Reset Onboarding */}
         <button
-          onClick={resetOnboarding}
+          onClick={() => {
+            // Clear application data
+            localStorage.setItem('ehs_users', '{}');
+            localStorage.setItem('accessPoints', '[]');
+            localStorage.setItem('ehs_teams', '{}');
+            localStorage.setItem('capas', '[]');
+            localStorage.setItem('safetyEvents', '[]');
+            localStorage.removeItem('ehs_custom_roles');
+            
+            // Reset onboarding progress but keep current style
+            resetOnboarding();
+            
+            // Reload to apply data changes
+            window.location.reload();
+          }}
           className="flex items-center gap-2 px-3 py-2 rounded-md border border-gray-300 hover:bg-red-50 hover:text-red-600 hover:border-red-200 text-gray-600 cursor-pointer transition-all text-sm font-medium"
-          title="Reset Onboarding Progress"
+          title="Reset Onboarding Progress & Data"
         >
           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />

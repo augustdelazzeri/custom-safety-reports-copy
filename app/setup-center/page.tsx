@@ -101,7 +101,6 @@ export default function SetupCenterPage() {
         <main className="p-12 max-w-6xl mx-auto">
           <div className="flex items-start justify-between mb-12">
             <div>
-              <div className="w-16 h-16 bg-blue-600 rounded-xl flex items-center justify-center text-white text-4xl font-black mb-6">X</div>
               <h1 className="text-3xl font-bold text-gray-900 mb-2">Welcome to the Safety Setup Center</h1>
               <p className="text-gray-500 text-lg">Build a strong safety operation and move from reactive reporting to preventive risk management.</p>
             </div>

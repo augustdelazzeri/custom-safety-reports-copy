@@ -15,8 +15,8 @@ export default function Sidebar() {
   const { style } = useOnboarding();
   
   const baseNavItems = [
+    ...(style === 'setup_center' ? [{ id: "onboarding", label: "ONBOARDING", items: [{ label: "Setup Center", icon: "setup", href: "/setup-center" }] }] : []),
     { id: "safety-management", label: "SAFETY MANAGEMENT", items: [
-      ...(style === 'setup_center' ? [{ label: "Setup Center", icon: "setup", href: "/setup-center" }] : []),
       { label: "Access Points", icon: "grid", href: "/access-points" },
       { label: "Safety Events", icon: "warning", href: "/" },
       { label: "CAPAs", icon: "checklist", href: "/capas" },

@@ -2,7 +2,7 @@
 
 import React, { createContext, useContext, useState, useEffect, useCallback, ReactNode } from 'react';
 
-export type OnboardingStyle = 'floating_checklist' | 'setup_center' | 'empty_states' | 'guided_tour';
+export type OnboardingStyle = 'floating_checklist' | 'setup_center' | 'sample_data';
 
 export interface OnboardingState {
   isOpen: boolean;
@@ -70,7 +70,10 @@ export function OnboardingProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const resetOnboarding = useCallback(() => {
-    setState(initialState);
+    setState((prev) => ({
+      ...initialState,
+      style: prev.style,
+    }));
   }, []);
 
   return (

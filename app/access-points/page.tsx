@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from "react";
 import Sidebar from "../../src/components/Sidebar";
 import Header from "../../src/components/Header";
-import { AccessPointProvider, useAccessPoint } from "../../src/contexts/AccessPointContext";
+import { useAccessPoint } from "../../src/contexts/AccessPointContext";
 import { TemplateProvider } from "../../src/contexts/TemplateContext";
 import CreateAccessPointModal from "../../src/components/CreateAccessPointModal";
 import QRCodeModal from "../../src/components/QRCodeModal";
@@ -308,9 +308,7 @@ function AccessPointsListContent() {
 export default function AccessPointsPage() {
   return (
     <TemplateProvider>
-      <AccessPointProvider>
-        <AccessPointsListContent />
-      </AccessPointProvider>
+      <AccessPointsListContent />
     </TemplateProvider>
   );
 }

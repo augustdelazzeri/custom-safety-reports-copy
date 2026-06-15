@@ -40,8 +40,8 @@ const CAPAContext = createContext<CAPAContextType | undefined>(undefined);
 const initialCAPAs: CAPA[] = [
   {
     id: "CAPA-0001",
-    title: "Slip Incident Due to Water from Air Conditioning",
-    type: "both",
+    title: "[Sample] Repair Leaking Air Conditioning Unit",
+    type: "corrective",
     status: "open",
     priority: "high",
     location: {
@@ -65,12 +65,64 @@ const initialCAPAs: CAPA[] = [
 5. Place warning signs in affected areas until resolved`,
     ownerId: "user_003",
     ownerName: "Jennifer Chen",
-    dueDate: "2026-01-20",
+    dueDate: "2026-06-20",
     tags: ["Hazard", "Equipment", "Procedure", "Safety"],
     teamMembersToNotify: [],
-    createdDate: "2026-01-14T15:42:00Z",
+    createdDate: "2026-06-14T15:42:00Z",
     createdBy: "user_003",
-    updatedDate: "2026-01-14T15:42:00Z",
+    updatedDate: "2026-06-14T15:42:00Z",
+  },
+  {
+    id: "CAPA-0002",
+    title: "[Sample] Install Safety Guard on Mixer 2",
+    type: "preventive",
+    status: "in-review",
+    priority: "medium",
+    location: {
+      selectedLevel: 6,
+      locationId: "loc_berlin_manufacturing_floor1",
+      locationName: "Floor 1",
+      fullPath: "Global Operations > Europe > Germany > Berlin Factory > Manufacturing > Floor 1",
+      parentIds: ["loc_global", "loc_eu", "loc_germany", "loc_berlin", "loc_berlin_manufacturing"],
+    },
+    rcaMethod: "Fishbone Diagram",
+    rcaFindings: "Potential for hand injury during cleaning process identified during routine safety audit. Current guard is insufficient for new high-speed mixing mode.",
+    rootCauseCategories: ["Equipment Design"],
+    proposedActions: "Design and install a more robust interlocking safety guard that prevents operation when the cleaning hatch is open.",
+    ownerId: "user_004",
+    ownerName: "Marcus Schmidt",
+    dueDate: "2026-06-25",
+    tags: ["Equipment", "Preventive", "Audit"],
+    teamMembersToNotify: [],
+    createdDate: "2026-06-15T09:00:00Z",
+    createdBy: "user_004",
+    updatedDate: "2026-06-15T09:00:00Z",
+  },
+  {
+    id: "CAPA-0003",
+    title: "[Sample] Update Forklift Training SOP",
+    type: "both",
+    status: "closed",
+    priority: "low",
+    location: {
+      selectedLevel: 5,
+      locationId: "loc_austin_qa",
+      locationName: "Quality Assurance",
+      fullPath: "Global Operations > North America > United States > Austin Facility > Quality Assurance",
+      parentIds: ["loc_global", "loc_na", "loc_usa", "loc_austin"],
+    },
+    rcaMethod: "Direct Observation",
+    rcaFindings: "Recent near-miss incident revealed that operators were not following the latest speed limit guidelines in tight corners.",
+    rootCauseCategories: ["Training", "Procedural"],
+    proposedActions: "Update the SOP to include specific speed limits for different zones and conduct a refresher training session for all certified operators.",
+    ownerId: "user_005",
+    ownerName: "Sarah Austin",
+    dueDate: "2026-06-18",
+    tags: ["Training", "Procedure", "Forklift"],
+    teamMembersToNotify: [],
+    createdDate: "2026-06-10T11:30:00Z",
+    createdBy: "user_005",
+    updatedDate: "2026-06-16T10:00:00Z",
   },
 ];
 
@@ -87,7 +139,7 @@ export function CAPAProvider({ children }: { children: ReactNode }) {
         }
       }
     }
-    return initialCAPAs;
+    return [];
   });
 
   // Save to localStorage whenever capas change

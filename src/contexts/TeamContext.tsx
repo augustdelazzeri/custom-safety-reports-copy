@@ -54,10 +54,10 @@ export function TeamProvider({ children }: { children: ReactNode }) {
           setTeams(parsed);
         } catch (error) {
           console.error("Failed to parse teams from localStorage:", error);
-          initializeMockTeams();
+          setTeams({});
         }
       } else {
-        initializeMockTeams();
+        setTeams({});
       }
     }
   };

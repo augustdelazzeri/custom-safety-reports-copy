@@ -5,43 +5,11 @@ import Link from "next/link";
 import Sidebar from "../src/components/Sidebar";
 import Header from "../src/components/Header";
 import { useActionPermission } from "../src/hooks/usePermissions";
+import { useSafetyEvents } from "../src/contexts/SafetyEventContext";
 
-interface DummyEvent {
-  id: string;
-  title: string;
-  type: string;
-  status: string;
-  severity: string;
-  location: string;
-  dateTime: string;
-  osha: string;
-  isAllFields?: boolean;
-}
-
-// Dummy data for safety events
-const dummyEvents = [
-  { id: "all-fields", title: "All Fields", type: "Example", status: "Open", severity: "Low", location: "Demo", dateTime: "Jan 15, 2025 2:30 PM", osha: "No", isAllFields: true },
-  { id: "SE-0002", title: "Fall Incident in Staircase H", type: "Incident", status: "Open", severity: "Low", location: "Suite B", dateTime: "Jul 7, 2025 9:53 AM", osha: "No" },
-  { id: "SE-0003", title: "Garbage Accumulation Near Building", type: "Observation", status: "Open", severity: "Low", location: "No location", dateTime: "Jul 7, 2025 9:54 AM", osha: "No" },
-  { id: "SE-0004", title: "Oil Spill Near Pump 42", type: "Observation", status: "In Review", severity: "Low", location: "Suite B", dateTime: "Jul 7, 2025 10:18 AM", osha: "No" },
-  { id: "SE-0006", title: "Worker Slips and Falls Due to Oil Spill", type: "Incident", status: "In Review", severity: "Medium", location: "Joty's Manufacturing Plant", dateTime: "Jul 15, 2025 10:10 AM", osha: "No" },
-  { id: "SE-0021", title: "Water leakage from broken pipe in Manufacturing Plant Five", type: "Observation", status: "In Review", severity: "Medium", location: "Willy Wonka's Chocolate Factory", dateTime: "Sep 17, 2025 2:13 PM", osha: "No" },
-  { id: "SE-0022", title: "Fall in cafeteria due to fridge leak", type: "Incident", status: "Open", severity: "High", location: "Willy Wonka's Chocolate Factory", dateTime: "Sep 22, 2025 12:00 AM", osha: "No" },
-  { id: "SE-0009", title: "Oil Leak on Floor 8", type: "Observation", status: "Closed", severity: "High", location: "Joty's Manufacturing Plant", dateTime: "Jul 25, 2025 1:14 PM", osha: "Yes" },
-  { id: "SE-0008", title: "Worker Slipped on Oil Spill", type: "Incident", status: "Closed", severity: "High", location: "UpKeep HQ", dateTime: "Jul 18, 2025 9:37 AM", osha: "Yes" },
-  { id: "SE-0010", title: "Customer Foot Injury Due to Tripping on Box", type: "Customer Incident", status: "Open", severity: "Low", location: "Willy Wonka's Chocolate Factory", dateTime: "Jul 29, 2025 12:35 PM", osha: "No" },
-  { id: "SE-0014", title: "Water Spill Reported", type: "Incident", status: "Open", severity: "Low", location: "No location", dateTime: "Sep 3, 2025 9:34 AM", osha: "No" },
-  { id: "SE-0025", title: "Fall injury in elevator", type: "Incident", status: "Open", severity: "Medium", location: "No location", dateTime: "Oct 20, 2025 8:00 AM", osha: "Yes" },
-  { id: "SE-0011", title: "Fall from Ladder", type: "Incident", status: "Open", severity: "Low", location: "No location", dateTime: "Jul 31, 2025 2:11 PM", osha: "No" },
-  { id: "SE-0012", title: "Fall from Ladder", type: "Incident", status: "Open", severity: "Low", location: "Suite B", dateTime: "Jul 31, 2025 2:12 PM", osha: "No" },
-  { id: "SE-0013", title: "Oil Spill Near Machinery Equipment", type: "Observation", status: "Open", severity: "Low", location: "Utility Room", dateTime: "Aug 13, 2025 9:41 AM", osha: "No" },
-  { id: "SE-0015", title: "Water Spill in Office Area", type: "Observation", status: "In Review", severity: "Low", location: "Office Area", dateTime: "Sep 5, 2025 8:21 AM", osha: "No" },
-  { id: "SE-0016", title: "Customer Fall in Recreation Area", type: "Customer Incident", status: "In Review", severity: "Medium", location: "Office Area", dateTime: "Sep 9, 2025 11:19 AM", osha: "No" },
-  { id: "SE-0017", title: "Fall Incident in Cafeteria Due to Coffee Spill", type: "Incident", status: "Open", severity: "Low", location: "Joty's Manufacturing Plant", dateTime: "Sep 11, 2025 3:57 PM", osha: "No" },
-];
-
-export default function SafetyEventsPage() {
+function SafetyEventsContent() {
   const [searchQuery, setSearchQuery] = useState("");
+  const { safetyEvents } = useSafetyEvents();
   
   // Permission checks
   const canCreate = useActionPermission("event", "Safety Event", "create");
@@ -244,10 +212,10 @@ export default function SafetyEventsPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-200">
-              {dummyEvents.map((event) => (
-                <tr key={event.id} className="hover:bg-gray-50 transition-colors cursor-pointer" onClick={() => window.location.href = (event as DummyEvent).isAllFields ? `/safetyevents/${event.id}/all-fields` : `/safetyevents/${event.id}`}>
+              {safetyEvents.map((event) => (
+                <tr key={event.id} className="hover:bg-gray-50 transition-colors cursor-pointer" onClick={() => window.location.href = event.isAllFields ? `/safetyevents/${event.id}/all-fields` : `/safetyevents/${event.id}`}>
                   <td className="px-4 py-3">
-                    <Link href={(event as DummyEvent).isAllFields ? `/safetyevents/${event.id}/all-fields` : `/safetyevents/${event.id}`} className="block" onClick={(e) => e.stopPropagation()}>
+                    <Link href={event.isAllFields ? `/safetyevents/${event.id}/all-fields` : `/safetyevents/${event.id}`} className="block" onClick={(e) => e.stopPropagation()}>
                       <div className="text-sm font-medium text-gray-900">{event.id}</div>
                       <div className="text-sm text-gray-600">{event.title}</div>
                     </Link>
@@ -305,6 +273,19 @@ export default function SafetyEventsPage() {
                   </td>
                 </tr>
               ))}
+              {safetyEvents.length === 0 && (
+                <tr>
+                  <td colSpan={8} className="px-4 py-12 text-center">
+                    <div className="flex flex-col items-center justify-center text-gray-500">
+                      <svg className="w-12 h-12 mb-4 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                      </svg>
+                      <p className="text-lg font-medium">No safety events found</p>
+                      <p className="text-sm">Try loading sample data or create a new event.</p>
+                    </div>
+                  </td>
+                </tr>
+              )}
             </tbody>
           </table>
         </div>
@@ -312,4 +293,8 @@ export default function SafetyEventsPage() {
       </div>
     </div>
   );
+}
+
+export default function SafetyEventsPage() {
+  return <SafetyEventsContent />;
 }
