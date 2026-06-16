@@ -1,13 +1,15 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import Sidebar from "../../src/components/Sidebar";
 import Header from "../../src/components/Header";
 import { useOnboarding } from "../../src/hooks/useOnboarding";
 import Link from "next/link";
 
 export default function SetupCenterPage() {
-  const { completedSteps, isLoaded, setStepComplete } = useOnboarding();
+  const router = useRouter();
+  const { completedSteps, isLoaded, setStepComplete, style } = useOnboarding();
   const [isMounted, setIsMounted] = useState(false);
   const [showJHAModal, setShowJHAModal] = useState(false);
   const [jhaName, setJhaName] = useState("");
@@ -15,6 +17,13 @@ export default function SetupCenterPage() {
   useEffect(() => {
     setIsMounted(true);
   }, []);
+
+  // Redirect to home if Setup Center is not the active onboarding style
+  useEffect(() => {
+    if (isLoaded && style !== 'setup_center') {
+      router.push('/');
+    }
+  }, [style, isLoaded, router]);
 
   if (!isMounted || !isLoaded) return null;
 

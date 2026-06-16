@@ -1,15 +1,26 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import Sidebar from "../src/components/Sidebar";
 import Header from "../src/components/Header";
 import { useActionPermission } from "../src/hooks/usePermissions";
 import { useSafetyEvents } from "../src/contexts/SafetyEventContext";
+import { useOnboarding } from "../src/hooks/useOnboarding";
 
 function SafetyEventsContent() {
+  const router = useRouter();
   const [searchQuery, setSearchQuery] = useState("");
   const { safetyEvents } = useSafetyEvents();
+  const { style, isLoaded } = useOnboarding();
+
+  // Redirect to Setup Center if that's the active onboarding style
+  useEffect(() => {
+    if (isLoaded && style === 'setup_center') {
+      router.push('/setup-center');
+    }
+  }, [style, isLoaded, router]);
   
   // Permission checks
   const canCreate = useActionPermission("event", "Safety Event", "create");
