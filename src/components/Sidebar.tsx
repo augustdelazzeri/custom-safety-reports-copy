@@ -129,43 +129,46 @@ export default function Sidebar() {
   };
 
   return (
-    <aside className="w-64 bg-white border-r border-gray-200 h-screen fixed left-0 top-0 flex flex-col">
+    <aside className="w-64 bg-white border-r border-gray-200 h-screen fixed left-0 top-0 flex flex-col z-30">
       {/* Logo and User */}
-      <div className="px-4 py-3 border-b border-gray-200">
+      <div className="px-4 py-4 border-b border-gray-200">
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-blue-600 rounded flex items-center justify-center">
-              <span className="text-white font-bold text-sm">U</span>
+          <div className="flex items-center gap-3">
+            <div className="w-9 h-9 bg-blue-600 rounded-lg flex items-center justify-center shadow-sm">
+              <span className="text-white font-bold text-lg">U</span>
             </div>
-            <span className="text-lg font-semibold text-gray-900">UpKeep EHS</span>
+            <div className="flex flex-col">
+              <span className="text-sm font-bold text-gray-900 leading-tight">UpKeep EHS</span>
+              <span className="text-[10px] font-medium text-gray-500 uppercase tracking-wider">Safety Playground</span>
+            </div>
           </div>
-          <div className="w-9 h-9 bg-gray-300 rounded-full flex items-center justify-center">
-            <span className="text-gray-700 font-medium text-sm">J</span>
+          <div className="w-8 h-8 bg-gray-200 rounded-full flex items-center justify-center border border-gray-300">
+            <span className="text-gray-600 font-bold text-xs">JG</span>
           </div>
         </div>
       </div>
       
       {/* Navigation */}
-      <div className="flex-1 overflow-y-auto p-4">
+      <div className="flex-1 overflow-y-auto py-4">
         {navItems.map((section) => (
           <div key={section.id} className="mb-6">
-            <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2 px-3">
+            <h3 className="text-[10px] font-bold text-gray-400 uppercase tracking-[0.1em] mb-2 px-6">
               {section.label}
             </h3>
-            <nav className="space-y-1">
+            <nav className="px-3 space-y-0.5">
               {section.items.map((item) => {
                 const isActive = pathname === item.href || (item.href === "/" && pathname === "/");
                 return (
                   <Link
                     key={item.label}
                     href={item.href}
-                    className={`flex items-center gap-3 px-3 py-2 rounded-md text-sm transition-colors ${
+                    className={`flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
                       isActive
-                        ? "bg-blue-600 text-white"
-                        : "text-gray-700 hover:bg-gray-100"
+                        ? "bg-blue-600 text-white shadow-sm"
+                        : "text-gray-600 hover:bg-gray-100 hover:text-gray-900"
                     }`}
                   >
-                    <span className={isActive ? "text-white" : "text-gray-500"}>
+                    <span className={`${isActive ? "text-white" : "text-gray-400 group-hover:text-gray-600"}`}>
                       {getIcon(item.icon)}
                     </span>
                     <span>{item.label}</span>
@@ -178,15 +181,19 @@ export default function Sidebar() {
       </div>
       
       {/* Footer — Icon toolbar */}
-      <div className="border-t border-gray-200 px-3 py-3">
-        <div className="flex items-center justify-between">
+      <div className="border-t border-gray-200 px-4 py-4 bg-gray-50/50">
+        <div className="flex items-center justify-between gap-1">
           {/* App switcher (left, separated) */}
           <div className="relative">
             <button
               onClick={() => { setShowAppSwitcher(!showAppSwitcher); setShowSettingsMenu(false); }}
               onMouseEnter={() => setHoveredIcon("app-switcher")}
               onMouseLeave={() => setHoveredIcon(null)}
-              className="w-9 h-9 flex items-center justify-center rounded-lg border border-gray-200 text-gray-500 hover:bg-gray-100 transition-colors cursor-pointer"
+              className={`w-9 h-9 flex items-center justify-center rounded-lg border transition-all duration-200 cursor-pointer ${
+                showAppSwitcher 
+                  ? "bg-white border-blue-200 text-blue-600 shadow-sm" 
+                  : "bg-white border-gray-200 text-gray-500 hover:border-gray-300 hover:text-gray-700 shadow-sm"
+              }`}
             >
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 5a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM14 5a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 01-1-1V5zM4 15a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1H5a1 1 0 01-1-1v-4zM14 15a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 01-1-1v-4z" />
@@ -197,34 +204,38 @@ export default function Sidebar() {
             {showAppSwitcher && (
               <>
                 <div className="fixed inset-0 z-10" onClick={closeAllPopups} />
-                <div className="absolute bottom-12 left-0 bg-white rounded-xl shadow-lg border border-gray-200 p-3 z-20 w-48">
+                <div className="absolute bottom-12 left-0 bg-white rounded-xl shadow-xl border border-gray-200 p-3 z-20 w-56 animate-in fade-in slide-in-from-bottom-2 duration-200">
+                  <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-3 px-1">Switch Application</p>
                   <div className="flex gap-2">
                     <a
                       href="#"
-                      className={`flex-1 flex flex-col items-center gap-1.5 p-3 rounded-lg border-2 transition-colors ${
+                      className={`flex-1 flex flex-col items-center gap-2 p-3 rounded-xl border-2 transition-all duration-200 ${
                         currentApp === "cmms"
-                          ? "border-blue-400 bg-blue-50"
-                          : "border-gray-200 hover:border-gray-300 hover:bg-gray-50"
+                          ? "border-blue-500 bg-blue-50"
+                          : "border-gray-100 hover:border-gray-200 hover:bg-gray-50"
                       }`}
                     >
-                      <svg className="w-8 h-8 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                      </svg>
-                      <span className="text-xs font-medium text-gray-700">CMMS</span>
+                      <div className="w-10 h-10 bg-red-100 rounded-lg flex items-center justify-center text-red-600">
+                        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                        </svg>
+                      </div>
+                      <span className="text-xs font-bold text-gray-700">CMMS</span>
                     </a>
                     <a
                       href="#"
-                      className={`flex-1 flex flex-col items-center gap-1.5 p-3 rounded-lg border-2 transition-colors ${
+                      className={`flex-1 flex flex-col items-center gap-2 p-3 rounded-xl border-2 transition-all duration-200 ${
                         currentApp === "ehs"
-                          ? "border-blue-400 bg-blue-50"
-                          : "border-gray-200 hover:border-gray-300 hover:bg-gray-50"
+                          ? "border-blue-500 bg-blue-50"
+                          : "border-gray-100 hover:border-gray-200 hover:bg-gray-50"
                       }`}
                     >
-                      <svg className="w-8 h-8 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
-                      </svg>
-                      <span className="text-xs font-medium text-gray-700">EHS</span>
+                      <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center text-blue-600">
+                        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                        </svg>
+                      </div>
+                      <span className="text-xs font-bold text-gray-700">EHS</span>
                     </a>
                   </div>
                 </div>
@@ -239,14 +250,14 @@ export default function Sidebar() {
               <button
                 onMouseEnter={() => setHoveredIcon("help")}
                 onMouseLeave={() => setHoveredIcon(null)}
-                className="w-9 h-9 flex items-center justify-center rounded-lg text-gray-400 hover:bg-gray-100 hover:text-gray-600 transition-colors cursor-pointer"
+                className="w-8 h-8 flex items-center justify-center rounded-lg text-gray-400 hover:bg-white hover:text-gray-600 hover:shadow-sm transition-all duration-200 cursor-pointer"
               >
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
               </button>
               {hoveredIcon === "help" && (
-                <div className="absolute bottom-11 left-1/2 -translate-x-1/2 bg-gray-900 text-white text-xs px-2 py-1 rounded whitespace-nowrap pointer-events-none">
+                <div className="absolute bottom-10 left-1/2 -translate-x-1/2 bg-gray-900 text-white text-[10px] font-bold px-2 py-1 rounded shadow-lg whitespace-nowrap pointer-events-none z-50">
                   Help
                   <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-gray-900" />
                 </div>
@@ -258,14 +269,14 @@ export default function Sidebar() {
               <button
                 onMouseEnter={() => setHoveredIcon("contact")}
                 onMouseLeave={() => setHoveredIcon(null)}
-                className="w-9 h-9 flex items-center justify-center rounded-lg text-gray-400 hover:bg-gray-100 hover:text-gray-600 transition-colors cursor-pointer"
+                className="w-8 h-8 flex items-center justify-center rounded-lg text-gray-400 hover:bg-white hover:text-gray-600 hover:shadow-sm transition-all duration-200 cursor-pointer"
               >
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
                 </svg>
               </button>
               {hoveredIcon === "contact" && (
-                <div className="absolute bottom-11 left-1/2 -translate-x-1/2 bg-gray-900 text-white text-xs px-2 py-1 rounded whitespace-nowrap pointer-events-none">
+                <div className="absolute bottom-10 left-1/2 -translate-x-1/2 bg-gray-900 text-white text-[10px] font-bold px-2 py-1 rounded shadow-lg whitespace-nowrap pointer-events-none z-50">
                   Contact Us
                   <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-gray-900" />
                 </div>
@@ -278,10 +289,10 @@ export default function Sidebar() {
                 href="/settings/subscription"
                 onMouseEnter={() => setHoveredIcon("subscription")}
                 onMouseLeave={() => setHoveredIcon(null)}
-                className={`w-9 h-9 flex items-center justify-center rounded-lg transition-colors cursor-pointer ${
+                className={`w-8 h-8 flex items-center justify-center rounded-lg transition-all duration-200 cursor-pointer ${
                   pathname === "/settings/subscription"
-                    ? "bg-blue-50 text-blue-600"
-                    : "text-gray-400 hover:bg-gray-100 hover:text-gray-600"
+                    ? "bg-blue-50 text-blue-600 shadow-sm"
+                    : "text-gray-400 hover:bg-white hover:text-gray-600 hover:shadow-sm"
                 }`}
               >
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -289,8 +300,8 @@ export default function Sidebar() {
                 </svg>
               </Link>
               {hoveredIcon === "subscription" && (
-                <div className="absolute bottom-11 left-1/2 -translate-x-1/2 bg-gray-900 text-white text-xs px-2 py-1 rounded whitespace-nowrap pointer-events-none">
-                  Manage Subscription
+                <div className="absolute bottom-10 left-1/2 -translate-x-1/2 bg-gray-900 text-white text-[10px] font-bold px-2 py-1 rounded shadow-lg whitespace-nowrap pointer-events-none z-50">
+                  Subscription
                   <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-gray-900" />
                 </div>
               )}
@@ -302,19 +313,18 @@ export default function Sidebar() {
                 onClick={() => { setShowSettingsMenu(!showSettingsMenu); setShowAppSwitcher(false); }}
                 onMouseEnter={() => setHoveredIcon("settings")}
                 onMouseLeave={() => setHoveredIcon(null)}
-                className={`w-9 h-9 flex items-center justify-center rounded-lg transition-colors cursor-pointer ${
+                className={`w-8 h-8 flex items-center justify-center rounded-lg transition-all duration-200 cursor-pointer ${
                   showSettingsMenu || pathname.startsWith("/settings/safety-templates")
-                    ? "bg-gray-100 text-gray-700"
-                    : "text-gray-400 hover:bg-gray-100 hover:text-gray-600"
+                    ? "bg-white text-gray-700 shadow-sm border border-gray-100"
+                    : "text-gray-400 hover:bg-white hover:text-gray-600 hover:shadow-sm"
                 }`}
               >
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                 </svg>
               </button>
               {hoveredIcon === "settings" && !showSettingsMenu && (
-                <div className="absolute bottom-11 left-1/2 -translate-x-1/2 bg-gray-900 text-white text-xs px-2 py-1 rounded whitespace-nowrap pointer-events-none">
+                <div className="absolute bottom-10 left-1/2 -translate-x-1/2 bg-gray-900 text-white text-[10px] font-bold px-2 py-1 rounded shadow-lg whitespace-nowrap pointer-events-none z-50">
                   Settings
                   <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-gray-900" />
                 </div>
@@ -324,13 +334,14 @@ export default function Sidebar() {
               {showSettingsMenu && (
                 <>
                   <div className="fixed inset-0 z-10" onClick={closeAllPopups} />
-                  <div className="absolute bottom-12 right-0 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-20 w-52">
+                  <div className="absolute bottom-12 right-0 bg-white rounded-xl shadow-xl border border-gray-200 py-2 z-20 w-56 animate-in fade-in slide-in-from-bottom-2 duration-200">
+                    <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2 px-4">Settings</p>
                     <Link
                       href="/settings/safety-templates"
                       onClick={closeAllPopups}
-                      className={`flex items-center gap-2 px-3 py-2 text-sm transition-colors ${
+                      className={`flex items-center gap-3 px-4 py-2 text-sm transition-all duration-200 ${
                         pathname === "/settings/safety-templates"
-                          ? "bg-blue-50 text-blue-700 font-medium"
+                          ? "bg-blue-50 text-blue-700 font-bold"
                           : "text-gray-700 hover:bg-gray-50"
                       }`}
                     >
