@@ -199,7 +199,7 @@ export function AdminView() {
             )}
           </div>
 
-          {/* Safety Module Section (Combined GUARD-1275, 1276, 1277) */}
+          {/* Safety Module Section (Combined GUARD-1279) */}
           <div className="mb-8 p-5 bg-blue-50/30 border border-blue-100 rounded-xl">
             <div className="flex items-center gap-2 mb-4">
               <ShieldAlert className="text-blue-600" size={20} />

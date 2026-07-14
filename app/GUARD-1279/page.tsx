@@ -1,10 +1,10 @@
 "use client";
 
 import React, { useState } from "react";
-import { AdminView } from "@/src/components/guard-1275/AdminView";
-import { PortalView } from "@/src/components/guard-1275/PortalView";
+import { AdminView } from "@/src/components/guard-1279/AdminView";
+import { PortalView } from "@/src/components/guard-1279/PortalView";
 
-export default function Guard1275Page() {
+export default function Guard1279Page() {
   const [currentView, setCurrentView] = useState<"admin" | "portal">("admin");
 
   return (

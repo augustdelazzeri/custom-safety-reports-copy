@@ -16,7 +16,7 @@ export default function OnboardingWidget() {
     setIsMounted(true);
   }, []);
 
-  if (!isMounted || !isLoaded || style !== 'floating_checklist' || pathname?.startsWith('/GUARD-1275')) return null;
+  if (!isMounted || !isLoaded || style !== 'floating_checklist' || pathname?.startsWith('/GUARD-1279')) return null;
 
   const handleCreateJHA = (e: React.FormEvent) => {
     e.preventDefault();
