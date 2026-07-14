@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { useOnboarding } from "../hooks/useOnboarding";
 
 export default function OnboardingWidget() {
@@ -9,12 +10,13 @@ export default function OnboardingWidget() {
   const [isMounted, setIsMounted] = useState(false);
   const [showJHAModal, setShowJHAModal] = useState(false);
   const [jhaName, setJhaName] = useState("");
+  const pathname = usePathname();
 
   useEffect(() => {
     setIsMounted(true);
   }, []);
 
-  if (!isMounted || !isLoaded || style !== 'floating_checklist') return null;
+  if (!isMounted || !isLoaded || style !== 'floating_checklist' || pathname?.startsWith('/GUARD-1275')) return null;
 
   const handleCreateJHA = (e: React.FormEvent) => {
     e.preventDefault();
