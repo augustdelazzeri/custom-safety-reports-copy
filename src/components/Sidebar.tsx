@@ -5,123 +5,81 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useProfile } from "../contexts/ProfileContext";
 import { useOnboarding } from "../hooks/useOnboarding";
+import { 
+  AlertTriangle, 
+  Building2, 
+  Calendar, 
+  CalendarDays, 
+  ChevronUp, 
+  Clipboard, 
+  ClipboardCheck, 
+  ClipboardList, 
+  CreditCard, 
+  FileBarChart, 
+  FlaskConical, 
+  HardHat, 
+  LayoutDashboard, 
+  LayoutGrid, 
+  Lock, 
+  MessagesSquare, 
+  QrCode, 
+  Settings, 
+  ShieldCheck,
+  ChevronDown
+} from 'lucide-react';
 
 export default function Sidebar() {
   const pathname = usePathname();
   const [showAppSwitcher, setShowAppSwitcher] = useState(false);
   const [showSettingsMenu, setShowSettingsMenu] = useState(false);
   const [hoveredIcon, setHoveredIcon] = useState<string | null>(null);
+  const [collapsedSections, setCollapsedSections] = useState<string[]>([]);
   const { currentProfile } = useProfile();
   const { style } = useOnboarding();
   
+  const toggleSection = (id: string) => {
+    setCollapsedSections(prev => 
+      prev.includes(id) ? prev.filter(s => s !== id) : [...prev, id]
+    );
+  };
+
+  const isSectionOpen = (id: string) => !collapsedSections.includes(id);
+
   const baseNavItems = [
-    ...(style === 'setup_center' ? [{ id: "onboarding", label: "ONBOARDING", items: [{ label: "Setup Center", icon: "setup", href: "/setup-center" }] }] : []),
+    ...(style === 'setup_center' ? [{ id: "onboarding", label: "ONBOARDING", items: [{ label: "Setup Center", icon: <ClipboardCheck className="size-5" />, href: "/setup-center" }] }] : []),
     { id: "safety-management", label: "SAFETY MANAGEMENT", items: [
-      { label: "Access Points", icon: "grid", href: "/access-points" },
-      { label: "Safety Events", icon: "warning", href: "/" },
-      { label: "CAPAs", icon: "checklist", href: "/capas" },
+      { label: "Access Points", icon: <QrCode className="size-5" />, href: "/access-points" },
+      { label: "Safety Events", icon: <AlertTriangle className="size-5" />, href: "/" },
+      { label: "CAPAs", icon: <ClipboardCheck className="size-5" />, href: "/capas" },
     ]},
     { id: "osha", label: "OSHA", items: [
-      { label: "OSHA Log (Form 300)", icon: "document", href: "#" },
-      { label: "Summary (Form 300A)", icon: "calendar", href: "#" },
-      { label: "Agency Reports", icon: "document", href: "#" },
+      { label: "OSHA Log (Form 300)", icon: <FileBarChart className="size-5" />, href: "#" },
+      { label: "Summary (Form 300A)", icon: <Calendar className="size-5" />, href: "#" },
+      { label: "Agency Reports", icon: <Building2 className="size-5" />, href: "#" },
     ]},
     { id: "documentation", label: "DOCUMENTATION", items: [
-      { label: "Job Hazard Analyses", icon: "hard-hat", href: "#" },
-      { label: "Standard Operating Procedures", icon: "document", href: "#" },
-      { label: "Lockout/Tagout", icon: "padlock", href: "#" },
-      { label: "Permit to Work", icon: "document", href: "#" },
-      { label: "Audits & Inspections", icon: "clipboard-check", href: "#" },
+      { label: "Job Hazard Analyses", icon: <HardHat className="size-5" />, href: "/jha" },
+      { label: "Standard Operating Procedures", icon: <ClipboardList className="size-5" />, href: "/sop" },
+      { label: "Lockout/Tagout", icon: <Lock className="size-5" />, href: "#" },
+      { label: "Permit to Work", icon: <FileBarChart className="size-5" />, href: "#" },
+      { label: "Audits & Inspections", icon: <Clipboard className="size-5" />, href: "#" },
+      { label: "SDS Library", icon: <FlaskConical className="size-5" />, href: "#" },
     ]},
     { id: "safety-actions", label: "SAFETY ACTIONS", items: [
-      { label: "Safety Work Orders", icon: "clipboard-list", href: "/work-orders" },
+      { label: "Safety Work Orders", icon: <ClipboardCheck className="size-5" />, href: "/work-orders" },
     ]},
   ];
 
-  // Only show People & Permissions for Global Admin
   const navItems = currentProfile === 'global_admin' 
     ? [
         ...baseNavItems,
         { id: "people-permissions", label: "PEOPLE & PERMISSIONS", items: [
-          { label: "User Management", icon: "users-cog", href: "/settings/people" },
+          { label: "User Management", icon: <Settings className="size-5" />, href: "/settings/people" },
         ]}
       ]
     : baseNavItems;
   
   const currentApp = "ehs" as "cmms" | "ehs";
-
-  const getIcon = (iconName: string) => {
-    const icons: Record<string, React.ReactNode> = {
-      setup: (
-        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
-        </svg>
-      ),
-      grid: (
-        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
-        </svg>
-      ),
-      warning: (
-        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-        </svg>
-      ),
-      checklist: (
-        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
-        </svg>
-      ),
-      document: (
-        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-        </svg>
-      ),
-      calendar: (
-        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-        </svg>
-      ),
-      "hard-hat": (
-        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
-        </svg>
-      ),
-      padlock: (
-        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-        </svg>
-      ),
-      "clipboard-list": (
-        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
-        </svg>
-      ),
-      "clipboard-check": (
-        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
-        </svg>
-      ),
-      shield: (
-        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
-        </svg>
-      ),
-      users: (
-        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
-        </svg>
-      ),
-      "users-cog": (
-        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1z" />
-        </svg>
-      ),
-    };
-    return icons[iconName] || icons.document;
-  };
 
   const closeAllPopups = () => {
     setShowAppSwitcher(false);
@@ -129,20 +87,20 @@ export default function Sidebar() {
   };
 
   return (
-    <aside className="w-64 bg-white border-r border-gray-200 h-screen fixed left-0 top-0 flex flex-col z-30">
+    <aside className="w-64 bg-white border-r border-gray-200 h-screen fixed left-0 top-0 flex flex-col z-30 shadow-sm">
       {/* Logo and User */}
       <div className="px-4 py-4 border-b border-gray-200">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="w-9 h-9 bg-blue-600 rounded-lg flex items-center justify-center shadow-sm">
-              <span className="text-white font-bold text-lg">U</span>
+              <ShieldCheck className="text-white size-6" />
             </div>
             <div className="flex flex-col">
-              <span className="text-sm font-bold text-gray-900 leading-tight">UpKeep EHS</span>
-              <span className="text-[10px] font-medium text-gray-500 uppercase tracking-wider">Safety Playground</span>
+              <span className="text-sm font-bold text-gray-900 leading-tight">UpKeep Safety</span>
+              <span className="text-[10px] font-medium text-gray-500 uppercase tracking-wider">EHS Platform</span>
             </div>
           </div>
-          <div className="w-8 h-8 bg-gray-200 rounded-full flex items-center justify-center border border-gray-300">
+          <div className="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center border border-gray-200">
             <span className="text-gray-600 font-bold text-xs">JG</span>
           </div>
         </div>
@@ -151,208 +109,110 @@ export default function Sidebar() {
       {/* Navigation */}
       <div className="flex-1 overflow-y-auto py-4">
         {navItems.map((section) => (
-          <div key={section.id} className="mb-6">
-            <h3 className="text-[10px] font-bold text-gray-400 uppercase tracking-[0.1em] mb-2 px-6">
+          <div key={section.id} className="mb-2">
+            <button 
+              onClick={() => toggleSection(section.id)}
+              className="w-full flex items-center justify-between px-6 py-2 text-[10px] font-bold text-gray-400 uppercase tracking-[0.1em] hover:text-gray-600 transition-colors"
+            >
               {section.label}
-            </h3>
-            <nav className="px-3 space-y-0.5">
-              {section.items.map((item) => {
-                const isActive = pathname === item.href || (item.href === "/" && pathname === "/");
-                return (
-                  <Link
-                    key={item.label}
-                    href={item.href}
-                    className={`flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
-                      isActive
-                        ? "bg-blue-600 text-white shadow-sm"
-                        : "text-gray-600 hover:bg-gray-100 hover:text-gray-900"
-                    }`}
-                  >
-                    <span className={`${isActive ? "text-white" : "text-gray-400 group-hover:text-gray-600"}`}>
-                      {getIcon(item.icon)}
-                    </span>
-                    <span>{item.label}</span>
-                  </Link>
-                );
-              })}
-            </nav>
+              {isSectionOpen(section.id) ? <ChevronUp className="size-3" /> : <ChevronDown className="size-3" />}
+            </button>
+            
+            {isSectionOpen(section.id) && (
+              <nav className="px-3 space-y-0.5 mt-1">
+                {section.items.map((item) => {
+                  const isActive = pathname === item.href || (item.href === "/" && pathname === "/");
+                  return (
+                    <Link
+                      key={item.label}
+                      href={item.href}
+                      className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 ${
+                        isActive
+                          ? "bg-blue-50 text-blue-700 shadow-sm"
+                          : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
+                      }`}
+                    >
+                      <span className={`${isActive ? "text-blue-600" : "text-gray-400"}`}>
+                        {item.icon}
+                      </span>
+                      <span>{item.label}</span>
+                    </Link>
+                  );
+                })}
+              </nav>
+            )}
           </div>
         ))}
       </div>
       
       {/* Footer — Icon toolbar */}
-      <div className="border-t border-gray-200 px-4 py-4 bg-gray-50/50">
-        <div className="flex items-center justify-between gap-1">
-          {/* App switcher (left, separated) */}
+      <div className="border-t border-gray-200 px-3 py-3 bg-gray-50/30">
+        <div className="flex items-center justify-between">
+          {/* App switcher */}
           <div className="relative">
             <button
               onClick={() => { setShowAppSwitcher(!showAppSwitcher); setShowSettingsMenu(false); }}
-              onMouseEnter={() => setHoveredIcon("app-switcher")}
-              onMouseLeave={() => setHoveredIcon(null)}
               className={`w-9 h-9 flex items-center justify-center rounded-lg border transition-all duration-200 cursor-pointer ${
                 showAppSwitcher 
-                  ? "bg-white border-blue-200 text-blue-600 shadow-sm" 
+                  ? "bg-white border-blue-200 text-blue-600 shadow-md" 
                   : "bg-white border-gray-200 text-gray-500 hover:border-gray-300 hover:text-gray-700 shadow-sm"
               }`}
             >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 5a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM14 5a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 01-1-1V5zM4 15a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1H5a1 1 0 01-1-1v-4zM14 15a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 01-1-1v-4z" />
-              </svg>
+              <LayoutGrid className="size-5" />
             </button>
 
-            {/* App switcher popup */}
             {showAppSwitcher && (
               <>
                 <div className="fixed inset-0 z-10" onClick={closeAllPopups} />
-                <div className="absolute bottom-12 left-0 bg-white rounded-xl shadow-xl border border-gray-200 p-3 z-20 w-56 animate-in fade-in slide-in-from-bottom-2 duration-200">
+                <div className="absolute bottom-12 left-0 bg-white rounded-xl shadow-xl border border-gray-200 p-3 z-20 w-64 animate-in fade-in slide-in-from-bottom-2 duration-200">
                   <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-3 px-1">Switch Application</p>
                   <div className="flex gap-2">
-                    <a
-                      href="#"
-                      className={`flex-1 flex flex-col items-center gap-2 p-3 rounded-xl border-2 transition-all duration-200 ${
-                        currentApp === "cmms"
-                          ? "border-blue-500 bg-blue-50"
-                          : "border-gray-100 hover:border-gray-200 hover:bg-gray-50"
-                      }`}
-                    >
+                    <div className="flex-1 flex flex-col items-center gap-2 p-3 rounded-xl border-2 border-gray-100 opacity-50 grayscale">
                       <div className="w-10 h-10 bg-red-100 rounded-lg flex items-center justify-center text-red-600">
-                        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-                        </svg>
+                        <Settings className="size-6" />
                       </div>
-                      <span className="text-xs font-bold text-gray-700">CMMS</span>
-                    </a>
-                    <a
-                      href="#"
-                      className={`flex-1 flex flex-col items-center gap-2 p-3 rounded-xl border-2 transition-all duration-200 ${
-                        currentApp === "ehs"
-                          ? "border-blue-500 bg-blue-50"
-                          : "border-gray-100 hover:border-gray-200 hover:bg-gray-50"
-                      }`}
-                    >
-                      <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center text-blue-600">
-                        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
-                        </svg>
+                      <span className="text-[10px] font-bold text-gray-700 text-center leading-tight">Maintenance (CMMS)</span>
+                    </div>
+                    <div className="flex-1 flex flex-col items-center gap-2 p-3 rounded-xl border-2 border-blue-500 bg-blue-50">
+                      <div className="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center text-white">
+                        <ShieldCheck className="size-6" />
                       </div>
-                      <span className="text-xs font-bold text-gray-700">EHS</span>
-                    </a>
+                      <span className="text-[10px] font-bold text-blue-700 text-center leading-tight">Safety (EHS)</span>
+                    </div>
                   </div>
                 </div>
               </>
             )}
           </div>
 
-          {/* Right icons group */}
           <div className="flex items-center gap-1">
-            {/* Help */}
-            <div className="relative">
-              <button
-                onMouseEnter={() => setHoveredIcon("help")}
-                onMouseLeave={() => setHoveredIcon(null)}
-                className="w-8 h-8 flex items-center justify-center rounded-lg text-gray-400 hover:bg-white hover:text-gray-600 hover:shadow-sm transition-all duration-200 cursor-pointer"
-              >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-              </button>
-              {hoveredIcon === "help" && (
-                <div className="absolute bottom-10 left-1/2 -translate-x-1/2 bg-gray-900 text-white text-[10px] font-bold px-2 py-1 rounded shadow-lg whitespace-nowrap pointer-events-none z-50">
-                  Help
-                  <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-gray-900" />
-                </div>
-              )}
-            </div>
+            <button className="w-9 h-9 flex items-center justify-center rounded-lg text-gray-400 hover:bg-white hover:text-gray-600 hover:shadow-sm transition-all duration-200">
+              <MessagesSquare className="size-4" />
+            </button>
+            
+            <Link
+              href="/settings/subscription"
+              className={`w-9 h-9 flex items-center justify-center rounded-lg transition-all duration-200 ${
+                pathname === "/settings/subscription"
+                  ? "bg-white text-blue-600 shadow-sm border border-blue-100"
+                  : "text-gray-400 hover:bg-white hover:text-gray-600 hover:shadow-sm"
+              }`}
+            >
+              <CreditCard className="size-4" />
+            </Link>
 
-            {/* Contact Us */}
-            <div className="relative">
-              <button
-                onMouseEnter={() => setHoveredIcon("contact")}
-                onMouseLeave={() => setHoveredIcon(null)}
-                className="w-8 h-8 flex items-center justify-center rounded-lg text-gray-400 hover:bg-white hover:text-gray-600 hover:shadow-sm transition-all duration-200 cursor-pointer"
-              >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
-                </svg>
-              </button>
-              {hoveredIcon === "contact" && (
-                <div className="absolute bottom-10 left-1/2 -translate-x-1/2 bg-gray-900 text-white text-[10px] font-bold px-2 py-1 rounded shadow-lg whitespace-nowrap pointer-events-none z-50">
-                  Contact Us
-                  <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-gray-900" />
-                </div>
-              )}
-            </div>
-
-            {/* Manage Subscription */}
             <div className="relative">
               <Link
-                href="/settings/subscription"
-                onMouseEnter={() => setHoveredIcon("subscription")}
-                onMouseLeave={() => setHoveredIcon(null)}
-                className={`w-8 h-8 flex items-center justify-center rounded-lg transition-all duration-200 cursor-pointer ${
-                  pathname === "/settings/subscription"
-                    ? "bg-blue-50 text-blue-600 shadow-sm"
+                href="/settings/organization"
+                onClick={() => { setShowAppSwitcher(false); }}
+                className={`w-9 h-9 flex items-center justify-center rounded-lg transition-all duration-200 cursor-pointer ${
+                  pathname.startsWith("/settings") && pathname !== "/settings/subscription"
+                    ? "bg-white text-blue-600 shadow-sm border border-blue-100"
                     : "text-gray-400 hover:bg-white hover:text-gray-600 hover:shadow-sm"
                 }`}
               >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
-                </svg>
+                <Settings className="size-4" />
               </Link>
-              {hoveredIcon === "subscription" && (
-                <div className="absolute bottom-10 left-1/2 -translate-x-1/2 bg-gray-900 text-white text-[10px] font-bold px-2 py-1 rounded shadow-lg whitespace-nowrap pointer-events-none z-50">
-                  Subscription
-                  <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-gray-900" />
-                </div>
-              )}
-            </div>
-
-            {/* Settings */}
-            <div className="relative">
-              <button
-                onClick={() => { setShowSettingsMenu(!showSettingsMenu); setShowAppSwitcher(false); }}
-                onMouseEnter={() => setHoveredIcon("settings")}
-                onMouseLeave={() => setHoveredIcon(null)}
-                className={`w-8 h-8 flex items-center justify-center rounded-lg transition-all duration-200 cursor-pointer ${
-                  showSettingsMenu || pathname.startsWith("/settings/safety-templates")
-                    ? "bg-white text-gray-700 shadow-sm border border-gray-100"
-                    : "text-gray-400 hover:bg-white hover:text-gray-600 hover:shadow-sm"
-                }`}
-              >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-                </svg>
-              </button>
-              {hoveredIcon === "settings" && !showSettingsMenu && (
-                <div className="absolute bottom-10 left-1/2 -translate-x-1/2 bg-gray-900 text-white text-[10px] font-bold px-2 py-1 rounded shadow-lg whitespace-nowrap pointer-events-none z-50">
-                  Settings
-                  <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-gray-900" />
-                </div>
-              )}
-
-              {/* Settings dropdown */}
-              {showSettingsMenu && (
-                <>
-                  <div className="fixed inset-0 z-10" onClick={closeAllPopups} />
-                  <div className="absolute bottom-12 right-0 bg-white rounded-xl shadow-xl border border-gray-200 py-2 z-20 w-56 animate-in fade-in slide-in-from-bottom-2 duration-200">
-                    <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2 px-4">Settings</p>
-                    <Link
-                      href="/settings/safety-templates"
-                      onClick={closeAllPopups}
-                      className={`flex items-center gap-3 px-4 py-2 text-sm transition-all duration-200 ${
-                        pathname === "/settings/safety-templates"
-                          ? "bg-blue-50 text-blue-700 font-bold"
-                          : "text-gray-700 hover:bg-gray-50"
-                      }`}
-                    >
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                      </svg>
-                      Safety Templates
-                    </Link>
-                  </div>
-                </>
-              )}
             </div>
           </div>
         </div>
@@ -360,4 +220,3 @@ export default function Sidebar() {
     </aside>
   );
 }
-
