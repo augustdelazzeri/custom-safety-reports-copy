@@ -1,5 +1,10 @@
 "use client";
 
+/** 
+ * WARNING: This component is a dependency for GUARD-1298 and GUARD-1279 prototypes.
+ * Verify any changes against these routes.
+ */
+
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useProfile } from "../contexts/ProfileContext";
