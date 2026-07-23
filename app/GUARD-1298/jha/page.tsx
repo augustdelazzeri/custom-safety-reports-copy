@@ -1,8 +1,8 @@
 "use client";
 
 import React from "react";
-import Sidebar from "../../src/components/Sidebar";
-import Header from "../../src/components/Header";
+import Sidebar from "@/src/components/Sidebar";
+import Header from "@/src/components/Header";
 import Link from "next/link";
 import { Plus, Search, Filter, HardHat, ChevronRight } from "lucide-react";
 
@@ -26,7 +26,7 @@ export default function JhaListPage() {
               <p className="text-sm text-gray-600 mt-1">Manage and create safety documentations for your team</p>
             </div>
             <Link 
-              href="/jha/new" 
+              href="/GUARD-1298/jha/new" 
               className="flex items-center gap-2 px-5 py-2.5 bg-blue-600 text-white rounded-xl text-sm font-bold hover:bg-blue-700 transition-all shadow-lg shadow-blue-200"
             >
               <Plus className="size-5" />
@@ -102,7 +102,7 @@ export default function JhaListPage() {
                     </td>
                     <td className="px-6 py-5 text-right">
                       <Link 
-                        href={`/jha/${doc.id}`}
+                        href={`/GUARD-1298/jha/${doc.id}`}
                         className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg inline-flex transition-all"
                       >
                         <ChevronRight className="size-5" />

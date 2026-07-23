@@ -1,8 +1,8 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import Sidebar from "../../../src/components/Sidebar";
-import Header from "../../../src/components/Header";
+import Sidebar from "@/src/components/Sidebar";
+import Header from "@/src/components/Header";
 import { useRouter } from "next/navigation";
 import { 
   ArrowLeft, 
