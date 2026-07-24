@@ -144,7 +144,7 @@ export default function Header({ title }: HeaderProps) {
                     createdBy: "Joty Grewal",
                     createdAt: new Date().toISOString(),
                     status: "active",
-                    qrCodeUrl: "/safety-events/template-form?templateId=injury-report&accessPointId=access-point-1&location=Global%20Operations%20%3E%20North%20America%20%3E%20United%20States%20%3E%20Chicago%20Plant"
+                    qrCodeUrl: "/safetyevents/template-form?templateId=injury-report&accessPointId=access-point-1&location=Global%20Operations%20%3E%20North%20America%20%3E%20United%20States%20%3E%20Chicago%20Plant"
                   },
                   {
                     id: "access-point-2",
@@ -160,7 +160,7 @@ export default function Header({ title }: HeaderProps) {
                     createdBy: "Joty Grewal",
                     createdAt: new Date().toISOString(),
                     status: "active",
-                    qrCodeUrl: "/safety-events/template-form?templateId=near-miss&accessPointId=access-point-2&location=Global%20Operations%20%3E%20North%20America%20%3E%20United%20States%20%3E%20Chicago%20Plant%20%3E%20Production"
+                    qrCodeUrl: "/safetyevents/template-form?templateId=near-miss&accessPointId=access-point-2&location=Global%20Operations%20%3E%20North%20America%20%3E%20United%20States%20%3E%20Chicago%20Plant%20%3E%20Production"
                   },
                   {
                     id: "access-point-3",
@@ -176,7 +176,7 @@ export default function Header({ title }: HeaderProps) {
                     createdBy: "Joty Grewal",
                     createdAt: new Date().toISOString(),
                     status: "active",
-                    qrCodeUrl: "/safety-events/template-form?templateId=injury-report&accessPointId=access-point-3&location=Global%20Operations%20%3E%20Europe%20%3E%20Germany%20%3E%20Berlin%20Factory"
+                    qrCodeUrl: "/safetyevents/template-form?templateId=injury-report&accessPointId=access-point-3&location=Global%20Operations%20%3E%20Europe%20%3E%20Germany%20%3E%20Berlin%20Factory"
                   }
                 ];
                 localStorage.setItem('accessPoints', JSON.stringify(accessPoints));

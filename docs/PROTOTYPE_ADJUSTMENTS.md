@@ -310,7 +310,7 @@ Todas as páginas agora usam o componente `Header.tsx` ao invés de headers inli
 5. ✅ `app/settings/custom-roles/page.tsx` - Custom Roles
 6. ✅ `app/settings/safety-templates/page.tsx` - Safety Templates
 7. ✅ `app/safetyevents/new/page.tsx` - New Safety Event form
-8. ✅ `app/safety-events/template-form/page.tsx` - Template form preview
+8. ✅ `app/safetyevents/template-form/page.tsx` - Template form preview
 
 **Benefício:** Profile Switcher agora visível em TODAS as páginas
 

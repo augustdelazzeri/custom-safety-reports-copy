@@ -55,7 +55,7 @@ export default function TemplateSelector({ templateIds, accessPointId, location,
     if (accessPointId) params.set('accessPointId', accessPointId);
     if (location) params.set('location', location);
     if (asset) params.set('asset', asset);
-    return `/safety-events/template-form?${params.toString()}`;
+    return `/safetyevents/template-form?${params.toString()}`;
   };
 
   return (

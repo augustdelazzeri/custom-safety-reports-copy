@@ -46,7 +46,7 @@ function createDefaultAccessPoints(): AccessPoint[] {
       createdBy: "Joty Grewal",
       createdAt: "2025-07-15T14:53:00.000Z",
       status: "active",
-      qrCodeUrl: "/safety-events/template-form?templateId=injury-report&accessPointId=access-point-1&location=Global%20Operations%20%3E%20North%20America%20%3E%20United%20States%20%3E%20Chicago%20Plant&asset=Conveyor%20Belt%20B-12"
+      qrCodeUrl: "/safetyevents/template-form?templateId=injury-report&accessPointId=access-point-1&location=Global%20Operations%20%3E%20North%20America%20%3E%20United%20States%20%3E%20Chicago%20Plant&asset=Conveyor%20Belt%20B-12"
     },
     {
       id: "access-point-2",
@@ -63,7 +63,7 @@ function createDefaultAccessPoints(): AccessPoint[] {
       createdBy: "Joty Grewal",
       createdAt: "2025-07-15T14:53:00.000Z",
       status: "active",
-      qrCodeUrl: "/safety-events/template-form?templateId=near-miss&accessPointId=access-point-2&location=Global%20Operations%20%3E%20North%20America%20%3E%20United%20States%20%3E%20Chicago%20Plant%20%3E%20Production"
+      qrCodeUrl: "/safetyevents/template-form?templateId=near-miss&accessPointId=access-point-2&location=Global%20Operations%20%3E%20North%20America%20%3E%20United%20States%20%3E%20Chicago%20Plant%20%3E%20Production"
     },
     {
       id: "access-point-3",
@@ -80,7 +80,7 @@ function createDefaultAccessPoints(): AccessPoint[] {
       createdBy: "Joty Grewal",
       createdAt: "2025-07-17T09:00:00.000Z",
       status: "active",
-      qrCodeUrl: "/safety-events/template-form?templateId=injury-report&accessPointId=access-point-3&location=Global%20Operations%20%3E%20Europe%20%3E%20Germany%20%3E%20Berlin%20Factory&asset=Hazmat%20Cabinet%204"
+      qrCodeUrl: "/safetyevents/template-form?templateId=injury-report&accessPointId=access-point-3&location=Global%20Operations%20%3E%20Europe%20%3E%20Germany%20%3E%20Berlin%20Factory&asset=Hazmat%20Cabinet%204"
     },
   ];
 }
@@ -126,7 +126,7 @@ export function AccessPointProvider({ children }: AccessPointProviderProps) {
     const templateIdsParam = templateIds.length === 1 
       ? `templateId=${templateIds[0]}`
       : `templateIds=${templateIds.join(',')}`;
-    const qrCodeUrl = `/safety-events/template-form?${templateIdsParam}&accessPointId=${newId}&location=${encodeURIComponent(location.fullPath)}${asset ? `&asset=${encodeURIComponent(asset)}` : ''}`;
+    const qrCodeUrl = `/safetyevents/template-form?${templateIdsParam}&accessPointId=${newId}&location=${encodeURIComponent(location.fullPath)}${asset ? `&asset=${encodeURIComponent(asset)}` : ''}`;
     
     const newAccessPoint: AccessPoint = {
       id: newId,

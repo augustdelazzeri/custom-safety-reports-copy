@@ -29,7 +29,7 @@ export default function QRCodeModal({
   const templateIdsParam = accessPoint.templateIds.length === 1
     ? `templateId=${accessPoint.templateIds[0]}`
     : `templateIds=${accessPoint.templateIds.join(',')}`;
-  const fullUrl = `${baseUrl}/safety-events/template-form?${templateIdsParam}&accessPointId=${accessPoint.id}&location=${encodeURIComponent(accessPoint.location.fullPath)}`;
+  const fullUrl = `${baseUrl}/safetyevents/template-form?${templateIdsParam}&accessPointId=${accessPoint.id}&location=${encodeURIComponent(accessPoint.location.fullPath)}`;
   
   // Get template names for display
   const templateNames = accessPoint.templateIds

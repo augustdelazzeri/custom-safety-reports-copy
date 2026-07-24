@@ -1,0 +1,170 @@
+[
+  {
+    "rota_protótipo": "/",
+    "arquivo_real": "client/src/pages/EventLog.tsx",
+    "status": "verified",
+    "score": 8.2,
+    "notas": "Synced EventLog layout with ui/ primitives and semantic tokens. Judge: approved; badge colors still use Tailwind palette classes; export is UI stub.",
+    "última_verificação": "2026-07-24T15:39:00Z"
+  },
+  {
+    "rota_protótipo": "/access-points",
+    "arquivo_real": "client/src/pages/AccessPointsView.tsx",
+    "status": "not_started",
+    "score": null,
+    "notas": "",
+    "última_verificação": null
+  },
+  {
+    "rota_protótipo": "/setup-center",
+    "arquivo_real": "client/src/pages/Dashboard.tsx",
+    "status": "not_started",
+    "score": null,
+    "notas": "Prototype-only onboarding hub; closest real equivalent is Dashboard",
+    "última_verificação": null
+  },
+  {
+    "rota_protótipo": "/settings/people",
+    "arquivo_real": "client/src/pages/Settings.tsx",
+    "status": "not_started",
+    "score": null,
+    "notas": "People tab in settings redesign",
+    "última_verificação": null
+  },
+  {
+    "rota_protótipo": "/settings/custom-roles",
+    "arquivo_real": "client/src/pages/Settings.tsx",
+    "status": "not_started",
+    "score": null,
+    "notas": "Permissions/custom roles tab in settings redesign",
+    "última_verificação": null
+  },
+  {
+    "rota_protótipo": "/settings/subscription",
+    "arquivo_real": "client/src/pages/SubscriptionSettings.tsx",
+    "status": "not_started",
+    "score": null,
+    "notas": "",
+    "última_verificação": null
+  },
+  {
+    "rota_protótipo": "/settings/safety-templates",
+    "arquivo_real": "client/src/pages/Settings.tsx",
+    "status": "not_started",
+    "score": null,
+    "notas": "Safety templates tab in settings redesign",
+    "última_verificação": null
+  },
+  {
+    "rota_protótipo": "/settings/safety-templates/[templateId]",
+    "arquivo_real": "client/src/pages/EditEventFormTemplate.tsx",
+    "status": "not_started",
+    "score": null,
+    "notas": "",
+    "última_verificação": null
+  },
+  {
+    "rota_protótipo": "/safetyevents/new",
+    "arquivo_real": "client/src/pages/NewEvent.tsx",
+    "status": "not_started",
+    "score": null,
+    "notas": "",
+    "última_verificação": null
+  },
+  {
+    "rota_protótipo": "/safetyevents/[id]",
+    "arquivo_real": "client/src/pages/EventDetails.tsx",
+    "status": "not_started",
+    "score": null,
+    "notas": "",
+    "última_verificação": null
+  },
+  {
+    "rota_protótipo": "/safetyevents/[id]/all-fields",
+    "arquivo_real": "client/src/pages/EventDetails.tsx",
+    "status": "not_started",
+    "score": null,
+    "notas": "All-fields variant of event details",
+    "última_verificação": null
+  },
+  {
+    "rota_protótipo": "/safetyevents/template-form",
+    "arquivo_real": "client/src/pages/NewEventFormTemplate.tsx",
+    "status": "not_started",
+    "score": null,
+    "notas": "",
+    "última_verificação": null
+  },
+  {
+    "rota_protótipo": "/capas",
+    "arquivo_real": "client/src/pages/CapaLog.tsx",
+    "status": "not_started",
+    "score": null,
+    "notas": "",
+    "última_verificação": null
+  },
+  {
+    "rota_protótipo": "/capas/new",
+    "arquivo_real": "client/src/pages/NewCapa.tsx",
+    "status": "not_started",
+    "score": null,
+    "notas": "",
+    "última_verificação": null
+  },
+  {
+    "rota_protótipo": "/capas/[id]",
+    "arquivo_real": "client/src/pages/CapaDetails.tsx",
+    "status": "not_started",
+    "score": null,
+    "notas": "",
+    "última_verificação": null
+  },
+  {
+    "rota_protótipo": "/GUARD-1279",
+    "arquivo_real": "client/src/pages/Settings.tsx",
+    "status": "protected",
+    "score": null,
+    "notas": "GUARD-1279: Multi-Location/Onboarding Widget — isolated prototype",
+    "última_verificação": null
+  },
+  {
+    "rota_protótipo": "/GUARD-1298",
+    "arquivo_real": "client/src/pages/Settings.tsx",
+    "status": "protected",
+    "score": null,
+    "notas": "GUARD-1298: Multi-Language Document Generation — index route",
+    "última_verificação": null
+  },
+  {
+    "rota_protótipo": "/GUARD-1298/1",
+    "arquivo_real": "client/src/pages/Settings.tsx",
+    "status": "protected",
+    "score": null,
+    "notas": "GUARD-1298 flow step 1: Organization settings",
+    "última_verificação": null
+  },
+  {
+    "rota_protótipo": "/GUARD-1298/2",
+    "arquivo_real": "client/src/pages/NewJha.tsx",
+    "status": "protected",
+    "score": null,
+    "notas": "GUARD-1298 flow step 2: Create JHA wizard",
+    "última_verificação": null
+  },
+  {
+    "rota_protótipo": "/GUARD-1298/3/[id]",
+    "arquivo_real": "client/src/pages/JhaDetails.tsx",
+    "status": "protected",
+    "score": null,
+    "notas": "GUARD-1298 flow step 3: JHA details with language switcher",
+    "última_verificação": null
+  },
+  {
+    "rota_protótipo": "/GUARD-1298/4/[id]",
+    "arquivo_real": "client/src/pages/PublicQrScan.tsx",
+    "status": "protected",
+    "score": null,
+    "notas": "GUARD-1298 flow step 4: Public access QR view",
+    "última_verificação": null
+  }
+]
