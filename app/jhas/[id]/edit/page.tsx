@@ -68,7 +68,11 @@ export default function EditJha({ params }: { params: { id: string } }) {
 
                   <div className="space-y-2">
                     <Label>Notes</Label>
-                    <WritingAssistant defaultValue={jha.notes} className="min-h-[100px]" />
+                    <WritingAssistant 
+                      defaultValue={jha.notes} 
+                      className="min-h-[100px]" 
+                      context={`Editing JHA ${jha.slug}`}
+                    />
                   </div>
                 </div>
               </div>

@@ -20,26 +20,31 @@ export const WritingAssistant = ({
   context,
   className,
   disabled = false,
-  value,
+  value: controlledValue,
+  defaultValue,
   onChange,
   onFocus,
   ref,
   ...props
-}: {
-  placeholder?: string;
-  context: string;
-  className?: string;
-  disabled?: boolean;
-  value?: string | null;
-  onChange: ChangeEventHandler<HTMLTextAreaElement>;
-  onFocus?: FocusEventHandler<HTMLTextAreaElement>;
-  ref?: React.RefCallback<HTMLTextAreaElement>;
-}) => {
+}: any) => {
   const { t } = useTranslation();
+  const [internalValue, setInternalValue] = useState(defaultValue ?? '');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isPopoverOpen, setIsPopoverOpen] = useState(false);
   const [selectedTone, setSelectedTone] = useState<WritingTone>('professional');
   const [additionalInstructions, setAdditionalInstructions] = useState('');
+
+  // Use controlled value if provided, otherwise use internal state
+  const value = controlledValue !== undefined ? controlledValue : internalValue;
+
+  const handleTextChange = (e: ChangeEvent<HTMLTextAreaElement>) => {
+    if (controlledValue === undefined) {
+      setInternalValue(e.target.value);
+    }
+    if (onChange) {
+      onChange(e);
+    }
+  };
 
   useEffect(() => {
     if (disabled) setIsPopoverOpen(false);
@@ -66,7 +71,7 @@ export const WritingAssistant = ({
           className={cn('min-h-24 resize-y', className)}
           value={value ?? ''}
           disabled={disabled}
-          onChange={onChange}
+          onChange={handleTextChange}
           onFocus={onFocus}
           ref={ref}
           {...props}
@@ -153,7 +158,7 @@ export const WritingAssistant = ({
         context={context}
         tone={selectedTone}
         additionalInstructions={additionalInstructions || undefined}
-         onReplace={(improvedText: any) => onChange({ target: { value: improvedText } } as ChangeEvent<HTMLTextAreaElement>)}
+         onReplace={(improvedText: any) => handleTextChange({ target: { value: improvedText } } as ChangeEvent<HTMLTextAreaElement>)}
         isOpen={isModalOpen}
         onOpenChange={setIsModalOpen}
       />

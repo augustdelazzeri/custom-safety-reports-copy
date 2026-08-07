@@ -82,11 +82,6 @@ export const trpc: any = {
       useMutation: () => createMockMutation()
     }
   },
-  workOrder: {
-    getByCapa: {
-      useQuery: (config?: any) => createMockQuery([])
-    }
-  },
   event: {
     getById: {
       useQuery: (config: any) => createMockQuery({
@@ -647,6 +642,9 @@ export const trpc: any = {
     create: { useMutation: () => createMockMutation() }
   },
   workOrder: {
+    getByCapa: {
+      useQuery: (config?: any) => createMockQuery([])
+    },
     getWorkOrderById: {
       useQuery: (config: any) => createMockQuery({
         id: config.workOrderId,
