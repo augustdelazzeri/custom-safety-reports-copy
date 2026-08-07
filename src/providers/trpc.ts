@@ -122,20 +122,35 @@ export const trpc: any = {
     }
   },
   eventFormTemplate: {
+    list: {
+      useQuery: () => createMockQuery([
+        { id: 't1', name: 'Template 2', fieldsCount: 3, conditionsCount: 0, createdBy: 'August Delazzeri', createdAt: 'Aug 6, 2026 at 10:27 AM' },
+        { id: 't2', name: 'Safety for Ed', fieldsCount: 3, conditionsCount: 1, createdBy: 'August Delazzeri', createdAt: 'Jul 2, 2026 at 3:39 PM' },
+        { id: 't3', name: 'Logic test', fieldsCount: 6, conditionsCount: 3, createdBy: 'August Delazzeri', createdAt: 'May 20, 2026 at 2:20 PM' },
+        { id: 't4', name: 'GPS template', fieldsCount: 5, conditionsCount: 0, createdBy: 'August Admin', createdAt: 'May 4, 2026 at 2:50 PM' },
+        { id: 't5', name: 'Contractor Management', fieldsCount: 3, conditionsCount: 0, createdBy: 'August Delazzeri', createdAt: 'Apr 27, 2026 at 1:15 PM' },
+      ])
+    },
     getById: {
       useQuery: (config: any) => createMockQuery({
         id: config.id,
-        name: 'Factory Floor Incident',
-        description: 'Template for reporting incidents on the production floor.',
-        fieldConfig: {},
-        fieldCategories: {},
-        conditionalRules: []
+        name: config.id === 't1' ? 'Template 2' : 'Safety for Ed',
+        fields: [
+          { id: 'f1', label: 'Title', type: 'Text', required: true, description: 'A short description of the event', section: 'core' },
+          { id: 'f2', label: 'Time of Event', type: 'Date/Time', required: true, description: 'When did the event occur?', section: 'core' },
+          { id: 'f3', label: 'Description', type: 'Text Area', required: true, description: 'Provide a detailed account of what happened', section: 'core' },
+          { id: 'f4', label: 'GPS Location', type: 'GPS Location', required: false, description: 'Automatically captures your current GPS coordinates', section: 'additional' },
+          { id: 'f5', label: 'Body Part Affected', type: 'Multi-select', required: false, description: 'Select all body parts affected by the injury', section: 'additional' },
+          { id: 'f6', label: 'New Dropdown', type: 'Dropdown', required: false, section: 'additional' }
+        ],
+        logic: config.id === 't1' ? [] : [
+          { id: 'l1', whenField: 'Title', operator: 'Is empty', thenAction: 'Show', targetField: 'Body Part Affected' }
+        ]
       })
     },
     update: {
       useMutation: () => createMockMutation()
     },
-    list: { invalidate: () => {} },
     checkNameExists: { fetch: async () => ({ exists: false }) },
     create: {
       useMutation: () => createMockMutation()

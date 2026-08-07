@@ -1,51 +1,51 @@
-import * as React from "react"
-import * as TabsPrimitive from "@radix-ui/react-tabs"
-import { cn } from "@/lib/utils"
+"use client";
 
-const SettingsTabs = TabsPrimitive.Root
-const SettingsTabsList = React.forwardRef<
-  React.ElementRef<typeof TabsPrimitive.List>,
-  React.ComponentPropsWithoutRef<typeof TabsPrimitive.List>
->(({ className, ...props }, ref) => (
-  <TabsPrimitive.List
-    ref={ref}
-    className={cn(
-      "inline-flex h-10 items-center justify-center rounded-md bg-muted p-1 text-muted-foreground",
-      className
-    )}
-    {...props}
-  />
-))
-SettingsTabsList.displayName = TabsPrimitive.List.displayName
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { cn } from "@/lib/utils";
+import { 
+  ClipboardList, 
+  MapPin, 
+  Activity, 
+  Building2, 
+  Users, 
+  Lock 
+} from "lucide-react";
 
-const SettingsTabsTrigger = React.forwardRef<
-  React.ElementRef<typeof TabsPrimitive.Trigger>,
-  React.ComponentPropsWithoutRef<typeof TabsPrimitive.Trigger>
->(({ className, ...props }, ref) => (
-  <TabsPrimitive.Trigger
-    ref={ref}
-    className={cn(
-      "inline-flex items-center justify-center whitespace-nowrap rounded-sm px-3 py-1.5 text-sm font-medium ring-offset-background transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm",
-      className
-    )}
-    {...props}
-  />
-))
-SettingsTabsTrigger.displayName = TabsPrimitive.Trigger.displayName
+export const SettingsTabs = () => {
+  const pathname = usePathname();
 
-const SettingsTabsContent = React.forwardRef<
-  React.ElementRef<typeof TabsPrimitive.Content>,
-  React.ComponentPropsWithoutRef<typeof TabsPrimitive.Content>
->(({ className, ...props }, ref) => (
-  <TabsPrimitive.Content
-    ref={ref}
-    className={cn(
-      "mt-2 ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
-      className
-    )}
-    {...props}
-  />
-))
-SettingsTabsContent.displayName = TabsPrimitive.Content.displayName
+  const tabs = [
+    { label: "Safety Templates", href: "/settings/safety-templates", icon: <ClipboardList className="size-3.5" /> },
+    { label: "OSHA Locations", href: "/settings/osha-locations", icon: <MapPin className="size-3.5" /> },
+    { label: "Hazards & Control Measures", href: "/settings/hazards-and-controls", icon: <Activity className="size-3.5" /> },
+    { label: "Company", href: "/company-metadata", icon: <Building2 className="size-3.5" /> },
+    { label: "People & Permissions", href: "/settings/people", icon: <Users className="size-3.5" /> },
+    { label: "Privacy", href: "/settings/privacy", icon: <Lock className="size-3.5" /> },
+  ];
 
-export { SettingsTabs, SettingsTabsList, SettingsTabsTrigger, SettingsTabsContent }
+  return (
+    <div className="border-b border-gray-100 bg-white">
+      <div className="flex items-center gap-6">
+        {tabs.map((tab) => {
+          const isActive = pathname === tab.href;
+          return (
+            <Link
+              key={tab.href}
+              href={tab.href}
+              className={cn(
+                "flex items-center gap-2 px-1 py-3 text-xs font-bold transition-all border-b-2",
+                isActive 
+                  ? "border-blue-600 text-blue-600" 
+                  : "border-transparent text-gray-400 hover:text-gray-600 hover:border-gray-200"
+              )}
+            >
+              {tab.icon}
+              {tab.label}
+            </Link>
+          );
+        })}
+      </div>
+    </div>
+  );
+};
