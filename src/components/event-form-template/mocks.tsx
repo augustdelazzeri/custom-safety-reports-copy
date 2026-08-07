@@ -46,9 +46,9 @@ export const FormBuilder = ({ fields }: any) => {
       id: 'core-fields',
       label: 'CORE FIELDS',
       items: [
-        { label: 'Title', icon: <Type className="size-4" /> },
-        { label: 'Time of Event', icon: <Calendar className="size-4" /> },
-        { label: 'Description', icon: <AlignLeft className="size-4" /> },
+        { label: 'Title', icon: <Type className="size-4" />, locked: true },
+        { label: 'Time of Event', icon: <Calendar className="size-4" />, locked: true },
+        { label: 'Description', icon: <AlignLeft className="size-4" />, locked: true },
       ]
     },
     {
@@ -83,13 +83,29 @@ export const FormBuilder = ({ fields }: any) => {
         { label: 'Team Members to Notify', icon: <Plus className="size-4" /> },
         { label: 'Witnesses', icon: <Plus className="size-4" /> },
         { label: 'Reporter Name', icon: <Plus className="size-4" /> },
+        { label: 'Reporter Role / Job Title', icon: <Plus className="size-4" /> },
         { label: 'Supervisor Name', icon: <Plus className="size-4" /> },
+        { label: 'Supervisor Review Date', icon: <Plus className="size-4" /> },
+        { label: 'Sign-off / Acknowledgement', icon: <Plus className="size-4" /> },
+      ]
+    },
+    {
+      id: 'diagrams',
+      label: 'DIAGRAMS & SKETCHES',
+      items: [
+        { label: 'Body Diagram', icon: <Activity className="size-4" /> },
+        { label: 'Scene / Crossroads Diagram', icon: <Plus className="size-4" /> },
+        { label: 'Sketch / Drawing', icon: <Plus className="size-4" /> },
       ]
     }
   ];
 
   const coreFields = fields?.filter((f: any) => f.section === 'core') || [];
   const additionalFields = fields?.filter((f: any) => f.section === 'additional') || [];
+
+  const handleAddField = () => {
+    // Mock adding a field
+  };
 
   return (
     <div className="flex-1 flex overflow-hidden">
@@ -107,14 +123,22 @@ export const FormBuilder = ({ fields }: any) => {
               <h3 className="text-[10px] font-bold text-gray-400 uppercase tracking-widest px-1">{section.label}</h3>
               <div className="grid grid-cols-1 gap-1.5">
                 {section.items.map(item => (
-                  <div key={item.label} className="group flex items-center justify-between p-2.5 rounded-lg border border-gray-100 hover:border-blue-200 hover:bg-blue-50/30 transition-all cursor-grab active:cursor-grabbing shadow-2xs">
+                  <div 
+                    key={item.label} 
+                    className={cn(
+                      "group flex items-center justify-between p-2.5 rounded-lg border transition-all shadow-2xs",
+                      (item as any).locked 
+                        ? "bg-gray-50/50 border-gray-100 opacity-60 cursor-not-allowed" 
+                        : "bg-white border-gray-100 hover:border-blue-200 hover:bg-blue-50/30 cursor-grab active:cursor-grabbing"
+                    )}
+                  >
                     <div className="flex items-center gap-3">
                       <div className="text-gray-400 group-hover:text-blue-600">
-                        {item.icon}
+                        {(item as any).locked ? <Lock className="size-3.5" /> : item.icon}
                       </div>
                       <span className="text-xs font-semibold text-gray-700">{item.label}</span>
                     </div>
-                    <Plus className="size-3.5 text-gray-300 group-hover:text-blue-500" />
+                    {!(item as any).locked && <Plus className="size-3.5 text-gray-300 group-hover:text-blue-500" />}
                   </div>
                 ))}
               </div>
@@ -191,6 +215,7 @@ export const FormBuilder = ({ fields }: any) => {
                     <div className="flex items-center gap-2">
                       <span className="text-sm font-bold text-gray-900">{field.label}</span>
                       <span className="text-[10px] text-gray-500 font-medium">{field.type}</span>
+                      {field.required && <Badge className="bg-red-50 text-red-600 border-red-100 text-[9px] font-bold h-4 px-1.5 rounded-sm">Required</Badge>}
                     </div>
                     {field.description && <p className="text-[11px] text-gray-500">{field.description}</p>}
                   </div>
@@ -202,19 +227,37 @@ export const FormBuilder = ({ fields }: any) => {
                 </div>
               </div>
             ))}
+            <Button 
+              variant="outline" 
+              className="w-full h-12 border-dashed border-2 border-gray-200 rounded-xl text-gray-400 text-xs font-bold hover:bg-gray-50 hover:border-gray-300"
+              onClick={handleAddField}
+            >
+              <Plus className="size-4 mr-2" />
+              Add Field
+            </Button>
           </div>
         </div>
       </div>
 
       {/* Settings (Right) */}
       <div className="w-80 border-l bg-white flex flex-col">
-        <div className="p-6 border-b">
-          <h3 className="text-sm font-bold text-gray-900">Field Settings</h3>
-          <p className="text-[11px] text-gray-500 mt-1">Configure field properties</p>
+        <div className="p-6 border-b flex items-center justify-between">
+          <div className="space-y-0.5">
+            <h3 className="text-sm font-bold text-gray-900">Field Settings</h3>
+            <p className="text-[11px] font-medium text-gray-500">Configure field properties</p>
+          </div>
+          <div className="flex items-center gap-1">
+            <Button variant="ghost" size="icon" className="size-8 text-gray-400 hover:text-red-500">
+              <Trash2 className="size-4" />
+            </Button>
+            <Button variant="ghost" size="icon" className="size-8 text-gray-400" onClick={() => setSelectedFieldId(null)}>
+              <X className="size-4" />
+            </Button>
+          </div>
         </div>
-        <div className="flex-1 flex flex-col items-center justify-center p-8 text-center">
+        <div className="flex-1 flex flex-col p-6 overflow-y-auto">
           {!selectedFieldId ? (
-            <div className="space-y-4">
+            <div className="flex-1 flex flex-col items-center justify-center text-center space-y-4">
               <div className="size-12 bg-gray-50 rounded-xl border border-gray-100 flex items-center justify-center mx-auto">
                 <Settings className="size-6 text-gray-300" />
               </div>
@@ -224,23 +267,79 @@ export const FormBuilder = ({ fields }: any) => {
               </div>
             </div>
           ) : (
-            <div className="w-full space-y-6 text-left self-start overflow-y-auto">
-              {/* This would be populated with field-specific settings */}
-              <div className="space-y-4">
+            <div className="w-full space-y-6 text-left">
+              {/* Common Settings */}
+              <div className="space-y-5">
                 <div className="space-y-2">
                   <Label className="text-xs font-bold text-gray-700">Label</Label>
-                  <Input defaultValue={fields.find((f: any) => f.id === selectedFieldId)?.label} className="h-9 text-xs" />
+                  <Input 
+                    defaultValue={fields.find((f: any) => f.id === selectedFieldId)?.label} 
+                    className="h-10 rounded-xl border-gray-200 bg-white text-xs focus:ring-2 focus:ring-blue-500 transition-all" 
+                    readOnly={fields.find((f: any) => f.id === selectedFieldId)?.section === 'core'}
+                  />
+                  {fields.find((f: any) => f.id === selectedFieldId)?.section === 'core' && (
+                    <p className="text-[10px] text-gray-400 font-medium">Core field labels cannot be modified</p>
+                  )}
                 </div>
+
                 <div className="space-y-2">
-                  <Label className="text-xs font-bold text-gray-700">Helper Text</Label>
-                  <Input defaultValue={fields.find((f: any) => f.id === selectedFieldId)?.description} className="h-9 text-xs" />
+                  <Label className="text-xs font-bold text-gray-700">Help Text</Label>
+                  <textarea 
+                    defaultValue={fields.find((f: any) => f.id === selectedFieldId)?.description}
+                    placeholder="Add help text for this field..."
+                    className="w-full min-h-[80px] rounded-xl border border-gray-200 bg-white p-3 text-xs focus:ring-2 focus:ring-blue-500 outline-none transition-all"
+                  />
                 </div>
-                <div className="flex items-center justify-between py-2 border-t mt-4">
-                  <Label className="text-xs font-bold text-gray-700">Required</Label>
-                  <div className="w-10 h-6 bg-blue-600 rounded-full relative">
-                    <div className="absolute right-1 top-1 size-4 bg-white rounded-full" />
+
+                <div className="flex items-center justify-between py-1">
+                  <div className="space-y-0.5">
+                    <Label className="text-xs font-bold text-gray-700">Required Field</Label>
+                    <p className="text-[10px] text-gray-400 font-medium">Make this field mandatory</p>
+                  </div>
+                  <div 
+                    className={cn(
+                      "w-10 h-5 rounded-full relative transition-colors cursor-pointer",
+                      fields.find((f: any) => f.id === selectedFieldId)?.required || fields.find((f: any) => f.id === selectedFieldId)?.section === 'core'
+                        ? "bg-blue-600" 
+                        : "bg-gray-200"
+                    )}
+                  >
+                    <div className={cn(
+                      "absolute top-0.5 size-4 bg-white rounded-full transition-all shadow-sm",
+                      fields.find((f: any) => f.id === selectedFieldId)?.required || fields.find((f: any) => f.id === selectedFieldId)?.section === 'core'
+                        ? "right-0.5" 
+                        : "left-0.5"
+                    )} />
                   </div>
                 </div>
+
+                <div className="space-y-2">
+                  <Label className="text-xs font-bold text-gray-700">Field Type</Label>
+                  <div className="h-10 px-3 flex items-center bg-gray-50 border border-gray-100 rounded-xl text-xs text-gray-500 font-medium cursor-not-allowed">
+                    {fields.find((f: any) => f.id === selectedFieldId)?.type}
+                  </div>
+                </div>
+
+                {/* Options Section (for Dropdown/Multi-select) */}
+                {(fields.find((f: any) => f.id === selectedFieldId)?.type === 'Dropdown' || 
+                  fields.find((f: any) => f.id === selectedFieldId)?.type === 'Multi-select') && (
+                  <div className="space-y-4 pt-4 border-t">
+                    <div className="flex items-center justify-between">
+                      <Label className="text-xs font-bold text-gray-700">Options</Label>
+                      <button className="text-[11px] font-bold text-blue-600 hover:underline">+ Add Option</button>
+                    </div>
+                    <div className="space-y-2">
+                      {['Option 1', 'Option 2', 'Option 3'].map((opt, i) => (
+                        <div key={i} className="flex items-center gap-2 group">
+                          <Input defaultValue={opt} className="h-9 rounded-lg border-gray-200 text-xs" />
+                          <Button variant="ghost" size="icon" className="size-8 text-gray-300 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity">
+                            <Trash2 className="size-3.5" />
+                          </Button>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
           )}
