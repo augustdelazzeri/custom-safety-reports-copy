@@ -1,23 +1,39 @@
 "use client";
 
-import React from "react";
-import Link from "next/link";
-import Sidebar from "../../../src/components/Sidebar";
-import Header from "../../../src/components/Header";
-import SafetyEventFormRuntime from "../../../src/components/SafetyEventFormRuntime";
+import { NewEventBasicForm, NewEventTemplateForm } from '@/components/events/create/mocks';
+import { usePermissions } from '@/hooks/use-permissions';
+import { PERMISSION_KEYS } from '@shared/types/permissions.types';
+import Sidebar from '@/components/Sidebar';
+import Header from '@/components/Header';
+import { useSearchParams } from 'next/navigation';
+import { Suspense } from 'react';
 
-export default function NewSafetyEventPage() {
+function NewEventContent() {
+  const { hasPermission } = usePermissions();
+  const searchParams = useSearchParams();
+  const templateId = searchParams.get('templateId');
+
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="flex h-screen overflow-hidden bg-background">
       <Sidebar />
-      <div className="ml-64">
-        <Header />
-      
-        {/* Main Content */}
-        <main className="max-w-6xl mx-auto px-6 py-8">
-          <SafetyEventFormRuntime />
+      <div className="flex flex-1 flex-col overflow-hidden">
+        <Header title="Report Safety Event" />
+        <main className="flex-1 overflow-y-auto p-4 md:p-6 lg:p-8">
+          {templateId ? (
+            <NewEventTemplateForm templateId={templateId} />
+          ) : (
+            <NewEventBasicForm />
+          )}
         </main>
       </div>
     </div>
+  );
+}
+
+export default function NewEvent() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <NewEventContent />
+    </Suspense>
   );
 }

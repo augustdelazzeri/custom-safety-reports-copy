@@ -1,29 +1,401 @@
-@import "tailwindcss";
+/* ─── 1. Imports ─────────────────────────────────────────────────────────── */
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
+@import 'react-day-picker/dist/style.css' layer(base);
+
+@import 'tailwindcss';
+@import 'tw-animate-css';
+
+@import '@fontsource-variable/geist';
+
+/* Radix UI color scale — light */
+@import '@radix-ui/colors/indigo.css';
+@import '@radix-ui/colors/sky.css';
+@import '@radix-ui/colors/green.css';
+@import '@radix-ui/colors/amber.css';
+@import '@radix-ui/colors/red.css';
+@import '@radix-ui/colors/slate.css';
+
+/* Radix UI color scale — dark */
+@import '@radix-ui/colors/indigo-dark.css';
+@import '@radix-ui/colors/sky-dark.css';
+@import '@radix-ui/colors/green-dark.css';
+@import '@radix-ui/colors/amber-dark.css';
+@import '@radix-ui/colors/red-dark.css';
+@import '@radix-ui/colors/slate-dark.css';
+
+/* Radix UI alpha scales */
+@import '@radix-ui/colors/indigo-alpha.css';
+@import '@radix-ui/colors/slate-alpha.css';
+@import '@radix-ui/colors/indigo-dark-alpha.css';
+@import '@radix-ui/colors/slate-dark-alpha.css';
+
+/* ─── 2. Plugins ─────────────────────────────────────────────────────────── */
+
+@plugin 'tailwindcss-animate';
+@plugin '@tailwindcss/typography';
+
+/* ─── 3. Dark mode variant ───────────────────────────────────────────────── */
+
+@custom-variant dark (&:is(.dark *));
+
+/* ─── 4. @theme inline — single source of truth for all design tokens ────── */
+/*                                                                             */
+/*  Structure:                                                                 */
+/*    a) Typography                                                            */
+/*    b) Radius scale                                                          */
+/*    c) Semantic color tokens   → reference :root CSS vars (mode-aware)      */
+/*    d) Brand extended palette  → fixed hex values (mode-invariant)          */
+/*    e) Animation tokens                                                      */
+/*                                                                             */
+/*  To add a new color:                                                        */
+/*    1. Define --my-token in :root (and .dark if needed)                     */
+/*    2. Register it here: --color-my-token: var(--my-token)                  */
+/*    3. Use as Tailwind class: bg-my-token / text-my-token                   */
 
 @theme inline {
+  /* a) Typography */
+  --font-sans: 'Geist Variable', sans-serif;
+
+  /* b0) Layout tokens */
+  --spacing-sidebar: 256px;
+
+  /* b) Radius scale */
+  --radius-sm: calc(var(--radius) * 0.6);
+  --radius-md: calc(var(--radius) * 0.8);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) * 1.4);
+  --radius-2xl: calc(var(--radius) * 1.8);
+  --radius-3xl: calc(var(--radius) * 2.2);
+  --radius-4xl: calc(var(--radius) * 2.6);
+
+  /* c) Semantic color tokens (mode-aware via CSS vars) */
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+
+  /* d) Brand extended palette (fixed, mode-invariant) */
+  --color-primary-300: #e2f2ff;
+  --color-primary-500: #0c6ff9;
+  --color-primary-700: #0954bd;
+
+  --color-destructive-300: #ffeaeb;
+  --color-destructive-500: #e01e5a;
+
+  --color-success-300: #e6f6e7;
+  --color-success-500: #00875a;
+
+  --color-warning-500: #ec7d10;
+
+  --color-caution-500: #f3ca40;
+
+  --color-neutral-100: #fafafa;
+  --color-neutral-300: #f2f2f2;
+  --color-neutral-500: #dfe3e8;
+  --color-neutral-700: #b8b8b8;
+  --color-neutral-900: #767676;
+  --color-neutral-black: #323233;
+  --color-neutral-white: #ffffff;
+
+  /* e) Animation tokens */
+  --animate-accordion-down: accordion-down 0.2s ease-out;
+  --animate-accordion-up: accordion-up 0.2s ease-out;
+
+  @keyframes accordion-down {
+    from {
+      height: 0;
+    }
+    to {
+      height: var(--radix-accordion-content-height);
+    }
+  }
+
+  @keyframes accordion-up {
+    from {
+      height: var(--radix-accordion-content-height);
+    }
+    to {
+      height: 0;
+    }
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+/* ─── 5. :root — light mode CSS variable values ─────────────────────────── */
+
+:root {
+  --radius: 0.5rem;
+
+  /* Desktop sidebar width — mirror of sidebar.tsx `w-[240px]`. Consumed by
+     sticky layout primitives (e.g. the NewEvent create-form footer). */
+  --app-sidebar-width: 240px;
+  --app-sidebar-offset: 0px;
+  --toaster-offset-bottom: 0px;
+
+  --panel-bg-solid: #ffffff;
+  --panel-bg-translucent: rgba(255, 255, 255, 0.6);
+  --overlay-scrim: rgba(0, 0, 0, 0.6);
+
+  /* Surfaces */
+  --background: var(--slate-1);
+  --foreground: var(--slate-12);
+
+  --card: var(--slate-1);
+  --card-foreground: var(--slate-12);
+
+  --popover: var(--slate-1);
+  --popover-foreground: var(--slate-12);
+
+  /* Primary (Indigo) */
+  --primary: var(--indigo-9);
+  --primary-foreground: white;
+
+  /* Secondary */
+  --secondary: var(--slate-3);
+  --secondary-foreground: var(--slate-12);
+
+  /* Muted */
+  --muted: var(--slate-3);
+  --muted-foreground: var(--slate-11);
+
+  /* Accent */
+  --accent: var(--slate-3);
+  --accent-foreground: var(--slate-12);
+
+  /* Destructive */
+  --destructive: var(--red-9);
+  --destructive-foreground: rgb(250, 250, 249);
+
+  /* Border / Input / Ring */
+  --border: var(--slate-6);
+  --input: var(--slate-6);
+  --ring: var(--slate-8);
+
+  /* Charts */
+  --chart-1: var(--indigo-9);
+  --chart-2: var(--sky-9);
+  --chart-3: var(--green-9);
+  --chart-4: var(--amber-9);
+  --chart-5: var(--red-9);
+
+  /* Sidebar */
+  --sidebar: var(--slate-2);
+  --sidebar-foreground: var(--slate-12);
+  --sidebar-primary: var(--indigo-9);
+  --sidebar-primary-foreground: white;
+  --sidebar-accent: var(--slate-3);
+  --sidebar-accent-foreground: var(--slate-12);
+  --sidebar-border: var(--slate-6);
+  --sidebar-ring: var(--slate-8);
 }
+
+/* ─── 6. .dark — dark mode CSS variable values ───────────────────────────── */
+
+.dark {
+  --panel-bg-solid: #141726;
+  --panel-bg-translucent: rgba(20, 23, 38, 0.6);
+  --overlay-scrim: rgba(0, 0, 0, 0.8);
+
+  /* Surfaces */
+  --background: var(--slate-1);
+  --foreground: var(--slate-12);
+
+  --card: var(--slate-2);
+  --card-foreground: var(--slate-12);
+
+  --popover: var(--slate-2);
+  --popover-foreground: var(--slate-12);
+
+  /* Primary (Indigo) */
+  --primary: var(--indigo-9);
+  --primary-foreground: white;
+
+  /* Secondary */
+  --secondary: var(--slate-4);
+  --secondary-foreground: var(--slate-12);
+
+  /* Muted */
+  --muted: var(--slate-4);
+  --muted-foreground: var(--slate-9);
+
+  /* Accent */
+  --accent: var(--slate-4);
+  --accent-foreground: var(--slate-12);
+
+  /* Destructive */
+  --destructive: var(--red-9);
+  --destructive-foreground: rgb(250, 250, 249);
+
+  /* Border / Input / Ring */
+  --border: var(--slate-alpha-7);
+  --input: var(--slate-alpha-7);
+  --ring: var(--slate-8);
+
+  /* Charts */
+  --chart-1: var(--indigo-9);
+  --chart-2: var(--sky-9);
+  --chart-3: var(--green-9);
+  --chart-4: var(--amber-9);
+  --chart-5: var(--red-9);
+
+  /* Sidebar */
+  --sidebar: var(--slate-2);
+  --sidebar-foreground: var(--slate-12);
+  --sidebar-primary: var(--indigo-9);
+  --sidebar-primary-foreground: white;
+  --sidebar-accent: var(--slate-4);
+  --sidebar-accent-foreground: var(--slate-12);
+  --sidebar-border: var(--slate-alpha-7);
+  --sidebar-ring: var(--slate-8);
+}
+
+/* Desktop layouts reserve the sidebar gutter for sticky layout primitives. */
+@media (min-width: 768px) {
+  :root {
+    --app-sidebar-offset: var(--app-sidebar-width);
+  }
+}
+
+/* ─── 7. @layer base ─────────────────────────────────────────────────────── */
+
+@layer base {
+  /*
+    The default border color changed to `currentcolor` in Tailwind CSS v4.
+    These compatibility styles keep borders rendering as they did in v3.
+    Remove once all elements have an explicit border-color utility.
+  */
+  *,
+  ::after,
+  ::before,
+  ::backdrop,
+  ::file-selector-button {
+    border-color: var(--color-gray-200, currentcolor);
+  }
+
+  * {
+    @apply border-border outline-ring/50;
+  }
+
+  body {
+    @apply bg-background font-sans text-foreground antialiased;
+  }
+}
+
+/* ─── 8. @layer utilities — third-party overrides and custom animations ───── */
+
+@layer utilities {
+  /* react-day-picker */
+  .rdp {
+    --rdp-cell-size: 32px;
+    --rdp-accent-color: #0c6ff9;
+    --rdp-accent-color-dark: #065ecb;
+    --rdp-accent-color-hover: rgba(12, 111, 249, 0.2);
+    --rdp-background-color: #e7edff;
+  }
+
+  .rdp-day_selected,
+  .rdp-day_selected:focus-visible,
+  .rdp-day_selected:hover {
+    background-color: var(--rdp-accent-color);
+    color: white;
+  }
+
+  /* AI flagged CAPA row highlight */
+  .ai-flagged-row {
+    background-color: #fef3f3;
+    border-left: 2px solid #fca5a5;
+  }
+
+  /* Sparkle animations for AI Coach */
+  @keyframes float {
+    0% {
+      transform: translateY(0px);
+    }
+    50% {
+      transform: translateY(-10px);
+    }
+    100% {
+      transform: translateY(0px);
+    }
+  }
+
+  @keyframes pulse-glow {
+    0% {
+      opacity: 0.6;
+      transform: scale(0.95);
+    }
+    50% {
+      opacity: 1;
+      transform: scale(1.1);
+    }
+    100% {
+      opacity: 0.6;
+      transform: scale(0.95);
+    }
+  }
+
+  @keyframes pulse-subtle {
+    0% {
+      border-color: rgba(251, 146, 60, 0.5);
+    }
+    50% {
+      border-color: rgba(251, 146, 60, 0.9);
+    }
+    100% {
+      border-color: rgba(251, 146, 60, 0.5);
+    }
+  }
+
+  .sparkle-float {
+    animation: float 6s ease-in-out infinite;
+  }
+
+  .sparkle-glow {
+    animation: pulse-glow 2s ease-in-out infinite;
+  }
+
+  .animate-pulse-subtle {
+    animation: pulse-subtle 3s ease-in-out infinite;
+  }
+}
+
 
 @keyframes slideIn {
   from {

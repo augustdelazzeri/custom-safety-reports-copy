@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { useGuard1275 } from "@/src/contexts/Guard1275Context";
+import { useGuard1275 } from "@/contexts/Guard1275Context";
 import { ShieldAlert, Paperclip, MapPin, Box, Tag, AlertCircle, Globe, X, ChevronDown, Check, Plus, FileText, File } from "lucide-react";
 
 export function AdminView() {

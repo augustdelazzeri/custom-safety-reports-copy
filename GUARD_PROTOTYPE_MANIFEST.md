@@ -9,6 +9,8 @@ The following directories and files are part of isolated feature prototypes and 
 ## External Dependencies
 - `src/components/guard-1279/` (Used by GUARD-1279)
 - `src/components/Sidebar.tsx` (Shared dependency - verify changes against prototypes)
+- `src/components/Header.tsx` (Shared dependency - verify changes against prototypes)
+- `src/components/OnboardingWidget.tsx` (GUARD-1279 behavior - hides on /GUARD-1279 routes)
 
 ## Usage
 To view a prototype, navigate to `/[TASK-ID]` (e.g., `/GUARD-1298`). Each folder contains its own `README.md` with specific flow details.

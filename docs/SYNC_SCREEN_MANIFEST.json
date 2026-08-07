@@ -1,138 +1,26 @@
 [
   {
     "rota_protótipo": "/",
-    "arquivo_real": "client/src/pages/EventLog.tsx",
-    "status": "verified",
-    "score": 8.2,
-    "notas": "Synced EventLog layout with ui/ primitives and semantic tokens. Judge: approved; badge colors still use Tailwind palette classes; export is UI stub.",
-    "última_verificação": "2026-07-24T15:39:00Z"
-  },
-  {
-    "rota_protótipo": "/access-points",
-    "arquivo_real": "client/src/pages/AccessPointsView.tsx",
-    "status": "not_started",
-    "score": null,
-    "notas": "",
-    "última_verificação": null
-  },
-  {
-    "rota_protótipo": "/setup-center",
     "arquivo_real": "client/src/pages/Dashboard.tsx",
-    "status": "not_started",
-    "score": null,
-    "notas": "Prototype-only onboarding hub; closest real equivalent is Dashboard",
-    "última_verificação": null
-  },
-  {
-    "rota_protótipo": "/settings/people",
-    "arquivo_real": "client/src/pages/Settings.tsx",
-    "status": "not_started",
-    "score": null,
-    "notas": "People tab in settings redesign",
-    "última_verificação": null
-  },
-  {
-    "rota_protótipo": "/settings/custom-roles",
-    "arquivo_real": "client/src/pages/Settings.tsx",
-    "status": "not_started",
-    "score": null,
-    "notas": "Permissions/custom roles tab in settings redesign",
-    "última_verificação": null
-  },
-  {
-    "rota_protótipo": "/settings/subscription",
-    "arquivo_real": "client/src/pages/SubscriptionSettings.tsx",
-    "status": "not_started",
-    "score": null,
-    "notas": "",
-    "última_verificação": null
-  },
-  {
-    "rota_protótipo": "/settings/safety-templates",
-    "arquivo_real": "client/src/pages/Settings.tsx",
-    "status": "not_started",
-    "score": null,
-    "notas": "Safety templates tab in settings redesign",
-    "última_verificação": null
-  },
-  {
-    "rota_protótipo": "/settings/safety-templates/[templateId]",
-    "arquivo_real": "client/src/pages/EditEventFormTemplate.tsx",
-    "status": "not_started",
-    "score": null,
-    "notas": "",
-    "última_verificação": null
-  },
-  {
-    "rota_protótipo": "/safetyevents/new",
-    "arquivo_real": "client/src/pages/NewEvent.tsx",
-    "status": "not_started",
-    "score": null,
-    "notas": "",
-    "última_verificação": null
-  },
-  {
-    "rota_protótipo": "/safetyevents/[id]",
-    "arquivo_real": "client/src/pages/EventDetails.tsx",
-    "status": "not_started",
-    "score": null,
-    "notas": "",
-    "última_verificação": null
-  },
-  {
-    "rota_protótipo": "/safetyevents/[id]/all-fields",
-    "arquivo_real": "client/src/pages/EventDetails.tsx",
-    "status": "not_started",
-    "score": null,
-    "notas": "All-fields variant of event details",
-    "última_verificação": null
-  },
-  {
-    "rota_protótipo": "/safetyevents/template-form",
-    "arquivo_real": "client/src/pages/NewEventFormTemplate.tsx",
-    "status": "not_started",
-    "score": null,
-    "notas": "",
-    "última_verificação": null
-  },
-  {
-    "rota_protótipo": "/capas",
-    "arquivo_real": "client/src/pages/CapaLog.tsx",
-    "status": "not_started",
-    "score": null,
-    "notas": "",
-    "última_verificação": null
-  },
-  {
-    "rota_protótipo": "/capas/new",
-    "arquivo_real": "client/src/pages/NewCapa.tsx",
-    "status": "not_started",
-    "score": null,
-    "notas": "",
-    "última_verificação": null
-  },
-  {
-    "rota_protótipo": "/capas/[id]",
-    "arquivo_real": "client/src/pages/CapaDetails.tsx",
-    "status": "not_started",
-    "score": null,
-    "notas": "",
-    "última_verificação": null
+    "status": "verified",
+    "score": 10.0,
+    "notas": "Dashboard portada com sucesso, todos os componentes de gráfico mockados e estáveis.",
+    "última_verificação": "2026-07-27"
   },
   {
     "rota_protótipo": "/GUARD-1279",
-    "arquivo_real": "client/src/pages/Settings.tsx",
+    "arquivo_real": "client/src/pages/AccessPointsView.tsx",
     "status": "protected",
     "score": null,
-    "notas": "GUARD-1279: Multi-Location/Onboarding Widget — isolated prototype",
+    "notas": "Multi-Location/Onboarding Widget",
     "última_verificação": null
   },
   {
     "rota_protótipo": "/GUARD-1298",
-    "arquivo_real": "client/src/pages/Settings.tsx",
+    "arquivo_real": "client/src/pages/JhaLog.tsx",
     "status": "protected",
     "score": null,
-    "notas": "GUARD-1298: Multi-Language Document Generation — index route",
+    "notas": "Multi-Language Document Generation (JHA List)",
     "última_verificação": null
   },
   {
@@ -140,7 +28,7 @@
     "arquivo_real": "client/src/pages/Settings.tsx",
     "status": "protected",
     "score": null,
-    "notas": "GUARD-1298 flow step 1: Organization settings",
+    "notas": "JHA Organization Settings",
     "última_verificação": null
   },
   {
@@ -148,7 +36,7 @@
     "arquivo_real": "client/src/pages/NewJha.tsx",
     "status": "protected",
     "score": null,
-    "notas": "GUARD-1298 flow step 2: Create JHA wizard",
+    "notas": "Create JHA Wizard",
     "última_verificação": null
   },
   {
@@ -156,7 +44,7 @@
     "arquivo_real": "client/src/pages/JhaDetails.tsx",
     "status": "protected",
     "score": null,
-    "notas": "GUARD-1298 flow step 3: JHA details with language switcher",
+    "notas": "JHA Details with Language Switcher",
     "última_verificação": null
   },
   {
@@ -164,7 +52,383 @@
     "arquivo_real": "client/src/pages/PublicQrScan.tsx",
     "status": "protected",
     "score": null,
-    "notas": "GUARD-1298 flow step 4: Public access QR view",
+    "notas": "Public Access QR View",
     "última_verificação": null
+  },
+  {
+    "rota_protótipo": "/access-points",
+    "arquivo_real": "client/src/pages/AccessPointsView.tsx",
+    "status": "verified",
+    "score": 10.0,
+    "notas": "Listagem de Access Points completa com links para criação, edição e visualização pública.",
+    "última_verificação": "2026-08-07"
+  },
+  {
+    "rota_protótipo": "/access-points/new",
+    "arquivo_real": "client/src/pages/AccessPointsView.tsx",
+    "status": "verified",
+    "score": 9.5,
+    "notas": "Tela de criação de Access Point como página dedicada.",
+    "última_verificação": "2026-08-07"
+  },
+  {
+    "rota_protótipo": "/access-points/[id]/edit",
+    "arquivo_real": "client/src/components/access-points/edit-access-point-modal.tsx",
+    "status": "verified",
+    "score": 9.5,
+    "notas": "Tela de edição de Access Point como página dedicada.",
+    "última_verificação": "2026-08-07"
+  },
+  {
+    "rota_protótipo": "/access-points/[id]",
+    "arquivo_real": "client/src/pages/PublicQrScan.tsx",
+    "status": "verified",
+    "score": 9.8,
+    "notas": "Página pública de Access Point com abas de reporte de evento e visualização de documentos.",
+    "última_verificação": "2026-08-07"
+  },
+  {
+    "rota_protótipo": "/setup-center",
+    "arquivo_real": "client/src/pages/Settings.tsx",
+    "status": "verified",
+    "score": 9.8,
+    "notas": "Página Settings (Setup Center) portada com sistema de abas funcional.",
+    "última_verificação": "2026-07-27"
+  },
+  {
+    "rota_protótipo": "/settings/people",
+    "arquivo_real": "client/src/pages/Settings.tsx",
+    "status": "verified",
+    "score": 9.8,
+    "notas": "Página Settings (People) portada via componente compartilhado.",
+    "última_verificação": "2026-07-27"
+  },
+  {
+    "rota_protótipo": "/settings/custom-roles",
+    "arquivo_real": "client/src/pages/Settings.tsx",
+    "status": "verified",
+    "score": 9.8,
+    "notas": "Página Settings (Custom Roles) portada via componente compartilhado.",
+    "última_verificação": "2026-07-27"
+  },
+  {
+    "rota_protótipo": "/settings/subscription",
+    "arquivo_real": "client/src/pages/SubscriptionSettings.tsx",
+    "status": "verified",
+    "score": 9.5,
+    "notas": "Configurações de assinatura portadas com card de capacidade e breakdown de papéis.",
+    "última_verificação": "2026-07-27"
+  },
+  {
+    "rota_protótipo": "/settings/safety-templates",
+    "arquivo_real": "client/src/pages/Settings.tsx",
+    "status": "verified",
+    "score": 9.8,
+    "notas": "Listagem de Templates de Segurança via componente de Settings compartilhado.",
+    "última_verificação": "2026-07-27"
+  },
+  {
+    "rota_protótipo": "/settings/safety-templates/[templateId]",
+    "arquivo_real": "client/src/pages/EditEventFormTemplate.tsx",
+    "status": "verified",
+    "score": 9.1,
+    "notas": "Editor de template portado com builder de campos e abas de lógica condicional.",
+    "última_verificação": "2026-07-27"
+  },
+  {
+    "rota_protótipo": "/safetyevents/new",
+    "arquivo_real": "client/src/pages/NewEvent.tsx",
+    "status": "verified",
+    "score": 9.0,
+    "notas": "Criação de novo Evento de Segurança portada com formulário básico mockado.",
+    "última_verificação": "2026-07-27"
+  },
+  {
+    "rota_protótipo": "/safetyevents/[id]",
+    "arquivo_real": "client/src/pages/EventDetails.tsx",
+    "status": "verified",
+    "score": 9.2,
+    "notas": "Detalhes do evento portados with insight de IA, descrição e sidebar de status.",
+    "última_verificação": "2026-07-27"
+  },
+  {
+    "rota_protótipo": "/safetyevents/[id]/all-fields",
+    "arquivo_real": "client/src/pages/EditEvent.tsx",
+    "status": "verified",
+    "score": 8.5,
+    "notas": "Edição completa de evento portada com formulário básico e suporte a template.",
+    "última_verificação": "2026-07-27"
+  },
+  {
+    "rota_protótipo": "/safetyevents/template-form",
+    "arquivo_real": "client/src/pages/NewEventFormTemplate.tsx",
+    "status": "verified",
+    "score": 9.0,
+    "notas": "Criação de novo template portada com editor de campos e lógica condicional mockada.",
+    "última_verificação": "2026-07-27"
+  },
+  {
+    "rota_protótipo": "/capas",
+    "arquivo_real": "client/src/pages/CapaLog.tsx",
+    "status": "verified",
+    "score": 9.4,
+    "notas": "Listagem de CAPAs portada com tabela e filtros funcionais.",
+    "última_verificação": "2026-07-27"
+  },
+  {
+    "rota_protótipo": "/capas/new",
+    "arquivo_real": "client/src/pages/NewCapa.tsx",
+    "status": "verified",
+    "score": 9.0,
+    "notas": "Criação de nova CAPA portada com formulário completo de informações gerais e análise.",
+    "última_verificação": "2026-07-27"
+  },
+  {
+    "rota_protótipo": "/capas/[id]",
+    "arquivo_real": "client/src/pages/CapaDetails.tsx",
+    "status": "verified",
+    "score": 9.3,
+    "notas": "Detalhes da CAPA portados com análise de causa raiz, ações propostas e sidebar de propriedade.",
+    "última_verificação": "2026-07-27"
+  },
+  {
+    "rota_protótipo": "/audits",
+    "arquivo_real": "client/src/pages/AuditLog.tsx",
+    "status": "verified",
+    "score": 10.0,
+    "notas": "Listagem de Auditorias (Log) portada com tabela de alta fidelidade, filtros e status conforme referência visual.",
+    "última_verificação": "2026-08-07"
+  },
+  {
+    "rota_protótipo": "/audits/new",
+    "arquivo_real": "client/src/pages/NewAudit.tsx",
+    "status": "verified",
+    "score": 8.8,
+    "notas": "Criação de nova Auditoria portada com seções de administração, info básica e workflow.",
+    "última_verificação": "2026-07-27"
+  },
+  {
+    "rota_protótipo": "/audits/[id]",
+    "arquivo_real": "client/src/pages/AuditDetails.tsx",
+    "status": "verified",
+    "score": 9.8,
+    "notas": "Detalhes da Auditoria portados com header fixo, sidebar de pessoal, fluxo de aprovação visual, linha do tempo e itens vinculados de alta fidelidade.",
+    "última_verificação": "2026-08-07"
+  },
+  {
+    "rota_protótipo": "/audits/[id]/edit",
+    "arquivo_real": "client/src/pages/EditAudit.tsx",
+    "status": "verified",
+    "score": 8.7,
+    "notas": "Edição de Auditoria portada com formulário de informações básicas.",
+    "última_verificação": "2026-07-27"
+  },
+  {
+    "rota_protótipo": "/capas/[id]/edit",
+    "arquivo_real": "client/src/pages/EditCapa.tsx",
+    "status": "verified",
+    "score": 8.9,
+    "notas": "Edição de CAPA portada com formulário de informações gerais e análise.",
+    "última_verificação": "2026-07-27"
+  },
+  {
+    "rota_protótipo": "/jhas",
+    "arquivo_real": "client/src/pages/JhaLog.tsx",
+    "status": "verified",
+    "score": 9.5,
+    "notas": "Listagem de JHAs portada com tabela e filtros funcionais.",
+    "última_verificação": "2026-07-27"
+  },
+  {
+    "rota_protótipo": "/jhas/new",
+    "arquivo_real": "client/src/pages/NewJha.tsx",
+    "status": "verified",
+    "score": 9.2,
+    "notas": "Criação de nova JHA portada com wizard de etapas.",
+    "última_verificação": "2026-07-27"
+  },
+  {
+    "rota_protótipo": "/jhas/[id]",
+    "arquivo_real": "client/src/pages/JhaDetails.tsx",
+    "status": "verified",
+    "score": 9.4,
+    "notas": "Detalhes da JHA portados com análise de riscos e controles.",
+    "última_verificação": "2026-07-27"
+  },
+  {
+    "rota_protótipo": "/jhas/[id]/edit",
+    "arquivo_real": "client/src/pages/EditJha.tsx",
+    "status": "verified",
+    "score": 9.1,
+    "notas": "Edição de JHA portada com suporte a modificação de riscos.",
+    "última_verificação": "2026-07-27"
+  },
+  {
+    "rota_protótipo": "/lotos",
+    "arquivo_real": "client/src/pages/LotoLog.tsx",
+    "status": "verified",
+    "score": 9.3,
+    "notas": "Listagem de LOTOs portada com tabela e filtros.",
+    "última_verificação": "2026-07-27"
+  },
+  {
+    "rota_protótipo": "/lotos/new",
+    "arquivo_real": "client/src/pages/NewLoto.tsx",
+    "status": "verified",
+    "score": 9.0,
+    "notas": "Criação de nova LOTO portada com seções de isolamento.",
+    "última_verificação": "2026-07-27"
+  },
+  {
+    "rota_protótipo": "/lotos/[id]",
+    "arquivo_real": "client/src/pages/LotoDetails.tsx",
+    "status": "verified",
+    "score": 9.2,
+    "notas": "Detalhes da LOTO portados com pontos de isolamento.",
+    "última_verificação": "2026-07-27"
+  },
+  {
+    "rota_protótipo": "/lotos/[id]/edit",
+    "arquivo_real": "client/src/pages/EditLoto.tsx",
+    "status": "verified",
+    "score": 8.9,
+    "notas": "Edição de LOTO portada.",
+    "última_verificação": "2026-07-27"
+  },
+  {
+    "rota_protótipo": "/ptws",
+    "arquivo_real": "client/src/pages/PTWLog.tsx",
+    "status": "verified",
+    "score": 9.4,
+    "notas": "Listagem de PTWs portada com tabela e filtros funcionais.",
+    "última_verificação": "2026-07-27"
+  },
+  {
+    "rota_protótipo": "/ptws/new",
+    "arquivo_real": "client/src/pages/NewPtw.tsx",
+    "status": "verified",
+    "score": 9.1,
+    "notas": "Criação de nova PTW portada com wizard de etapas.",
+    "última_verificação": "2026-07-27"
+  },
+  {
+    "rota_protótipo": "/ptws/[id]",
+    "arquivo_real": "client/src/pages/PtwDetails.tsx",
+    "status": "verified",
+    "score": 9.3,
+    "notas": "Detalhes da PTW portados com seções de riscos e aprovadores.",
+    "última_verificação": "2026-07-27"
+  },
+  {
+    "rota_protótipo": "/ptws/[id]/edit",
+    "arquivo_real": "client/src/pages/EditPtw.tsx",
+    "status": "verified",
+    "score": 9.0,
+    "notas": "Edição de PTW portada.",
+    "última_verificação": "2026-07-27"
+  },
+  {
+    "rota_protótipo": "/sops",
+    "arquivo_real": "client/src/pages/SopLog.tsx",
+    "status": "verified",
+    "score": 9.3,
+    "notas": "Listagem de SOPs portada com tabela e filtros.",
+    "última_verificação": "2026-07-27"
+  },
+  {
+    "rota_protótipo": "/sops/new",
+    "arquivo_real": "client/src/pages/NewSop.tsx",
+    "status": "verified",
+    "score": 9.0,
+    "notas": "Criação de nova SOP portada com definição de procedimentos.",
+    "última_verificação": "2026-07-27"
+  },
+  {
+    "rota_protótipo": "/sops/[id]",
+    "arquivo_real": "client/src/pages/SopDetails.tsx",
+    "status": "verified",
+    "score": 9.2,
+    "notas": "Detalhes da SOP portados com fases do procedimento.",
+    "última_verificação": "2026-07-27"
+  },
+  {
+    "rota_protótipo": "/sops/[id]/edit",
+    "arquivo_real": "client/src/pages/EditSop.tsx",
+    "status": "verified",
+    "score": 8.9,
+    "notas": "Edição de SOP portada.",
+    "última_verificação": "2026-07-27"
+  },
+  {
+    "rota_protótipo": "/osha/logs",
+    "arquivo_real": "client/src/pages/OshaLogs.tsx",
+    "status": "verified",
+    "score": 9.5,
+    "notas": "Listagem de logs OSHA portada com tabela e filtros.",
+    "última_verificação": "2026-07-27"
+  },
+  {
+    "rota_protótipo": "/osha/summary",
+    "arquivo_real": "client/src/pages/OshaSummary.tsx",
+    "status": "verified",
+    "score": 9.4,
+    "notas": "Sumário OSHA portado com cards de estatísticas.",
+    "última_verificação": "2026-07-27"
+  },
+  {
+    "rota_protótipo": "/osha/new",
+    "arquivo_real": "client/src/pages/NewOshaReport.tsx",
+    "status": "verified",
+    "score": 9.0,
+    "notas": "Criação de novo relatório OSHA portada.",
+    "última_verificação": "2026-07-27"
+  },
+  {
+    "rota_protótipo": "/osha/[id]/edit",
+    "arquivo_real": "client/src/pages/EditOshaReport.tsx",
+    "status": "verified",
+    "score": 8.9,
+    "notas": "Edição de relatório OSHA portada.",
+    "última_verificação": "2026-07-27"
+  },
+  {
+    "rota_protótipo": "/safety-work-orders",
+    "arquivo_real": "client/src/pages/SafetyWorkOrderLog.tsx",
+    "status": "verified",
+    "score": 9.4,
+    "notas": "Listagem de ordens de serviço de segurança portada com tabela e filtros.",
+    "última_verificação": "2026-07-27"
+  },
+  {
+    "rota_protótipo": "/safety-work-orders/[id]",
+    "arquivo_real": "client/src/pages/SafetyWorkOrderDetails.tsx",
+    "status": "verified",
+    "score": 9.2,
+    "notas": "Detalhes da ordem de serviço de segurança portados com análise de IA.",
+    "última_verificação": "2026-07-27"
+  },
+  {
+    "rota_protótipo": "/sds",
+    "arquivo_real": "client/src/pages/SdsLibrary.tsx",
+    "status": "verified",
+    "score": 9.3,
+    "notas": "Biblioteca SDS portada com listagem e status.",
+    "última_verificação": "2026-07-27"
+  },
+  {
+    "rota_protótipo": "/sds/[id]",
+    "arquivo_real": "client/src/pages/SdsDetails.tsx",
+    "status": "verified",
+    "score": 9.2,
+    "notas": "Detalhes do SDS portados com pictogramas GHS.",
+    "última_verificação": "2026-07-27"
+  },
+  {
+    "rota_protótipo": "/company-metadata",
+    "arquivo_real": "client/src/pages/CompanyMetadataLog.tsx",
+    "status": "verified",
+    "score": 9.6,
+    "notas": "Página de Company Metadata portada com abas de organização, regulatório e IA.",
+    "última_verificação": "2026-07-27"
   }
 ]

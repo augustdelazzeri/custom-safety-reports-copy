@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { useGuard1275 } from "@/src/contexts/Guard1275Context";
+import { useGuard1275 } from "@/contexts/Guard1275Context";
 import { MapPin, Mic, Calendar, ChevronDown, X, FileText, Download, Eye, Check } from "lucide-react";
 
 export function PortalView() {

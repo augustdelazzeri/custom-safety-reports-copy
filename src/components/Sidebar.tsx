@@ -9,7 +9,6 @@ import React, { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useProfile } from "../contexts/ProfileContext";
-import { useOnboarding } from "../hooks/useOnboarding";
 import { 
   AlertTriangle, 
   Building2, 
@@ -40,7 +39,6 @@ export default function Sidebar() {
   const [hoveredIcon, setHoveredIcon] = useState<string | null>(null);
   const [collapsedSections, setCollapsedSections] = useState<string[]>([]);
   const { currentProfile } = useProfile();
-  const { style } = useOnboarding();
   
   const toggleSection = (id: string) => {
     setCollapsedSections(prev => 
@@ -51,38 +49,31 @@ export default function Sidebar() {
   const isSectionOpen = (id: string) => !collapsedSections.includes(id);
 
   const baseNavItems = [
-    ...(style === 'setup_center' ? [{ id: "onboarding", label: "ONBOARDING", items: [{ label: "Setup Center", icon: <ClipboardCheck className="size-5" />, href: "/setup-center" }] }] : []),
     { id: "safety-management", label: "SAFETY MANAGEMENT", items: [
+      { label: "Dashboard", icon: <LayoutDashboard className="size-5" />, href: "/" },
       { label: "Access Points", icon: <QrCode className="size-5" />, href: "/access-points" },
-      { label: "Safety Events", icon: <AlertTriangle className="size-5" />, href: "/" },
+      { label: "Safety Events", icon: <AlertTriangle className="size-5" />, href: "/events" },
       { label: "CAPAs", icon: <ClipboardCheck className="size-5" />, href: "/capas" },
     ]},
     { id: "osha", label: "OSHA", items: [
-      { label: "OSHA Log (Form 300)", icon: <FileBarChart className="size-5" />, href: "#" },
-      { label: "Summary (Form 300A)", icon: <Calendar className="size-5" />, href: "#" },
+      { label: "OSHA Log (Form 300)", icon: <FileBarChart className="size-5" />, href: "/osha/logs" },
+      { label: "Summary (Form 300A)", icon: <Calendar className="size-5" />, href: "/osha/summary" },
       { label: "Agency Reports", icon: <Building2 className="size-5" />, href: "#" },
     ]},
     { id: "documentation", label: "DOCUMENTATION", items: [
-      { label: "Job Hazard Analyses", icon: <HardHat className="size-5" />, href: "/jha" },
-      { label: "Standard Operating Procedures", icon: <ClipboardList className="size-5" />, href: "/sop" },
-      { label: "Lockout/Tagout", icon: <Lock className="size-5" />, href: "#" },
-      { label: "Permit to Work", icon: <FileBarChart className="size-5" />, href: "#" },
-      { label: "Audits & Inspections", icon: <Clipboard className="size-5" />, href: "#" },
-      { label: "SDS Library", icon: <FlaskConical className="size-5" />, href: "#" },
+      { label: "Job Hazard Analyses", icon: <HardHat className="size-5" />, href: "/jhas" },
+      { label: "Standard Operating Procedures", icon: <ClipboardList className="size-5" />, href: "/sops" },
+      { label: "Lockout/Tagout", icon: <Lock className="size-5" />, href: "/lotos" },
+      { label: "Permit to Work", icon: <FileBarChart className="size-5" />, href: "/ptws" },
+      { label: "Audits & Inspections", icon: <Clipboard className="size-5" />, href: "/audits" },
+      { label: "SDS Library", icon: <FlaskConical className="size-5" />, href: "/sds" },
     ]},
     { id: "safety-actions", label: "SAFETY ACTIONS", items: [
-      { label: "Safety Work Orders", icon: <ClipboardCheck className="size-5" />, href: "/work-orders" },
+      { label: "Safety Work Orders", icon: <ClipboardCheck className="size-5" />, href: "/safety-work-orders" },
     ]},
   ];
 
-  const navItems = currentProfile === 'global_admin' 
-    ? [
-        ...baseNavItems,
-        { id: "people-permissions", label: "PEOPLE & PERMISSIONS", items: [
-          { label: "User Management", icon: <Settings className="size-5" />, href: "/settings/people" },
-        ]}
-      ]
-    : baseNavItems;
+  const navItems = baseNavItems;
   
   const currentApp = "ehs" as "cmms" | "ehs";
 
@@ -169,20 +160,21 @@ export default function Sidebar() {
             {showAppSwitcher && (
               <>
                 <div className="fixed inset-0 z-10" onClick={closeAllPopups} />
-                <div className="absolute bottom-12 left-0 bg-white rounded-xl shadow-xl border border-gray-200 p-3 z-20 w-64 animate-in fade-in slide-in-from-bottom-2 duration-200">
-                  <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-3 px-1">Switch Application</p>
-                  <div className="flex gap-2">
-                    <div className="flex-1 flex flex-col items-center gap-2 p-3 rounded-xl border-2 border-gray-100 opacity-50 grayscale">
-                      <div className="w-10 h-10 bg-red-100 rounded-lg flex items-center justify-center text-red-600">
-                        <Settings className="size-6" />
-                      </div>
-                      <span className="text-[10px] font-bold text-gray-700 text-center leading-tight">Maintenance (CMMS)</span>
+                <div className="absolute bottom-12 left-0 bg-white rounded-xl shadow-xl border border-gray-200 p-2 z-20 w-48 animate-in fade-in slide-in-from-bottom-2 duration-200">
+                  <div className="flex flex-col gap-1">
+                    <div className="flex items-center gap-3 p-2 rounded-lg hover:bg-gray-50 cursor-pointer text-gray-700">
+                      <Settings className="size-4 text-red-500" />
+                      <span className="text-sm font-medium">Maintenance</span>
                     </div>
-                    <div className="flex-1 flex flex-col items-center gap-2 p-3 rounded-xl border-2 border-blue-500 bg-blue-50">
-                      <div className="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center text-white">
-                        <ShieldCheck className="size-6" />
-                      </div>
-                      <span className="text-[10px] font-bold text-blue-700 text-center leading-tight">Safety (EHS)</span>
+                    <div className="flex items-center gap-3 p-2 rounded-lg bg-blue-50 cursor-pointer text-blue-700">
+                      <ShieldCheck className="size-4 text-red-500" />
+                      <span className="text-sm font-medium">Safety</span>
+                    </div>
+                    <div className="flex items-center gap-3 p-2 rounded-lg hover:bg-gray-50 cursor-pointer text-gray-700">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="size-4 text-red-500">
+                        <path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20" />
+                      </svg>
+                      <span className="text-sm font-medium">Learn</span>
                     </div>
                   </div>
                 </div>
@@ -208,7 +200,7 @@ export default function Sidebar() {
 
             <div className="relative">
               <Link
-                href="/settings/organization"
+                href="/settings/people"
                 onClick={() => { setShowAppSwitcher(false); }}
                 className={`w-9 h-9 flex items-center justify-center rounded-lg transition-all duration-200 cursor-pointer ${
                   pathname.startsWith("/settings") && pathname !== "/settings/subscription"
