@@ -194,6 +194,44 @@ export const CaptureEventTab = ({ accessPoint }: any) => {
   );
 };
 
+export const DynamicScanTabs = ({
+  tabs,
+}: {
+  tabs: Array<{ id: string; label: string; component: React.ReactNode }>;
+}) => {
+  const [activeTab, setActiveTab] = useState<string>(tabs[0]?.id || '');
+
+  if (tabs.length === 1) {
+    return <div className="w-full">{tabs[0].component}</div>;
+  }
+
+  const current = tabs.find((t) => t.id === activeTab) || tabs[0];
+
+  return (
+    <div className="w-full space-y-6">
+      <div className="flex justify-center">
+        <div className="inline-flex p-1 bg-gray-100 rounded-xl border border-gray-200/80 gap-1">
+          {tabs.map((tab) => (
+            <button
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id)}
+              className={`px-4 py-1.5 text-xs font-semibold rounded-lg transition-all ${
+                (activeTab || tabs[0]?.id) === tab.id
+                  ? 'bg-white text-gray-900 shadow-xs font-bold'
+                  : 'text-gray-500 hover:text-gray-900'
+              }`}
+            >
+              {tab.label}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <div>{current?.component}</div>
+    </div>
+  );
+};
+
 export const BothTabs = ({ accessPoint }: any) => {
   const [activeTab, setActiveTab] = useState<'capture' | 'documents'>('capture');
 

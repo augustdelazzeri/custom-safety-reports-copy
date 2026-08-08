@@ -27,7 +27,9 @@ import {
   Layers,
   Clock,
   Settings,
-  ChevronRight
+  ChevronRight,
+  Check,
+  Copy
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
@@ -349,31 +351,71 @@ export const FormBuilder = ({ fields }: any) => {
   );
 };
 
-export const ConditionalLogicBuilder = ({ rules }: any) => {
+export const ConditionalLogicBuilder = ({ rules: initialRules }: any) => {
+  const [rulesList, setRulesList] = useState<any[]>(
+    initialRules?.length
+      ? initialRules
+      : [
+          {
+            id: 'l1',
+            whenField: 'Title',
+            operator: 'Is empty',
+            thenAction: 'Show',
+            targetFields: ['Body Part Affected', 'GPS Location'],
+          },
+        ]
+  );
   const [showNewRule, setShowNewRule] = useState(false);
+  const [selectedTargets, setSelectedFields] = useState<string[]>(['Body Part Affected']);
+
+  const handleDuplicateRule = (ruleToDup: any) => {
+    const newRule = {
+      ...ruleToDup,
+      id: `rule-${Date.now()}`,
+      targetFields: [...(ruleToDup.targetFields || [ruleToDup.targetField])],
+    };
+    setRulesList([...rulesList, newRule]);
+  };
+
+  const handleDeleteRule = (id: string) => {
+    setRulesList(rulesList.filter((r) => r.id !== id));
+  };
+
+  const handleAddRuleSubmit = () => {
+    const newRule = {
+      id: `rule-${Date.now()}`,
+      whenField: 'Title',
+      operator: 'Is empty',
+      thenAction: 'Show',
+      targetFields: selectedTargets,
+    };
+    setRulesList([...rulesList, newRule]);
+    setShowNewRule(false);
+  };
 
   return (
     <div className="flex-1 bg-gray-50/30 overflow-y-auto p-8">
       <div className="max-w-4xl mx-auto space-y-8">
-        <div className="space-y-1">
-          <h2 className="text-xl font-bold text-gray-900">Conditional Logic</h2>
-          <p className="text-sm text-gray-500">Define rules to show/hide fields or change validation based on form values</p>
+        <div className="flex items-center justify-between">
+          <div className="space-y-1">
+            <h2 className="text-xl font-bold text-gray-900">Conditional Logic</h2>
+            <p className="text-sm text-gray-500">Define rules to show/hide multiple fields based on form values</p>
+          </div>
+          <Button 
+            variant="outline" 
+            className="h-10 px-4 rounded-xl border-gray-200 text-gray-700 font-bold text-xs gap-2 bg-white shadow-2xs"
+            onClick={() => setShowNewRule(true)}
+          >
+            <Plus className="size-4 text-blue-600" />
+            Add Rule
+          </Button>
         </div>
 
         <div className="space-y-4">
-          <Button 
-            variant="outline" 
-            className="h-10 px-4 rounded-xl border-gray-200 text-gray-700 font-bold text-xs gap-2"
-            onClick={() => setShowNewRule(true)}
-          >
-            <Plus className="size-4" />
-            Add Rule
-          </Button>
-
           {showNewRule && (
             <Card className="border-2 border-blue-500 shadow-lg overflow-hidden animate-in zoom-in-95 duration-200">
               <CardHeader className="bg-white border-b py-3 px-6 flex flex-row items-center justify-between">
-                <CardTitle className="text-sm font-bold text-gray-900">New Rule</CardTitle>
+                <CardTitle className="text-sm font-bold text-gray-900">New Multi-Field Rule</CardTitle>
                 <Button variant="ghost" size="icon" className="size-8" onClick={() => setShowNewRule(false)}>
                   <X className="size-4 text-gray-400" />
                 </Button>
@@ -383,7 +425,7 @@ export const ConditionalLogicBuilder = ({ rules }: any) => {
                   <div className="space-y-4">
                     <div className="space-y-2">
                       <Label className="text-xs font-bold text-gray-500 uppercase tracking-tight">When this field</Label>
-                      <Select>
+                      <Select defaultValue="title">
                         <SelectTrigger className="h-10 rounded-xl border-gray-200">
                           <SelectValue placeholder="Select field..." />
                         </SelectTrigger>
@@ -395,21 +437,23 @@ export const ConditionalLogicBuilder = ({ rules }: any) => {
                     </div>
                     <div className="space-y-2">
                       <Label className="text-xs font-bold text-gray-500 uppercase tracking-tight">Operator</Label>
-                      <Select>
+                      <Select defaultValue="is_empty">
                         <SelectTrigger className="h-10 rounded-xl border-gray-200">
-                          <SelectValue placeholder="Select a field first" />
+                          <SelectValue placeholder="Select operator" />
                         </SelectTrigger>
                         <SelectContent>
                           <SelectItem value="is_empty">Is empty</SelectItem>
                           <SelectItem value="is_not_empty">Is not empty</SelectItem>
+                          <SelectItem value="equals">Equals Fail</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
                   </div>
+
                   <div className="space-y-4">
                     <div className="space-y-2">
                       <Label className="text-xs font-bold text-gray-500 uppercase tracking-tight">Then</Label>
-                      <Select>
+                      <Select defaultValue="show">
                         <SelectTrigger className="h-10 rounded-xl border-gray-200">
                           <SelectValue placeholder="Select action..." />
                         </SelectTrigger>
@@ -419,51 +463,97 @@ export const ConditionalLogicBuilder = ({ rules }: any) => {
                         </SelectContent>
                       </Select>
                     </div>
+
                     <div className="space-y-2">
-                      <Label className="text-xs font-bold text-gray-500 uppercase tracking-tight">This field</Label>
-                      <Select>
-                        <SelectTrigger className="h-10 rounded-xl border-gray-200">
-                          <SelectValue placeholder="Select field..." />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="body_part">Body Part Affected</SelectItem>
-                          <SelectItem value="gps">GPS Location</SelectItem>
-                        </SelectContent>
-                      </Select>
+                      <Label className="text-xs font-bold text-gray-500 uppercase tracking-tight">Apply to these fields (Multi-select)</Label>
+                      <div className="flex flex-wrap gap-2 pt-1">
+                        {['Body Part Affected', 'GPS Location', 'Injury Details', 'Supervisor Review'].map((fName) => {
+                          const isSel = selectedTargets.includes(fName);
+                          return (
+                            <button
+                              key={fName}
+                              type="button"
+                              onClick={() => {
+                                if (isSel) {
+                                  setSelectedFields(selectedTargets.filter((t) => t !== fName));
+                                } else {
+                                  setSelectedFields([...selectedTargets, fName]);
+                                }
+                              }}
+                              className={cn(
+                                "px-2.5 py-1 rounded-lg text-xs font-semibold border transition-all flex items-center gap-1.5",
+                                isSel
+                                  ? "bg-blue-50 border-blue-200 text-blue-700 font-bold"
+                                  : "bg-gray-50 border-gray-200 text-gray-600 hover:bg-gray-100"
+                              )}
+                            >
+                              {fName}
+                              {isSel && <Check className="size-3 text-blue-600" />}
+                            </button>
+                          );
+                        })}
+                      </div>
                     </div>
                   </div>
                 </div>
+
                 <div className="flex justify-end gap-3 mt-8 pt-6 border-t">
                   <Button variant="ghost" className="text-xs font-bold" onClick={() => setShowNewRule(false)}>Cancel</Button>
-                  <Button className="h-10 px-6 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold">Add Rule</Button>
+                  <Button onClick={handleAddRuleSubmit} className="h-10 px-6 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold">Add Multi-Field Rule</Button>
                 </div>
               </CardContent>
             </Card>
           )}
 
           <div className="space-y-3">
-            {rules?.map((rule: any) => (
-              <div key={rule.id} className="p-5 border border-gray-200 rounded-2xl bg-white shadow-2xs flex items-center justify-between group">
-                <div className="flex items-center gap-6">
-                  <div className="flex items-center gap-3">
-                    <span className="text-sm font-medium text-gray-500">When</span>
-                    <Badge variant="outline" className="h-7 px-3 rounded-lg border-gray-200 bg-gray-50 text-gray-900 font-bold">{rule.whenField}</Badge>
-                    <span className="text-sm font-bold text-blue-600 lowercase">{rule.operator}</span>
+            {rulesList.map((rule) => {
+              const targets = rule.targetFields || (rule.targetField ? [rule.targetField] : ['Body Part Affected']);
+
+              return (
+                <div key={rule.id} className="p-5 border border-gray-200 rounded-2xl bg-white shadow-2xs flex items-center justify-between group hover:border-gray-300 transition-all">
+                  <div className="flex items-center gap-6">
+                    <div className="flex items-center gap-3">
+                      <span className="text-xs font-bold uppercase text-gray-400 tracking-wider">When</span>
+                      <Badge variant="outline" className="h-7 px-3 rounded-lg border-gray-200 bg-gray-50 text-gray-900 font-bold">{rule.whenField}</Badge>
+                      <span className="text-xs font-bold text-blue-600 lowercase">{rule.operator}</span>
+                    </div>
+                    <ChevronRight className="size-4 text-gray-300" />
+                    <div className="flex items-center gap-3">
+                      <span className="text-xs font-bold uppercase text-gray-400 tracking-wider">Then</span>
+                      <span className="text-xs font-bold text-emerald-600">{rule.thenAction}</span>
+                      <div className="flex flex-wrap gap-1.5">
+                        {targets.map((tgt: string, idx: number) => (
+                          <Badge key={idx} variant="outline" className="h-7 px-2.5 rounded-lg border-blue-100 bg-blue-50/50 text-blue-900 font-bold text-xs">
+                            {tgt}
+                          </Badge>
+                        ))}
+                      </div>
+                    </div>
                   </div>
-                  <ChevronRight className="size-4 text-gray-300" />
-                  <div className="flex items-center gap-3">
-                    <span className="text-sm font-medium text-gray-500">Then</span>
-                    <span className="text-sm font-bold text-emerald-600">{rule.thenAction}</span>
-                    <Badge variant="outline" className="h-7 px-3 rounded-lg border-gray-200 bg-gray-50 text-gray-900 font-bold">{rule.targetField}</Badge>
+
+                  <div className="flex items-center gap-2">
+                    <Button 
+                      variant="ghost" 
+                      size="sm"
+                      onClick={() => handleDuplicateRule(rule)}
+                      className="h-8 px-2.5 text-xs font-bold text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded-lg gap-1.5"
+                    >
+                      <Copy className="size-3.5" /> Duplicate
+                    </Button>
+                    <Button 
+                      variant="ghost" 
+                      size="icon" 
+                      onClick={() => handleDeleteRule(rule.id)}
+                      className="size-8 text-gray-400 hover:text-red-500 rounded-lg"
+                    >
+                      <Trash2 className="size-4" />
+                    </Button>
                   </div>
                 </div>
-                <Button variant="ghost" size="icon" className="size-9 text-gray-400 opacity-0 group-hover:opacity-100 transition-opacity">
-                  <Trash2 className="size-4" />
-                </Button>
-              </div>
-            ))}
+              );
+            })}
 
-            {!rules?.length && !showNewRule && (
+            {!rulesList.length && !showNewRule && (
               <div className="py-20 flex flex-col items-center justify-center text-center space-y-4 bg-gray-50/50 rounded-3xl border-2 border-dashed border-gray-200">
                 <div className="size-16 bg-white rounded-2xl shadow-sm border border-gray-100 flex items-center justify-center">
                   <Settings className="size-8 text-gray-300 rotate-90" />

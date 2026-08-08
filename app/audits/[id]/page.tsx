@@ -39,11 +39,13 @@ import {
   AuditDetailsError
 } from '@/components/audit/details/mocks';
 import { trpc } from '@/providers/trpc';
-import { useRouter } from 'next/navigation';
+import { useRouter, useParams } from 'next/navigation';
 
-export default function AuditDetails({ params }: { params: { id: string } }) {
+export default function AuditDetails() {
   const router = useRouter();
-  const { data: audit, isLoading, error } = trpc.audit.getByInstanceId.useQuery({ id: params.id });
+  const routeParams = useParams();
+  const id = routeParams?.id as string;
+  const { data: audit, isLoading, error } = trpc.audit.getByInstanceId.useQuery({ id });
 
   if (isLoading || !audit) return <AuditDetailsLoading />;
   if (error) return <AuditDetailsError />;
@@ -130,11 +132,13 @@ export default function AuditDetails({ params }: { params: { id: string } }) {
                   description={audit.description}
                   locationName={audit.location?.name}
                 />
-                <LinkedItemsPanel 
-                  checklists={audit.checklists}
-                  workOrders={audit.workOrders}
-                  pms={audit.pms}
-                />
+                     <LinkedItemsPanel
+                       checklists={audit.checklists}
+                       workOrders={audit.workOrders}
+                       pms={audit.pms}
+                       auditId={audit.id}
+                       auditTitle={audit.title}
+                     />
               </div>
 
               <div className="lg:col-span-1 border border-gray-100 rounded-2xl bg-white p-6 shadow-2xs space-y-0 divide-y divide-gray-100">
