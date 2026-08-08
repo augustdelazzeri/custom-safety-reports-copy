@@ -7,6 +7,11 @@ import {
   EditEventFormTemplateLoading, 
   EditEventFormTemplateError 
 } from '@/components/event-form-template/mocks';
+import { 
+  InspectionChecklistBuilder, 
+  InspectionFillView 
+} from '@/components/inspection-template/mocks';
+import { saveInspectionTemplate } from '@/lib/inspectionStore';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -88,7 +93,11 @@ export default function EditEventFormTemplate() {
               </Button>
             </div>
           </div>
-          <TemplatePreview name={template.name} fields={template.fields} />
+          {template.type === 'inspection' ? (
+            <InspectionFillView template={template} onSubmit={() => setIsPreviewMode(false)} />
+          ) : (
+            <TemplatePreview name={template.name} fields={template.fields} />
+          )}
         </div>
       </div>
     );
@@ -157,38 +166,48 @@ export default function EditEventFormTemplate() {
             </div>
           </div>
 
-          <div className="px-6 bg-white">
-            <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-              <TabsList className="bg-transparent border-none p-0 h-11 gap-8">
-                <TabsTrigger 
-                  value="fields" 
-                  className="relative rounded-none border-b-2 border-transparent data-[state=active]:border-blue-600 data-[state=active]:bg-transparent data-[state=active]:text-blue-600 px-0 h-11 font-bold text-xs transition-all"
-                >
-                  Fields
-                </TabsTrigger>
-                <TabsTrigger 
-                  value="logic" 
-                  className="relative rounded-none border-b-2 border-transparent data-[state=active]:border-blue-600 data-[state=active]:bg-transparent data-[state=active]:text-blue-600 px-0 h-11 font-bold text-xs transition-all flex items-center gap-2"
-                >
-                  Logic
-                  <Badge className="bg-blue-600 text-white text-[9px] size-4 p-0 flex items-center justify-center rounded-full">
-                    {template.logic?.length || 0}
-                  </Badge>
-                </TabsTrigger>
-              </TabsList>
-            </Tabs>
-          </div>
         </div>
 
-        {/* Editor Tabs Content */}
-        <div className="flex-1 flex flex-col overflow-hidden">
-          <div className={activeTab === 'fields' ? "flex-1 flex flex-col overflow-hidden" : "hidden"}>
-            <FormBuilder fields={template.fields} />
+        {/* Editor Content */}
+        {template.type === 'inspection' ? (
+          <div className="flex-1 flex flex-col overflow-hidden">
+            <InspectionChecklistBuilder template={template} />
           </div>
-          <div className={activeTab === 'logic' ? "flex-1 flex flex-col overflow-hidden" : "hidden"}>
-            <ConditionalLogicBuilder rules={template.logic} />
-          </div>
-        </div>
+        ) : (
+          <>
+            <div className="px-6 bg-white border-t border-gray-100">
+              <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+                <TabsList className="bg-transparent border-none p-0 h-11 gap-8">
+                  <TabsTrigger 
+                    value="fields" 
+                    className="relative rounded-none border-b-2 border-transparent data-[state=active]:border-blue-600 data-[state=active]:bg-transparent data-[state=active]:text-blue-600 px-0 h-11 font-bold text-xs transition-all"
+                  >
+                    Fields
+                  </TabsTrigger>
+                  <TabsTrigger 
+                    value="logic" 
+                    className="relative rounded-none border-b-2 border-transparent data-[state=active]:border-blue-600 data-[state=active]:bg-transparent data-[state=active]:text-blue-600 px-0 h-11 font-bold text-xs transition-all flex items-center gap-2"
+                  >
+                    Logic
+                    <Badge className="bg-blue-600 text-white text-[9px] size-4 p-0 flex items-center justify-center rounded-full">
+                      {template.logic?.length || 0}
+                    </Badge>
+                  </TabsTrigger>
+                </TabsList>
+              </Tabs>
+            </div>
+
+            {/* Editor Tabs Content */}
+            <div className="flex-1 flex flex-col overflow-hidden">
+              <div className={activeTab === 'fields' ? "flex-1 flex flex-col overflow-hidden" : "hidden"}>
+                <FormBuilder fields={template.fields} />
+              </div>
+              <div className={activeTab === 'logic' ? "flex-1 flex flex-col overflow-hidden" : "hidden"}>
+                <ConditionalLogicBuilder rules={template.logic} />
+              </div>
+            </div>
+          </>
+        )}
       </div>
     </div>
   );

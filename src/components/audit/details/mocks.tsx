@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -20,9 +21,17 @@ import {
   LayoutDashboard,
   SlidersHorizontal,
   Layers,
-  Wrench
+  Wrench,
+  Sparkles,
+  ClipboardCheck,
+  Bot
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import {
+  listInspectionTemplatesForAudit,
+  createInspectionTemplateFromAudit,
+  InspectionTemplate
+} from '@/lib/inspectionStore';
 
 export const GeneralInformationPanel = ({ type, description, locationName }: any) => (
   <Card className="border-gray-200 rounded-xl shadow-2xs overflow-hidden">
@@ -53,13 +62,76 @@ export const GeneralInformationPanel = ({ type, description, locationName }: any
   </Card>
 );
 
-export const LinkedItemsPanel = ({ checklists, workOrders, pms }: any) => {
+export const LinkedItemsPanel = ({ checklists, workOrders, pms, auditId, auditTitle }: any) => {
+  const router = useRouter();
   const [isChecklistsOpen, setIsChecklistsOpen] = useState(true);
   const [isWorkOrdersOpen, setIsWorkOrdersOpen] = useState(true);
   const [isPMsOpen, setIsPMsOpen] = useState(true);
 
+  // Inspection Templates state (stored per audit)
+  const [inspectionTemplates, setInspectionTemplates] = useState<InspectionTemplate[]>([]);
+  const [isGeneratingAi, setIsGeneratingAi] = useState(false);
+  const [countdown, setCountdown] = useState(3);
+
+  useEffect(() => {
+    if (auditId) {
+      setInspectionTemplates(listInspectionTemplatesForAudit(auditId));
+    }
+  }, [auditId]);
+
+  const handleCreateInspection = () => {
+    setIsGeneratingAi(true);
+    setCountdown(3);
+
+    const interval = setInterval(() => {
+      setCountdown((prev) => {
+        if (prev <= 1) {
+          clearInterval(interval);
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+
+    setTimeout(() => {
+      clearInterval(interval);
+      const newTemplate = createInspectionTemplateFromAudit(auditId || 'a8', auditTitle || 'Audit');
+      setInspectionTemplates(listInspectionTemplatesForAudit(auditId || 'a8'));
+      setIsGeneratingAi(false);
+    }, 3200);
+  };
+
   return (
     <Card className="border-gray-200 rounded-xl shadow-2xs overflow-hidden">
+      {/* Ai Generating Modal / Popup */}
+      {isGeneratingAi && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-xs z-50 flex items-center justify-center p-4 animate-in fade-in duration-200">
+          <div className="bg-white rounded-2xl p-8 max-w-md w-full shadow-2xl border border-blue-100 text-center space-y-5 animate-in zoom-in-95 duration-200">
+            <div className="size-16 bg-blue-50 rounded-2xl border border-blue-100 flex items-center justify-center mx-auto text-blue-600 shadow-sm relative">
+              <Sparkles className="size-8 animate-pulse" />
+              <div className="absolute -top-1 -right-1 size-4 rounded-full bg-blue-600 animate-ping" />
+            </div>
+
+            <div className="space-y-2">
+              <Badge className="bg-blue-50 text-blue-600 border-blue-100 font-bold text-[10px] px-2.5 py-0.5 rounded-md uppercase tracking-wider">
+                AI Inspection Assistant
+              </Badge>
+              <h3 className="text-lg font-bold text-gray-900">Creating Inspection Template...</h3>
+              <p className="text-xs text-gray-500 leading-relaxed max-w-sm mx-auto">
+                Artificial intelligence is analyzing your audit file and generating a simplified inspection template for factory workers.
+              </p>
+            </div>
+
+            <div className="pt-2 flex flex-col items-center gap-2">
+              <div className="size-10 border-3 border-blue-600 border-t-transparent rounded-full animate-spin" />
+              <p className="text-xs font-semibold text-gray-400">
+                Closing in <span className="font-bold text-blue-600 text-sm">{countdown}</span> seconds...
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+
       <CardHeader 
         className="bg-gray-50/30 border-b border-gray-100 py-3 px-6 cursor-pointer flex flex-row items-center justify-between"
         onClick={() => setIsChecklistsOpen(!isChecklistsOpen)}
@@ -74,6 +146,73 @@ export const LinkedItemsPanel = ({ checklists, workOrders, pms }: any) => {
       </CardHeader>
       
       <CardContent className={cn("p-0 divide-y divide-gray-100", !isChecklistsOpen && "hidden")}>
+        {/* Inspection Templates (New Category) */}
+        <div className="p-6 space-y-4 bg-blue-50/20">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <div className="p-1 bg-blue-100 rounded-md text-blue-600">
+                <Sparkles className="size-3.5" />
+              </div>
+              <h4 className="text-sm font-bold text-gray-900">Inspection Templates</h4>
+            </div>
+            <div className="flex items-center gap-2">
+              <Button
+                size="sm"
+                onClick={handleCreateInspection}
+                disabled={isGeneratingAi}
+                className="h-8 px-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-bold shadow-sm gap-1.5"
+              >
+                <Sparkles className="size-3.5" />
+                Create Inspection
+              </Button>
+            </div>
+          </div>
+
+          {inspectionTemplates.length > 0 ? (
+            <div className="space-y-3">
+              {inspectionTemplates.map((item) => (
+                <div 
+                  key={item.id} 
+                  onClick={() => router.push(`/settings/safety-templates/${item.id}`)}
+                  className="p-4 border border-blue-200 bg-white hover:border-blue-400 hover:bg-blue-50/30 transition-all rounded-xl shadow-2xs cursor-pointer flex items-center justify-between group"
+                >
+                  <div className="flex items-center gap-3.5">
+                    <div className="size-9 rounded-lg bg-blue-50 text-blue-600 border border-blue-100 flex items-center justify-center font-bold">
+                      <ClipboardCheck className="size-5" />
+                    </div>
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <h5 className="text-xs font-bold text-gray-900 group-hover:text-blue-600 transition-colors">
+                          {item.name}
+                        </h5>
+                        <Badge className="bg-blue-50 text-blue-600 border-blue-100 text-[9px] font-bold px-1.5 py-0 h-4 rounded-md gap-1">
+                          <Bot className="size-2.5" /> AI Generated
+                        </Badge>
+                      </div>
+                      <p className="text-[11px] text-gray-500 mt-0.5">
+                        {item.tasks.length} Inspection Tasks • Simplifies floor inspection from Access Points
+                      </p>
+                    </div>
+                  </div>
+                  <ChevronRight className="size-4 text-gray-400 group-hover:text-blue-600 transition-colors" />
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="py-8 border-2 border-dashed border-blue-200/60 rounded-xl bg-white/60 flex flex-col items-center justify-center text-center space-y-2">
+              <div className="size-9 bg-blue-50 text-blue-500 rounded-lg flex items-center justify-center">
+                <Sparkles className="size-4" />
+              </div>
+              <div className="space-y-0.5">
+                <p className="text-xs font-bold text-gray-900">No Inspection Templates Linked</p>
+                <p className="text-[11px] text-gray-500">
+                  Click "Create Inspection" to generate an AI-assisted checklist for floor workers.
+                </p>
+              </div>
+            </div>
+          )}
+        </div>
+
         {/* Checklist Templates */}
         <div className="p-6 space-y-4">
           <div className="flex items-center justify-between">

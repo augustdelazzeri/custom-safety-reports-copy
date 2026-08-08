@@ -200,6 +200,26 @@ export default function NewAccessPointPage() {
               </div>
             </div>
 
+            {/* Section 2.5: Inspection Templates */}
+            <div className="bg-white border border-gray-200 rounded-xl p-6 shadow-sm space-y-4 border-l-4 border-l-blue-500">
+              <div>
+                <h2 className="text-base font-bold text-gray-900 flex items-center gap-2">
+                  Inspection Templates
+                  <span className="text-[10px] font-bold text-blue-600 bg-blue-50 border border-blue-100 px-2 py-0.5 rounded-full">New</span>
+                </h2>
+                <p className="text-xs text-gray-500 mt-1">Select floor inspection checklists created via AI or Safety Templates for this access point.</p>
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="text-xs font-semibold text-gray-700">Linked Inspection Checklists</label>
+                <select className="w-full h-10 px-3 border border-gray-200 rounded-lg text-sm text-gray-700 bg-white focus:outline-none">
+                  <option value="">Select AI or floor inspection templates...</option>
+                  <option value="all">All AI Inspection Templates Linked</option>
+                </select>
+                <p className="text-[11px] text-gray-400 mt-1">Inspection checklists will open in the new "Inspection" tab on scan.</p>
+              </div>
+            </div>
+
             {/* Section 3: Notifications */}
             <div className="bg-white border border-gray-200 rounded-xl p-6 shadow-sm space-y-4">
               <div>

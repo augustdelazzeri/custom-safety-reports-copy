@@ -35,6 +35,8 @@ import {
 import { trpc } from '@/providers/trpc';
 import { useRouter } from 'next/navigation';
 import { SettingsTabs } from '@/components/settings/settings-tabs';
+import { deleteInspectionTemplate } from '@/lib/inspectionStore';
+import { toast } from 'sonner';
 
 export default function SafetyTemplatesList() {
   const router = useRouter();
@@ -121,17 +123,26 @@ export default function SafetyTemplatesList() {
                       </TableRow>
                     ) : templates?.map((template: any) => (
                       <TableRow key={template.id} className="hover:bg-gray-50/50 group cursor-pointer" onClick={() => router.push(`/settings/safety-templates/${template.id}`)}>
-                        <TableCell className="py-3 font-bold text-gray-900 text-xs">{template.name}</TableCell>
+                        <TableCell className="py-3 font-bold text-gray-900 text-xs">
+                          <div className="flex items-center gap-2">
+                            <span>{template.name}</span>
+                            {template.type === 'inspection' && (
+                              <Badge className="bg-blue-50 text-blue-600 border-blue-100 text-[9px] font-bold px-1.5 py-0 h-4 rounded-md">
+                                Inspection
+                              </Badge>
+                            )}
+                          </div>
+                        </TableCell>
                         <TableCell className="text-gray-600 text-xs">
                           <div className="flex items-center gap-1.5">
                             <Layout className="size-3 text-gray-400" />
-                            {template.fieldsCount}
+                            {template.type === 'inspection' ? `${template.tasks?.length || template.fieldsCount} tasks` : template.fieldsCount}
                           </div>
                         </TableCell>
                         <TableCell className="text-gray-600 text-xs">
                           <div className="flex items-center gap-1.5">
                             <SettingsIcon className="size-3 text-gray-400 rotate-90" />
-                            {template.conditionsCount}
+                            {template.type === 'inspection' ? '-' : template.conditionsCount}
                           </div>
                         </TableCell>
                         <TableCell className="text-gray-600 text-xs font-medium">{template.createdBy}</TableCell>
@@ -151,7 +162,19 @@ export default function SafetyTemplatesList() {
                                 <Copy className="size-3.5 text-gray-400" /> Duplicate
                               </DropdownMenuItem>
                               <div className="h-px bg-gray-100 my-1 mx-1" />
-                              <DropdownMenuItem className="rounded-lg gap-2 text-xs font-semibold py-2 text-red-600 focus:text-red-600 focus:bg-red-50">
+                              <DropdownMenuItem 
+                                className="rounded-lg gap-2 text-xs font-semibold py-2 text-red-600 focus:text-red-600 focus:bg-red-50"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  if (template.type === 'inspection') {
+                                    deleteInspectionTemplate(template.id);
+                                    toast.success('Inspection template deleted');
+                                    window.location.reload();
+                                  } else {
+                                    toast.success('Template archived/deleted');
+                                  }
+                                }}
+                              >
                                 <Trash2 className="size-3.5" /> Delete
                               </DropdownMenuItem>
                             </DropdownMenuContent>
