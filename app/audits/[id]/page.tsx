@@ -38,6 +38,7 @@ import {
   AuditDetailsLoading,
   AuditDetailsError
 } from '@/components/audit/details/mocks';
+import { DocumentExecutionBlock } from '@/components/execution/DocumentExecutionBlock';
 import { trpc } from '@/providers/trpc';
 import { useRouter, useParams } from 'next/navigation';
 
@@ -125,9 +126,12 @@ export default function AuditDetails() {
           </div>
 
           <div className="mx-auto max-w-[1400px] px-6 py-8">
+            <div className="mb-8">
+              <DocumentExecutionBlock docType="audit" docId={audit.id} docTitle={audit.title} />
+            </div>
             <div className="grid grid-cols-1 gap-8 lg:grid-cols-3 items-start">
               <div className="lg:col-span-2 space-y-6">
-                <GeneralInformationPanel 
+                <GeneralInformationPanel
                   type={audit.type} 
                   description={audit.description}
                   locationName={audit.location?.name}

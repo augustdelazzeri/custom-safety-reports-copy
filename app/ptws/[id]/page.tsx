@@ -18,20 +18,20 @@ import {
   Calendar, 
   ArrowLeft
 } from 'lucide-react';
-import { 
+import {
   GeneralInformationPanel,
   HazardsAndControlsPanel,
-  PtwChecklistPanel,
   PtwPersonnelSection,
   PtwLoading,
   PtwError
 } from '@/components/ptw/mocks';
-import { 
+import {
   DetailSidebar,
   ApproversSection,
   LocationAndAssetsSection,
   TimelineSection
 } from '@/components/audit/details/mocks';
+import { DocumentExecutionBlock } from '@/components/execution/DocumentExecutionBlock';
 import { trpc } from '@/providers/trpc';
 import { useRouter } from 'next/navigation';
 
@@ -99,17 +99,19 @@ export default function PtwDetails({ params }: { params: { id: string } }) {
           </div>
 
           <div className="mx-auto max-w-[1400px] px-6 py-8">
+            <div className="mb-8">
+              <DocumentExecutionBlock docType="ptw" docId={ptw.id} docTitle={ptw.title} />
+            </div>
             <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
               <div className="lg:col-span-2 space-y-8">
-                <GeneralInformationPanel 
-                  type={ptw.type} 
+                <GeneralInformationPanel
+                  type={ptw.type}
                   startDate={ptw.startDate}
                   endDate={ptw.endDate}
                   scope={ptw.scope}
                   emergencyContact={ptw.emergencyContact}
                 />
                 <HazardsAndControlsPanel />
-                <PtwChecklistPanel />
               </div>
 
               <DetailSidebar>

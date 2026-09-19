@@ -30,10 +30,8 @@ import {
   JhaDetailsError,
   JhaVersionHistory
 } from '@/components/jha/details-mocks';
-import { 
+import {
   GeneralInformationPanel,
-  ChecklistPanel,
-  WorkOrderPanel,
   DetailSidebar,
   AuditPersonnelSection,
   ApproversSection,
@@ -41,6 +39,7 @@ import {
   TimelineSection
 } from '@/components/audit/details/mocks';
 import { JhaRiskLevelBadge, JhaRiskScoreBadge } from '@/components/jha/risk-mocks';
+import { DocumentExecutionBlock } from '@/components/execution/DocumentExecutionBlock';
 import { trpc } from '@/providers/trpc';
 import { useRouter } from 'next/navigation';
 
@@ -108,6 +107,9 @@ export default function JhaDetails({ params }: { params: { id: string } }) {
           </div>
 
           <div className="mx-auto max-w-[1400px] px-6 py-8">
+            <div className="mb-8">
+              <DocumentExecutionBlock docType="jha" docId={jha.id} docTitle={jha.title} />
+            </div>
             <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
               <div className="lg:col-span-2 space-y-8">
                 {/* Steps Section */}
@@ -164,13 +166,11 @@ export default function JhaDetails({ params }: { params: { id: string } }) {
                   </div>
                 </Card>
 
-                <GeneralInformationPanel 
-                  type={jha.type} 
+                <GeneralInformationPanel
+                  type={jha.type}
                   description={jha.description}
                   locationName={jha.location?.name}
                 />
-                <ChecklistPanel />
-                <WorkOrderPanel />
               </div>
 
               <DetailSidebar>

@@ -6,6 +6,7 @@ import { CAPAProvider } from "../contexts/CAPAContext";
 import { SafetyEventProvider } from "../contexts/SafetyEventContext";
 import { AccessPointProvider } from "../contexts/AccessPointContext";
 import { Guard1275Provider } from "../contexts/Guard1275Context";
+import { ExecutionProvider } from "../contexts/ExecutionContext";
 
 export function Providers({ children }: { children: ReactNode }) {
   return (
@@ -14,7 +15,9 @@ export function Providers({ children }: { children: ReactNode }) {
         <AccessPointProvider>
           <CAPAProvider>
             <Guard1275Provider>
-              {children}
+              <ExecutionProvider>
+                {children}
+              </ExecutionProvider>
             </Guard1275Provider>
           </CAPAProvider>
         </AccessPointProvider>
