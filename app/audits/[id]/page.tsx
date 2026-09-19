@@ -39,6 +39,11 @@ import {
   AuditDetailsError
 } from '@/components/audit/details/mocks';
 import { DocumentExecutionBlock } from '@/components/execution/DocumentExecutionBlock';
+import { SplitScreenVariant } from '@/components/execution/variants/SplitScreenVariant';
+import { StepperVariant } from '@/components/execution/variants/StepperVariant';
+import { TabsVariant } from '@/components/execution/variants/TabsVariant';
+import { CompactBarVariant } from '@/components/execution/variants/CompactBarVariant';
+import { InterfaceVariantPicker, useInterfaceVariant } from '@/components/execution/InterfaceVariantPicker';
 import { trpc } from '@/providers/trpc';
 import { useRouter, useParams } from 'next/navigation';
 
@@ -47,6 +52,7 @@ export default function AuditDetails() {
   const routeParams = useParams();
   const id = routeParams?.id as string;
   const { data: audit, isLoading, error } = trpc.audit.getByInstanceId.useQuery({ id });
+  const { variant, setVariant } = useInterfaceVariant();
 
   if (isLoading || !audit) return <AuditDetailsLoading />;
   if (error) return <AuditDetailsError />;
@@ -111,6 +117,7 @@ export default function AuditDetails() {
               </div>
 
               <div className="flex items-center gap-2 pt-2 md:pt-0">
+                <InterfaceVariantPicker variant={variant} onChange={setVariant} />
                 <Button size="sm" variant="outline" className="h-9 px-4 rounded-xl text-xs font-bold border-gray-200 text-gray-700 hover:bg-gray-50 shadow-2xs">
                   Submit for Review
                 </Button>
@@ -127,7 +134,31 @@ export default function AuditDetails() {
 
           <div className="mx-auto max-w-[1400px] px-6 py-8">
             <div className="mb-8">
-              <DocumentExecutionBlock docType="audit" docId={audit.id} docTitle={audit.title} />
+              {variant === 'top-blocks' && (
+                <DocumentExecutionBlock docType="audit" docId={audit.id} docTitle={audit.title} />
+              )}
+              {variant === 'split-screen' && (
+                <SplitScreenVariant docType="audit" docId={audit.id} docTitle={audit.title} />
+              )}
+              {variant === 'stepper' && (
+                <StepperVariant docType="audit" docId={audit.id} docTitle={audit.title} />
+              )}
+              {variant === 'tabs' && (
+                <TabsVariant
+                  docType="audit"
+                  docId={audit.id}
+                  docTitle={audit.title}
+                  summary={{
+                    description: audit.description,
+                    ownerName: audit.owner?.fullName,
+                    status: audit.status,
+                    locationName: audit.location?.name,
+                  }}
+                />
+              )}
+              {variant === 'compact-bar' && (
+                <CompactBarVariant docType="audit" docId={audit.id} docTitle={audit.title} />
+              )}
             </div>
             <div className="grid grid-cols-1 gap-8 lg:grid-cols-3 items-start">
               <div className="lg:col-span-2 space-y-6">

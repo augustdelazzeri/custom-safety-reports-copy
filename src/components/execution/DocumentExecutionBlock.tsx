@@ -1,24 +1,14 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React from "react";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { Switch } from "@/components/ui/switch";
 import { ClipboardCheck, Star, Wrench, CalendarClock, Plus, Bot, UserCog } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { ExecutionDocType, useExecution } from "@/contexts/ExecutionContext";
+import { ExecutionDocType } from "@/contexts/ExecutionContext";
+import { useDocumentExecution } from "@/hooks/useDocumentExecution";
+import { CreateExecutionModal } from "@/components/execution/CreateExecutionModal";
 
 interface DocumentExecutionBlockProps {
   docType: ExecutionDocType;
@@ -27,39 +17,22 @@ interface DocumentExecutionBlockProps {
 }
 
 export function DocumentExecutionBlock({ docType, docId, docTitle }: DocumentExecutionBlockProps) {
-  const { getChecklists, getWorkItems, ensureAutoChecklist, setPrimaryChecklist, suggestRecurring, createWorkItem } =
-    useExecution();
-
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [description, setDescription] = useState("");
-  const [recurring, setRecurring] = useState(false);
-  const [dueDate, setDueDate] = useState("");
-
-  useEffect(() => {
-    if (docId && docTitle) ensureAutoChecklist(docType, docId, docTitle);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [docType, docId, docTitle]);
-
-  const checklists = getChecklists(docType, docId);
-  const workItems = getWorkItems(docType, docId);
-  const primaryChecklist = checklists.find((c) => c.isPrimary) ?? checklists[0];
-
-  const openCreateModal = () => {
-    setDescription(`Execute ${docTitle}`);
-    setRecurring(suggestRecurring(docType));
-    setDueDate(new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10));
-    setIsModalOpen(true);
-  };
-
-  const handleCreate = () => {
-    createWorkItem(docType, docId, docTitle, {
-      description,
-      recurring,
-      priority: "P2",
-      dueDate,
-    });
-    setIsModalOpen(false);
-  };
+  const {
+    checklists,
+    workItems,
+    primaryChecklist,
+    setPrimaryChecklist,
+    isModalOpen,
+    setIsModalOpen,
+    description,
+    setDescription,
+    recurring,
+    setRecurring,
+    dueDate,
+    setDueDate,
+    openCreateModal,
+    handleCreate,
+  } = useDocumentExecution(docType, docId, docTitle);
 
   return (
     <Card className="border-blue-100 bg-gradient-to-b from-blue-50/40 to-white rounded-2xl shadow-2xs overflow-hidden">
@@ -124,7 +97,7 @@ export function DocumentExecutionBlock({ docType, docId, docTitle }: DocumentExe
                   </div>
                   {!c.isPrimary && (
                     <button
-                      onClick={() => setPrimaryChecklist(docType, docId, c.id)}
+                      onClick={() => setPrimaryChecklist(c.id)}
                       className="text-[10px] font-bold text-blue-600 hover:underline shrink-0"
                     >
                       Make primary
@@ -180,49 +153,18 @@ export function DocumentExecutionBlock({ docType, docId, docTitle }: DocumentExe
         </div>
       </div>
 
-      <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle>Create execution for {docTitle}</DialogTitle>
-            <DialogDescription>
-              This creates the work order (or PM, if recurring) directly in Safety and links it to this document
-              automatically — no need to go to the CMMS.
-            </DialogDescription>
-          </DialogHeader>
-
-          <div className="space-y-4">
-            <div className="space-y-1.5">
-              <Label htmlFor="exec-desc">Description</Label>
-              <Textarea id="exec-desc" value={description} onChange={(e) => setDescription(e.target.value)} rows={2} />
-            </div>
-
-            <div className="flex items-center justify-between rounded-lg border border-gray-200 p-3">
-              <div className="space-y-0.5">
-                <Label htmlFor="exec-recurring">This repeats on a schedule</Label>
-                <p className="text-[11px] text-gray-400">
-                  {recurring ? "Creates a Preventive Maintenance" : "Creates a one-time Work Order"}
-                  {" · suggested based on this document type"}
-                </p>
-              </div>
-              <Switch id="exec-recurring" checked={recurring} onCheckedChange={setRecurring} />
-            </div>
-
-            <div className="space-y-1.5">
-              <Label htmlFor="exec-due">{recurring ? "First due date" : "Due date"}</Label>
-              <Input id="exec-due" type="date" value={dueDate} onChange={(e) => setDueDate(e.target.value)} />
-            </div>
-          </div>
-
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setIsModalOpen(false)}>
-              Cancel
-            </Button>
-            <Button onClick={handleCreate} className="bg-blue-600 hover:bg-blue-700 text-white">
-              {recurring ? "Create PM" : "Create Work Order"}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      <CreateExecutionModal
+        docTitle={docTitle}
+        isOpen={isModalOpen}
+        onOpenChange={setIsModalOpen}
+        description={description}
+        onDescriptionChange={setDescription}
+        recurring={recurring}
+        onRecurringChange={setRecurring}
+        dueDate={dueDate}
+        onDueDateChange={setDueDate}
+        onCreate={handleCreate}
+      />
 
       {primaryChecklist && (
         <div className="px-6 pb-5 pt-1">
