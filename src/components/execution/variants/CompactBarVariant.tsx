@@ -40,9 +40,17 @@ export function CompactBarVariant({ docType, docId, docTitle }: Props) {
 
   return (
     <Card className="border-gray-200 rounded-xl shadow-2xs overflow-hidden">
-      <button
+      <div
+        role="button"
+        tabIndex={0}
         onClick={() => setIsExpanded(!isExpanded)}
-        className="w-full flex items-center justify-between px-5 py-3 hover:bg-gray-50/50 transition-colors"
+        onKeyDown={(e) => {
+          if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault();
+            setIsExpanded(!isExpanded);
+          }
+        }}
+        className="w-full flex items-center justify-between px-5 py-3 hover:bg-gray-50/50 transition-colors cursor-pointer"
       >
         <div className="flex items-center gap-4 text-xs font-bold">
           <span
@@ -80,7 +88,7 @@ export function CompactBarVariant({ docType, docId, docTitle }: Props) {
           )}
           {isExpanded ? <ChevronUp className="size-4 text-gray-400" /> : <ChevronDown className="size-4 text-gray-400" />}
         </div>
-      </button>
+      </div>
 
       {isExpanded && (
         <div className="border-t border-gray-100 p-5 grid grid-cols-1 md:grid-cols-2 gap-4 bg-gray-50/30">
