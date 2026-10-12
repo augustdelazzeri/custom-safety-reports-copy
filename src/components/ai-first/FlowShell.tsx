@@ -106,7 +106,8 @@ export function FlowShell<T extends string>(props: FlowShellProps<T>) {
           <div
             onClickCapture={onClickCapture}
             className={cn(
-              "relative h-full w-full bg-white overflow-hidden",
+              // translateZ makes this the containing block for position:fixed, so sheets stay inside the phone
+              "relative h-full w-full bg-white overflow-hidden [transform:translateZ(0)]",
               "md:w-[390px] md:max-h-[800px] md:rounded-[44px] md:border-[10px] md:border-gray-900 md:shadow-2xl"
             )}
           >
