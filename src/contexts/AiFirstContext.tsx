@@ -4,7 +4,7 @@
 // a report from P1/P10/P7 shows up in the supervisor queue (P8), which opens the action plan (P3).
 // Persisted in localStorage; "Reset prototype data" restores the seed.
 
-import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
+import React, { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
 import type { Capa, InboxItem, Report, WorkOrder } from "@/lib/ai-first/types";
 import { SEED_INBOX, SEED_REPORT, SEED_WORK_ORDERS } from "@/lib/ai-first/sample-data";
 
@@ -42,6 +42,11 @@ const AiFirstContext = createContext<AiFirstContextValue | null>(null);
 export function AiFirstProvider({ children }: { children: React.ReactNode }) {
   const [state, setState] = useState<AiFirstState>(seedState);
   const [loaded, setLoaded] = useState(false);
+  // Counters live in refs so several records created in one click get distinct ids.
+  const counters = useRef({ report: state.nextId, capa: state.capas.length, wo: state.workOrders.length });
+  useEffect(() => {
+    counters.current = { report: state.nextId, capa: state.capas.length, wo: state.workOrders.length };
+  }, [state.nextId, state.capas.length, state.workOrders.length]);
 
   useEffect(() => {
     try {
@@ -63,7 +68,8 @@ export function AiFirstProvider({ children }: { children: React.ReactNode }) {
   }, [state, loaded]);
 
   const addReport = useCallback((input: Omit<Report, "id" | "createdAt">) => {
-    const created: Report = { ...input, id: `R-${state.nextId}`, createdAt: new Date().toISOString() };
+    const created: Report = { ...input, id: `R-${counters.current.report}`, createdAt: new Date().toISOString() };
+    counters.current.report += 1;
     setState((s) => {
       const inboxItem: InboxItem = {
         id: `i-${created.id}`,
@@ -80,10 +86,10 @@ export function AiFirstProvider({ children }: { children: React.ReactNode }) {
         needsPerson: true,
         reportId: created.id,
       };
-      return { ...s, reports: [created, ...s.reports], inbox: [inboxItem, ...s.inbox], nextId: s.nextId + 1 };
+      return { ...s, reports: [created, ...s.reports], inbox: [inboxItem, ...s.inbox], nextId: Math.max(s.nextId, counters.current.report) };
     });
     return created;
-  }, [state.nextId]);
+  }, []);
 
   const updateReport = useCallback((id: string, patch: Partial<Report>) => {
     setState((s) => ({ ...s, reports: s.reports.map((r) => (r.id === id ? { ...r, ...patch } : r)) }));
@@ -94,22 +100,23 @@ export function AiFirstProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const addCapa = useCallback((input: Omit<Capa, "id">) => {
-    const id = `CAPA-${400 + state.capas.length + 1}`;
-    const capa: Capa = { ...input, id };
-    setState((s) => ({ ...s, capas: [capa, ...s.capas] }));
+    counters.current.capa += 1;
+    const capa: Capa = { ...input, id: `CAPA-${400 + counters.current.capa}` };
+    setState((s) => ({ ...s, capas: [...s.capas, capa] }));
     return capa;
-  }, [state.capas.length]);
+  }, []);
 
   const updateCapa = useCallback((id: string, patch: Partial<Capa>) => {
     setState((s) => ({ ...s, capas: s.capas.map((c) => (c.id === id ? { ...c, ...patch } : c)) }));
   }, []);
 
   const addWorkOrders = useCallback((inputs: Omit<WorkOrder, "id" | "createdAt">[]) => {
-    const base = 5701 + state.workOrders.length;
+    const base = 5701 + counters.current.wo;
+    counters.current.wo += inputs.length;
     const created = inputs.map((w, i) => ({ ...w, id: `WO-${base + i}`, createdAt: new Date().toISOString() }));
-    setState((s) => ({ ...s, workOrders: [...created, ...s.workOrders] }));
+    setState((s) => ({ ...s, workOrders: [...s.workOrders, ...created] }));
     return created;
-  }, [state.workOrders.length]);
+  }, []);
 
   const updateWorkOrder = useCallback((id: string, patch: Partial<WorkOrder>) => {
     setState((s) => ({ ...s, workOrders: s.workOrders.map((w) => (w.id === id ? { ...w, ...patch } : w)) }));
