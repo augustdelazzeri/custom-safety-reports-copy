@@ -128,7 +128,7 @@ export function FlowShell<T extends string>(props: FlowShellProps<T>) {
   return (
     <div className="flex h-screen overflow-hidden bg-background">
       <Sidebar />
-      <div className="flex flex-1 flex-col overflow-hidden">
+      <div className="flex flex-1 flex-col overflow-hidden md:ml-64">
         <Header />
         <div className="border-b border-gray-200 bg-white px-4 md:px-6 py-3">{toolbar}</div>
         <main className="flex-1 overflow-y-auto bg-gray-50" onClickCapture={onClickCapture}>
