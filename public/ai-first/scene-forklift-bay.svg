@@ -1,0 +1,43 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 600">
+  <defs>
+    <linearGradient id="w" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#d6d2c8"/><stop offset="1" stop-color="#c2bdb1"/></linearGradient>
+    <linearGradient id="f" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#9a9a94"/><stop offset="1" stop-color="#7b7b75"/></linearGradient>
+  </defs>
+  <rect width="800" height="600" fill="url(#w)"/>
+  <rect y="330" width="800" height="270" fill="url(#f)"/>
+  <!-- pedestrian lane -->
+  <rect x="0" y="520" width="800" height="16" fill="#e4b829"/><rect x="0" y="572" width="800" height="16" fill="#e4b829"/>
+  <g fill="#e4b829"><rect x="40" y="540" width="40" height="28"/><rect x="140" y="540" width="40" height="28"/><rect x="240" y="540" width="40" height="28"/></g>
+  <!-- exit sign + door right -->
+  <rect x="610" y="120" width="120" height="210" fill="#8f97a0"/><rect x="620" y="130" width="100" height="200" fill="#737c86"/>
+  <rect x="640" y="92" width="62" height="22" rx="2" fill="#1f8a3e"/><text x="671" y="108" font-family="Arial" font-size="13" font-weight="700" fill="#fff" text-anchor="middle">EXIT</text>
+  <!-- dock edge with guard rail (gap) -->
+  <rect x="740" y="330" width="60" height="190" fill="#4f4f4a"/>
+  <g stroke="#e4b829" stroke-width="7"><line x1="745" y1="250" x2="745" y2="330"/><line x1="745" y1="262" x2="800" y2="262"/></g>
+  <g stroke="#e4b829" stroke-width="7" opacity="0.25" stroke-dasharray="6 8"><line x1="745" y1="296" x2="800" y2="296"/></g>
+  <!-- fire extinguisher left, blocked by pallets -->
+  <g transform="translate(60,230)"><rect x="0" y="12" width="28" height="70" rx="9" fill="#c62828"/><rect x="8" y="0" width="12" height="14" fill="#333"/><rect x="-10" y="-26" width="48" height="18" fill="#c62828"/><text x="14" y="-12" font-family="Arial" font-size="10" font-weight="700" fill="#fff" text-anchor="middle">FIRE</text></g>
+  <g><rect x="20" y="300" width="150" height="20" fill="#a0784a"/><rect x="26" y="236" width="138" height="64" fill="#c9a06b"/><rect x="20" y="226" width="150" height="12" fill="#a0784a"/><rect x="30" y="170" width="130" height="56" fill="#d3ad78"/></g>
+  <!-- racking with dented upright -->
+  <g>
+    <rect x="220" y="60" width="10" height="270" fill="#e06b1f"/>
+    <path d="M360 60 L360 210 Q348 228 360 246 L360 330" stroke="#e06b1f" stroke-width="10" fill="none"/>
+    <g fill="#2f5d9c"><rect x="220" y="140" width="146" height="8"/><rect x="220" y="240" width="146" height="8"/></g>
+    <g fill="#c49a62"><rect x="236" y="90" width="50" height="50"/><rect x="296" y="102" width="56" height="38"/><rect x="236" y="196" width="110" height="44"/></g>
+    <text x="276" y="80" font-family="Arial" font-size="16" font-weight="700" fill="#333">4B</text>
+  </g>
+  <!-- forklift center, forks lowered -->
+  <g transform="translate(420,250)">
+    <rect x="40" y="70" width="140" height="90" rx="10" fill="#7cb342"/>
+    <rect x="62" y="22" width="84" height="56" fill="none" stroke="#333" stroke-width="7"/>
+    <rect x="70" y="58" width="34" height="22" rx="4" fill="#2b2b2b"/>
+    <rect x="2" y="-40" width="16" height="200" fill="#333"/><rect x="22" y="-40" width="10" height="200" fill="#444"/>
+    <path d="M12 -30 q-10 40 -2 90" stroke="#ddd" stroke-width="3" fill="none"/>
+    <rect x="-70" y="168" width="88" height="8" fill="#555"/>
+    <circle cx="80" cy="168" r="24" fill="#222"/><circle cx="80" cy="168" r="10" fill="#888"/>
+    <circle cx="156" cy="168" r="20" fill="#222"/><circle cx="156" cy="168" r="8" fill="#888"/>
+    <text x="120" y="122" font-family="Arial" font-size="16" font-weight="700" fill="#2b2b2b" text-anchor="middle">FL-07</text>
+  </g>
+  <!-- oil stain under forklift -->
+  <ellipse cx="530" cy="440" rx="70" ry="14" fill="#2b2620" opacity="0.75"/>
+</svg>

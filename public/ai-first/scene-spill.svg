@@ -1,0 +1,55 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 600">
+  <defs>
+    <linearGradient id="wall" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#cfd4da"/><stop offset="1" stop-color="#b9c0c8"/></linearGradient>
+    <linearGradient id="floor" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#8d939a"/><stop offset="1" stop-color="#6c727a"/></linearGradient>
+    <radialGradient id="spill" cx="0.5" cy="0.5" r="0.5"><stop offset="0" stop-color="#1d1a16"/><stop offset="0.7" stop-color="#2b2620"/><stop offset="1" stop-color="#3a342c" stop-opacity="0.85"/></radialGradient>
+    <linearGradient id="sheen" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#7d8fb0" stop-opacity="0.55"/><stop offset="0.5" stop-color="#b48fb8" stop-opacity="0.25"/><stop offset="1" stop-color="#8fb89c" stop-opacity="0"/></linearGradient>
+  </defs>
+  <rect width="800" height="600" fill="url(#wall)"/>
+  <!-- ceiling lights -->
+  <g fill="#f4f7fb"><rect x="250" y="18" width="110" height="10" rx="3"/><rect x="440" y="18" width="110" height="10" rx="3"/></g>
+  <g fill="#fffbe6" opacity="0.35"><polygon points="250,28 360,28 400,140 210,140"/><polygon points="440,28 550,28 590,140 400,140"/></g>
+  <!-- back wall door -->
+  <rect x="352" y="150" width="96" height="140" fill="#9aa3ad"/><rect x="360" y="158" width="80" height="132" fill="#7d8792"/>
+  <rect x="372" y="128" width="56" height="18" rx="2" fill="#1f8a3e"/><text x="400" y="141" font-family="Arial" font-size="11" font-weight="700" fill="#fff" text-anchor="middle">EXIT</text>
+  <!-- floor -->
+  <polygon points="0,290 800,290 800,600 0,600" fill="url(#floor)"/>
+  <!-- yellow lane lines -->
+  <polygon points="300,290 318,290 190,600 140,600" fill="#e4b829"/>
+  <polygon points="482,290 500,290 660,600 610,600" fill="#e4b829"/>
+  <!-- left racking -->
+  <g>
+    <polygon points="0,60 250,140 250,300 0,420" fill="#5a6470"/>
+    <g stroke="#e06b1f" stroke-width="8"><line x1="20" y1="66" x2="20" y2="410"/><line x1="130" y1="100" x2="130" y2="356"/><line x1="240" y1="137" x2="240" y2="304"/></g>
+    <g stroke="#2f5d9c" stroke-width="6"><line x1="20" y1="170" x2="240" y2="198"/><line x1="20" y1="285" x2="240" y2="252"/></g>
+    <g fill="#c49a62"><polygon points="30,110 120,128 120,172 30,162"/><polygon points="140,140 230,152 230,192 140,182"/><polygon points="30,200 120,205 120,262 30,268"/><polygon points="140,212 230,215 230,246 140,250"/></g>
+    <g fill="#a87f4b"><rect x="40" y="300" width="70" height="60"/><rect x="150" y="268" width="70" height="28"/></g>
+    <text x="72" y="96" font-family="Arial" font-size="18" font-weight="700" fill="#fff">4B</text>
+  </g>
+  <!-- right racking -->
+  <g>
+    <polygon points="800,60 550,140 550,300 800,420" fill="#5a6470"/>
+    <g stroke="#e06b1f" stroke-width="8"><line x1="780" y1="66" x2="780" y2="410"/><line x1="670" y1="100" x2="670" y2="356"/><line x1="560" y1="137" x2="560" y2="304"/></g>
+    <g stroke="#2f5d9c" stroke-width="6"><line x1="780" y1="170" x2="560" y2="198"/><line x1="780" y1="285" x2="560" y2="252"/></g>
+    <g fill="#c49a62"><polygon points="770,110 680,128 680,172 770,162"/><polygon points="660,140 570,152 570,192 660,182"/><polygon points="770,200 680,205 680,262 770,268"/></g>
+    <text x="700" y="96" font-family="Arial" font-size="18" font-weight="700" fill="#fff">4C</text>
+  </g>
+  <!-- fire extinguisher on left upright -->
+  <g transform="translate(70,330)"><rect x="0" y="12" width="26" height="62" rx="9" fill="#c62828"/><rect x="7" y="0" width="12" height="14" fill="#333"/><path d="M19 6 q14 2 12 22" stroke="#333" stroke-width="4" fill="none"/><rect x="-8" y="-24" width="42" height="18" fill="#c62828"/><text x="13" y="-11" font-family="Arial" font-size="10" font-weight="700" fill="#fff" text-anchor="middle">FIRE</text></g>
+  <!-- spill -->
+  <ellipse cx="385" cy="450" rx="175" ry="52" fill="url(#spill)"/>
+  <ellipse cx="300" cy="476" rx="70" ry="20" fill="url(#spill)"/>
+  <ellipse cx="380" cy="440" rx="120" ry="26" fill="url(#sheen)"/>
+  <!-- drip trail to forklift -->
+  <g fill="#2b2620"><ellipse cx="545" cy="420" rx="16" ry="6"/><ellipse cx="585" cy="408" rx="12" ry="5"/><ellipse cx="618" cy="398" rx="10" ry="4"/><ellipse cx="648" cy="392" rx="9" ry="4"/></g>
+  <!-- forklift (right, parked) -->
+  <g transform="translate(630,250)">
+    <rect x="40" y="60" width="120" height="80" rx="10" fill="#e8a317"/>
+    <rect x="60" y="20" width="70" height="50" fill="none" stroke="#333" stroke-width="7"/>
+    <rect x="2" y="-30" width="14" height="170" fill="#333"/><rect x="22" y="-30" width="10" height="170" fill="#444"/>
+    <rect x="-60" y="132" width="76" height="8" fill="#555"/>
+    <circle cx="70" cy="146" r="22" fill="#222"/><circle cx="70" cy="146" r="9" fill="#888"/>
+    <circle cx="140" cy="146" r="18" fill="#222"/><circle cx="140" cy="146" r="7" fill="#888"/>
+    <text x="100" y="110" font-family="Arial" font-size="16" font-weight="700" fill="#333" text-anchor="middle">FL-07</text>
+  </g>
+</svg>
