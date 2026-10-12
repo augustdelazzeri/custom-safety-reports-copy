@@ -4,7 +4,7 @@
 // confidence per field, link to the source, edit or clear each field, revert to the AI version,
 // a visible "draft" state, staged progress while the AI works, and photos with numbered pins.
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { Check, CornerUpLeft, Info, Loader2, Pencil, Sparkles, X } from "lucide-react";
 import type { AiFieldValue, Pin } from "@/lib/ai-first/types";
 import { cn } from "@/lib/utils";
@@ -204,25 +204,33 @@ export function PinLegend() {
 }
 
 // Staged progress so the wait reads as work, not as a spinner.
-export function useStagedProgress(steps: string[], stepMs = 700, start = true) {
+// onDone runs from the timer, so callers can move to the next step without an extra effect.
+export function useStagedProgress(steps: string[], stepMs = 700, start = true, onDone?: () => void) {
   const [index, setIndex] = useState(0);
   const [done, setDone] = useState(false);
+  const onDoneRef = useRef(onDone);
+  useEffect(() => {
+    onDoneRef.current = onDone;
+  });
 
   useEffect(() => {
     if (!start) return;
-    setIndex(0);
-    setDone(false);
     let i = 0;
     const timer = window.setInterval(() => {
       i += 1;
       if (i >= steps.length) {
         window.clearInterval(timer);
         setDone(true);
+        onDoneRef.current?.();
       } else {
         setIndex(i);
       }
     }, stepMs);
-    return () => window.clearInterval(timer);
+    return () => {
+      window.clearInterval(timer);
+      setIndex(0);
+      setDone(false);
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [start]);
 

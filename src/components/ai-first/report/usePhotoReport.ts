@@ -2,7 +2,7 @@
 
 // State shared by the three P1 variants: one photo (+ optional voice note) becomes a report draft.
 
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import type { AiFieldValue, QuickAnswers, Report, ReportType } from "@/lib/ai-first/types";
 import { ACCESS_POINT, PEOPLE, QUICK_QUESTIONS, SCENES, SEVERITY_SUGGESTION, SPILL_PINS, spillDraftFields, VOICE_NOTES } from "@/lib/ai-first/sample-data";
 import { useAiFirst } from "@/contexts/AiFirstContext";
@@ -14,24 +14,27 @@ export function usePhotoReport(channel: Report["channel"] = "photo") {
   const [photo, setPhoto] = useState<string | null>(null);
   const [voice, setVoice] = useState<VoiceLang>(null);
   const [fields, setFields] = useState<AiFieldValue[]>([]);
-  const [answers, setAnswers] = useState<QuickAnswers>({});
+  const [answers, setAnswersState] = useState<QuickAnswers>({});
   const [closeUpAdded, setCloseUpAdded] = useState(false);
   const [anonymous, setAnonymous] = useState(false);
   const [submitted, setSubmitted] = useState<Report | null>(null);
 
-  const draft = () => setFields(spillDraftFields(voice !== null));
-
   // An answer can change the draft: "someone was hurt" turns the report into an incident.
-  useEffect(() => {
-    if (answers.injury !== "yes") return;
-    setFields((fs) =>
-      fs.map((f) =>
-        f.key === "type" && !f.edited && !f.cleared
-          ? { ...f, value: "Incident", aiValue: "Incident", confidence: 0.9, source: "Your answer: someone was hurt" }
-          : f
-      )
-    );
-  }, [answers.injury, fields.length]);
+  const applyAnswers = (fs: AiFieldValue[], a: QuickAnswers) =>
+    a.injury !== "yes"
+      ? fs
+      : fs.map((f) =>
+          f.key === "type" && !f.edited && !f.cleared
+            ? { ...f, value: "Incident", aiValue: "Incident", confidence: 0.9, source: "Your answer: someone was hurt" }
+            : f
+        );
+
+  const draft = () => setFields(applyAnswers(spillDraftFields(voice !== null), answers));
+
+  const setAnswers = (next: QuickAnswers) => {
+    setAnswersState(next);
+    setFields((fs) => applyAnswers(fs, next));
+  };
 
   const updateField = (next: AiFieldValue) => setFields((fs) => fs.map((f) => (f.key === next.key ? next : f)));
 

@@ -3,7 +3,7 @@
 // P1 · C · Today's form with "Fill from a photo": the incremental baseline.
 // Every field stays visible; the AI only pre-fills them. Useful to compare taps against A and B.
 
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import { Camera, Sparkles } from "lucide-react";
 import { usePhotoReport } from "./usePhotoReport";
 import { AccessPointHeader, AnonymousToggle, ReportDone } from "./ReportParts";
@@ -33,10 +33,7 @@ export function FormFillVariant() {
   const [aiKeys, setAiKeys] = useState<Record<string, number>>({});
   const [filling, setFilling] = useState(false);
   const [done, setDone] = useState(false);
-  const progress = useStagedProgress(STEPS, 700, filling);
-
-  useEffect(() => {
-    if (!filling || !progress.done) return;
+  const fillFromDraft = () => {
     setFilling(false);
     const conf: Record<string, number> = {};
     const values: FormState = {};
@@ -46,7 +43,8 @@ export function FormFillVariant() {
     });
     setForm((current) => ({ ...current, ...values }));
     setAiKeys(conf);
-  }, [filling, progress.done]);
+  };
+  const progress = useStagedProgress(STEPS, 700, filling, fillFromDraft);
 
   const set = (k: string, v: string) => {
     setForm((f) => ({ ...f, [k]: v }));

@@ -2,7 +2,7 @@
 
 // P5 · Document → program variants.
 
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import { FileUp, Library, Search, Sparkles } from "lucide-react";
 import { GapsCard, Published, PROGRAM_SECTIONS, PublishBar, RegulationChips, SectionCard, useProgram } from "./ProgramParts";
 import { AiWorking, useStagedProgress } from "../AiPrimitives";
@@ -26,8 +26,8 @@ function Upload({ onUpload }: { onUpload: () => void }) {
   );
 }
 
-function useAnalysis(start: boolean) {
-  return useStagedProgress(STEPS, 600, start);
+function useAnalysis(start: boolean, onDone: () => void) {
+  return useStagedProgress(STEPS, 600, start, onDone);
 }
 
 function Analyzing({ index }: { index: number }) {
@@ -62,10 +62,7 @@ function Review({ state, onHover, active }: { state: ReturnType<typeof useProgra
 export function SectionsVariant() {
   const state = useProgram();
   const [phase, setPhase] = useState<"upload" | "analyzing" | "review">("upload");
-  const progress = useAnalysis(phase === "analyzing");
-  useEffect(() => {
-    if (phase === "analyzing" && progress.done) setPhase("review");
-  }, [phase, progress.done]);
+  const progress = useAnalysis(phase === "analyzing", () => setPhase("review"));
 
   if (state.published) return <Published state={state} />;
   if (phase === "upload") return <Upload onUpload={() => setPhase("analyzing")} />;
@@ -86,10 +83,7 @@ export function SplitVariant() {
   const state = useProgram();
   const [phase, setPhase] = useState<"upload" | "analyzing" | "review">("upload");
   const [active, setActive] = useState<string[] | null>(null);
-  const progress = useAnalysis(phase === "analyzing");
-  useEffect(() => {
-    if (phase === "analyzing" && progress.done) setPhase("review");
-  }, [phase, progress.done]);
+  const progress = useAnalysis(phase === "analyzing", () => setPhase("review"));
 
   if (state.published) return <Published state={state} />;
   if (phase === "upload") return <Upload onUpload={() => setPhase("analyzing")} />;
@@ -135,10 +129,7 @@ export function LibraryVariant() {
   const [query, setQuery] = useState("");
   const [picked, setPicked] = useState<string | null>(null);
   const [phase, setPhase] = useState<"browse" | "analyzing" | "review">("browse");
-  const progress = useAnalysis(phase === "analyzing");
-  useEffect(() => {
-    if (phase === "analyzing" && progress.done) setPhase("review");
-  }, [phase, progress.done]);
+  const progress = useAnalysis(phase === "analyzing", () => setPhase("review"));
 
   if (state.published) return <Published state={state} />;
   if (phase === "analyzing") return <Analyzing index={progress.index} />;

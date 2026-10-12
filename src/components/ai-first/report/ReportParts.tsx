@@ -118,7 +118,7 @@ export function SeveritySuggestion({ oshaPossible }: { oshaPossible: boolean }) 
         <ConfidenceBadge value={oshaPossible ? 0.74 : SEVERITY_SUGGESTION.confidence} compact />
       </div>
       <p className="mt-1 text-sm text-gray-900">{oshaPossible ? "High · possibly OSHA recordable" : SEVERITY_SUGGESTION.value}</p>
-      <p className="mt-1 text-[11px] text-gray-500">Your supervisor decides the severity. You don't need to.</p>
+      <p className="mt-1 text-[11px] text-gray-500">Your supervisor decides the severity. You don’t need to.</p>
     </div>
   );
 }
@@ -137,7 +137,7 @@ export function ReportDone({ report, taps }: { report: Report; taps?: number }) 
     <div className="px-5 py-8 space-y-6">
       <div className="text-center space-y-2">
         <CheckCircle2 className="w-14 h-14 text-emerald-600 mx-auto" />
-        <h2 className="text-xl font-semibold text-gray-900">Thanks, it's reported</h2>
+        <h2 className="text-xl font-semibold text-gray-900">Thanks, it’s reported</h2>
         <p className="text-sm text-gray-600">
           Case <span className="font-semibold">{report.id}</span> went to {PEOPLE.supervisor.split(" (")[0]}.
         </p>
@@ -148,7 +148,7 @@ export function ReportDone({ report, taps }: { report: Report; taps?: number }) 
         {[
           ["Now", "Your supervisor reviews the report and sets the severity."],
           ["Today", "If something needs fixing, the AI drafts the work order and the action plan."],
-          ["When it's fixed", "You get a message saying what was done."],
+          ["When it’s fixed", "You get a message saying what was done."],
         ].map(([when, what]) => (
           <div key={when} className="flex gap-3">
             <span className="w-20 shrink-0 text-xs font-semibold text-blue-700">{when}</span>

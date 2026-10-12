@@ -38,7 +38,7 @@ export function OneScreenVariant({ reportId }: { reportId: string | null }) {
             <RootCauseCard state={s} />
             <div className="flex items-center gap-2">
               <h3 className="font-semibold text-gray-900">Proposed actions</h3>
-              <span className="text-xs text-gray-500">Uncheck anything you don't want. Owners and dates are editable.</span>
+              <span className="text-xs text-gray-500">Uncheck anything you don’t want. Owners and dates are editable.</span>
             </div>
             {s.plan.map((c) => (
               <CapaPlanCard key={c.id} capa={c} state={s} />

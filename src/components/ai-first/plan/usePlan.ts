@@ -61,7 +61,7 @@ export function usePlan(reportId: string | null) {
         );
         const full: Capa = {
           ...capa,
-          log: idx === 0 ? seedCapaLog(capa.id) : [],
+          log: idx === 0 ? seedCapaLog(capa.id, report.id) : [],
           tasks: capa.tasks.map((t) => ({ ...t, detail: t.kind === "work_order" ? `${wos.find((w) => w.title === t.title)?.id ?? ""} · ${t.detail}` : t.detail })),
         };
         updateStoredCapa(capa.id, { log: full.log, tasks: full.tasks });

@@ -17,12 +17,8 @@ const VIDEO_STEPS = ["Extracting a frame every 4 s (8 frames)", "Transcribing yo
 export function PhotosFirstVariant() {
   const s = useInspection(true);
   const [phase, setPhase] = useState<"capture" | "analyzing" | "review">("capture");
-  const progress = useStagedProgress(PHOTO_STEPS, 600, phase === "analyzing");
+  const progress = useStagedProgress(PHOTO_STEPS, 600, phase === "analyzing", () => setPhase("review"));
   const [activePin, setActivePin] = useState<number | null>(null);
-
-  useEffect(() => {
-    if (phase === "analyzing" && progress.done) setPhase("review");
-  }, [phase, progress.done]);
 
   if (s.submitted) return <InspectionSummary state={s} />;
 
@@ -114,15 +110,13 @@ export function VideoVariant() {
   const s = useInspection(true);
   const [phase, setPhase] = useState<"record" | "recording" | "analyzing" | "review">("record");
   const [frame, setFrame] = useState<string | null>(null);
-  const progress = useStagedProgress(VIDEO_STEPS, 650, phase === "analyzing");
+  const progress = useStagedProgress(VIDEO_STEPS, 650, phase === "analyzing", () => setPhase("review"));
 
   useEffect(() => {
-    if (phase === "recording") {
-      const t = window.setTimeout(() => setPhase("analyzing"), 1800);
-      return () => window.clearTimeout(t);
-    }
-    if (phase === "analyzing" && progress.done) setPhase("review");
-  }, [phase, progress.done]);
+    if (phase !== "recording") return;
+    const t = window.setTimeout(() => setPhase("analyzing"), 1800);
+    return () => window.clearTimeout(t);
+  }, [phase]);
 
   if (s.submitted) return <InspectionSummary state={s} />;
 

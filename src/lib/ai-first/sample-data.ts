@@ -255,9 +255,9 @@ export function proposedPlan(): PlanCapa[] {
   ];
 }
 
-export function seedCapaLog(capaId: string): Capa["log"] {
+export function seedCapaLog(capaId: string, reportId = "R-1042"): Capa["log"] {
   return [
-    { day: 0, at: "Oct 11 · 10:02", actor: "person", text: `${PEOPLE.ehs} created the plan from R-1042.` },
+    { day: 0, at: "Oct 11 · 10:02", actor: "person", text: `${PEOPLE.ehs} created the plan from ${reportId}.` },
     { day: 0, at: "Oct 11 · 10:02", actor: "agent", text: `Assigned WO-5701 and WO-5702 to ${PEOPLE.maintenance}. Notified by push.`, channel: "Push" },
     { day: 0, at: "Oct 11 · 10:03", actor: "agent", text: `Sent an update to the reporter: “Your report from Aisle 4 created ${capaId}. We will tell you when it is fixed.”`, channel: "WhatsApp" },
   ];

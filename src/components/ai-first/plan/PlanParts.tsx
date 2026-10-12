@@ -100,7 +100,8 @@ export function RootCauseCard({ state }: { state: PlanState }) {
             <li key={s.label} className="flex items-start gap-2 text-xs text-gray-600">
               <Info className="mt-0.5 w-3 h-3 shrink-0 text-violet-500" />
               <span>
-                <span className="font-medium text-gray-700">{s.kind}:</span> {s.label}
+                <span className="font-medium text-gray-700">{s.kind}:</span>{" "}
+                {s.kind === "This event" ? `${state.report.id} · photo pins 1–3 and the reporter's answers` : s.label}
               </span>
             </li>
           ))}

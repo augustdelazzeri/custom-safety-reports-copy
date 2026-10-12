@@ -2,7 +2,7 @@
 
 // P1 · A · Photo first: capture → AI works → up to 3 questions → review with pins → submit.
 
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import { Building2, Camera, ChevronRight, Sun, ZoomIn } from "lucide-react";
 import { usePhotoReport } from "./usePhotoReport";
 import { AccessPointHeader, AnonymousToggle, PhotoPicker, ReportDone, SeveritySuggestion, VoiceNoteButton } from "./ReportParts";
@@ -20,15 +20,10 @@ export function PhotoFirstVariant() {
   const [step, setStep] = useState<Step>("capture");
   const [qIndex, setQIndex] = useState(0);
   const [activePin, setActivePin] = useState<number | null>(null);
-  const progress = useStagedProgress(ANALYZE_STEPS, 650, step === "analyzing");
-
-  useEffect(() => {
-    if (step === "analyzing" && progress.done) {
-      s.draft();
-      setStep("questions");
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [step, progress.done]);
+  const progress = useStagedProgress(ANALYZE_STEPS, 650, step === "analyzing", () => {
+    s.draft();
+    setStep("questions");
+  });
 
   const answer = (key: keyof QuickAnswers, a: "yes" | "no" | "unsure") => {
     const next = { ...s.answers, [key]: a };

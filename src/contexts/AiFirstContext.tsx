@@ -51,6 +51,8 @@ export function AiFirstProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     try {
       const raw = window.localStorage.getItem(STORAGE_KEY);
+      // Read after hydration on purpose: the server render has no localStorage.
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       if (raw) setState(JSON.parse(raw) as AiFirstState);
     } catch {
       // ignore broken storage, keep the seed
