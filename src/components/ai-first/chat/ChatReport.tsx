@@ -77,8 +77,12 @@ export function ChatReport({ theme }: { theme: ChatTheme }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // Keep the latest message in view; repeat once images have had time to load and grow the list.
   useEffect(() => {
-    scroller.current?.scrollTo({ top: scroller.current.scrollHeight, behavior: "smooth" });
+    const toBottom = () => scroller.current && (scroller.current.scrollTop = scroller.current.scrollHeight);
+    toBottom();
+    const t = window.setTimeout(toBottom, 150);
+    return () => window.clearTimeout(t);
   }, [msgs, typing, chips]);
 
   const askNextQuestion = () => {
@@ -89,8 +93,11 @@ export function ChatReport({ theme }: { theme: ChatTheme }) {
       live.current.draft();
       setPhase("summary");
       if (messaging) {
+        const typeLabel = a.injury === "yes" ? "Incident" : live.current.voice ? "Near miss" : "Hazard observation";
+        const hurt = a.injury === "yes" ? `Someone was hurt${a.treatment === "yes" ? " and needed treatment" : ""}` : a.injury === "no" ? "No one hurt" : "Injury: not sure";
+        const area = a.stopped === "yes" ? "area out of use" : a.stopped === "no" ? "area still in use" : "area status not sure";
         botSay(
-          "Here's your report:\n• Near miss: oil spill across the forklift lane, Aisle 4\n• Asset: forklift FL-07 (not sure)\n• No one hurt · area out of use\n\nReply 1 to send, 2 to edit, 3 to cancel.",
+          `Here's your report:\n• ${typeLabel}: oil spill across the forklift lane, Aisle 4\n• Asset: forklift FL-07 (not sure)\n• ${hurt} · ${area}\n\nReply 1 to send, 2 to edit, 3 to cancel.`,
           1100,
           () => setChips({ options: ["1", "2", "3"], onPick: confirmMessaging })
         );
@@ -123,11 +130,14 @@ export function ChatReport({ theme }: { theme: ChatTheme }) {
   };
 
   const send = () => {
+    if (live.current.submitted) return; // no double submit
+    setPhase("summary");
     const r = live.current.submit({ answers: answersRef.current });
-    setPhase("sent");
+    setChips(null);
     botSay(
       `Sent ✅ Case ${r.id} went to ${PEOPLE.supervisor.split(" (")[0]}. ${messaging || theme === "web" ? "I'll message you here when it's fixed." : "You'll get an update when it's fixed."}`,
-      800
+      800,
+      () => setPhase("sent")
     );
   };
 
@@ -158,7 +168,7 @@ export function ChatReport({ theme }: { theme: ChatTheme }) {
       ? { transcript: "Hay aceite en todo el pasillo cuatro, casi me resbalo al pasar el estante.", translation: "There's oil all over aisle four, I almost slipped when I came around the rack." }
       : { transcript: "Hey, there's oil all over aisle four, I almost slipped when I came around the rack." };
     push({ from: "me", kind: "voice", ...note });
-    if (!s.photo) botSay(lang === "es" ? "Entendido. ¿Puedes mandar una foto también? Ayuda mucho." : "Got it. Can you send a photo too? It helps a lot.", 900, undefined, lang === "es" ? "I reply in the language you use." : undefined);
+    if (!s.photo) botSay(lang === "es" ? "Got it. I'll translate it for your supervisor. Can you send a photo too? It helps a lot." : "Got it. Can you send a photo too? It helps a lot.", 900);
   };
 
   const onText = () => {
@@ -189,7 +199,7 @@ export function ChatReport({ theme }: { theme: ChatTheme }) {
           </p>
         )}
         {msgs.map((m) => (
-          <Bubble key={m.id} m={m} theme={theme} state={s} onSend={send} sent={phase === "sent" || phase === "updates"} />
+          <Bubble key={m.id} m={m} theme={theme} state={s} onSend={send} sent={phase === "sent" || phase === "updates" || !!s.submitted} />
         ))}
         {typing && (
           <div className={cn("w-fit rounded-2xl px-3 py-2", skin.bot)}>
