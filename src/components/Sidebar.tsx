@@ -27,7 +27,8 @@ import {
   Lock, 
   MessagesSquare, 
   QrCode, 
-  Settings, 
+  Settings,
+  Sparkles, 
   ShieldCheck,
   ChevronDown
 } from 'lucide-react';
@@ -54,6 +55,7 @@ export default function Sidebar() {
       { label: "Access Points", icon: <QrCode className="size-5" />, href: "/access-points" },
       { label: "Safety Events", icon: <AlertTriangle className="size-5" />, href: "/events" },
       { label: "CAPAs", icon: <ClipboardCheck className="size-5" />, href: "/capas" },
+      { label: "AI-first prototypes", icon: <Sparkles className="size-5" />, href: "/ai-first" },
     ]},
     { id: "osha", label: "OSHA", items: [
       { label: "OSHA Log (Form 300)", icon: <FileBarChart className="size-5" />, href: "/osha/logs" },
