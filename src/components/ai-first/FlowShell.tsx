@@ -100,25 +100,25 @@ export function FlowShell<T extends string>(props: FlowShellProps<T>) {
 
   if (device === "mobile") {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-slate-100 to-slate-200">
-        <div className="border-b border-gray-200 bg-white/80 backdrop-blur px-4 py-3">{toolbar}</div>
-        <div className="flex justify-center px-0 py-0 md:px-4 md:py-8">
+      <div className="flex h-screen flex-col overflow-hidden bg-gradient-to-b from-slate-100 to-slate-200">
+        <div className="shrink-0 border-b border-gray-200 bg-white/80 backdrop-blur px-4 py-3">{toolbar}</div>
+        <div className="flex min-h-0 flex-1 justify-center md:px-4 md:py-4">
           <div
             onClickCapture={onClickCapture}
             className={cn(
-              "relative w-full bg-white overflow-hidden",
-              "md:w-[390px] md:h-[800px] md:rounded-[44px] md:border-[10px] md:border-gray-900 md:shadow-2xl"
+              "relative h-full w-full bg-white overflow-hidden",
+              "md:w-[390px] md:max-h-[800px] md:rounded-[44px] md:border-[10px] md:border-gray-900 md:shadow-2xl"
             )}
           >
             <div className="hidden md:flex absolute top-0 inset-x-0 h-7 items-center justify-center z-20 pointer-events-none">
               <div className="w-28 h-5 bg-gray-900 rounded-b-2xl" />
             </div>
-            <div key={runKey} className="h-[calc(100vh-72px)] md:h-full overflow-y-auto md:pt-6">
+            <div key={runKey} className="h-full overflow-y-auto md:pt-6">
               {children}
             </div>
           </div>
         </div>
-        <p className="hidden md:flex items-center justify-center gap-1 pb-6 text-xs text-gray-500">
+        <p className="hidden md:flex shrink-0 items-center justify-center gap-1 pb-2 text-xs text-gray-500">
           <Sparkles className="w-3 h-3" /> AI results are simulated with sample data. Nothing is sent anywhere.
         </p>
       </div>
