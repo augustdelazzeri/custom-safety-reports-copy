@@ -1,13 +1,15 @@
 "use client";
 
+import { NovaBall } from "@/components/three-cases/nova-panel";
 import { CASE_B_OPTIONS, OptionSwitcher } from "@/components/three-cases/option-switcher";
 import { PageShell, TapCompare } from "@/components/three-cases/shell";
 import { useThreeCases } from "@/contexts/ThreeCasesContext";
 import { ASSETS, asset as getAsset, job as getJob, jobsForAsset, locationName, person } from "@/lib/three-cases/data";
-import type { ExecutionJob } from "@/lib/three-cases/types";
+import type { Asset, ExecutionJob } from "@/lib/three-cases/types";
 import { cn } from "@/lib/utils";
 import {
   AlertTriangle,
+  ArrowUp,
   Camera,
   Check,
   ChevronLeft,
@@ -26,7 +28,7 @@ import {
 import { useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useMemo, useState } from "react";
 
-type Screen = "scan" | "home" | "precheck" | "run" | "done";
+type Screen = "scan" | "home" | "precheck" | "run" | "done" | "nova";
 type Tab = "work" | "report" | "docs";
 type ItemState = { done: boolean; failed?: boolean; photo?: "checking" | "ok" };
 
@@ -102,7 +104,7 @@ function MobileInner() {
       </div>
 
       {/* Asset header, visible once the QR is scanned */}
-      {screen !== "scan" ? (
+      {screen !== "scan" && screen !== "nova" ? (
         <>
           <div className="truncate bg-gray-100 px-4 py-1 text-center font-mono text-[10px] text-gray-500">app.upkeep.com/ehs/public/qr/ap-{a.code.toLowerCase()}</div>
           <div className="flex items-center gap-2 border-b border-gray-100 px-4 py-3">
@@ -124,7 +126,8 @@ function MobileInner() {
         </>
       ) : null}
 
-      <div className="flex-1 overflow-y-auto bg-gray-50/60">
+      {screen === "nova" ? <MobileNova asset={a} onBack={() => setScreen("home")} /> : null}
+      <div className={cn("flex-1 overflow-y-auto bg-gray-50/60", screen === "nova" && "hidden")}>
         {screen === "scan" ? (
           <div className="flex h-full flex-col items-center justify-center gap-5 bg-gray-900 p-6 text-center">
             <p className="text-sm text-gray-300">Point the camera at the QR on the machine</p>
@@ -256,8 +259,11 @@ function MobileInner() {
               >
                 <Megaphone className="size-4 text-rose-600" /> Report a problem
               </button>
-              <button className="flex items-center gap-2 rounded-2xl border border-gray-200 bg-white p-3 text-left text-sm font-medium text-gray-800">
-                <Mic className="size-4 text-indigo-600" /> Something else
+              <button
+                onClick={() => setScreen("nova")}
+                className="flex items-center gap-2 rounded-2xl border border-gray-200 bg-white p-3 text-left text-sm font-medium text-gray-800"
+              >
+                <NovaBall /> Something else
               </button>
             </div>
           </div>
@@ -407,6 +413,182 @@ function MobileInner() {
   );
 }
 
+type MobileMsg = {
+  id: string;
+  role: "user" | "nova";
+  text: string;
+  card?: { label: string; value: string }[];
+  action?: { label: string; result: string };
+  done?: boolean;
+};
+
+/** Scripted answers, always about the asset whose QR was scanned. */
+function answerFor(text: string, a: Asset): Omit<MobileMsg, "id" | "role"> {
+  const t = text.toLowerCase();
+  const last = a.lastWorkOrders[0];
+  const owner = person(a.ownerId).name;
+  if (t.includes("hose") || t.includes("leak") || t.includes("replace")) {
+    return {
+      text: `No procedure on file covers that on ${a.name}. I can open a work order with ${a.docs.find((d) => d.type === "jha")?.ref ?? "the JHA"} attached and assign it to you. Lower the forks and remove the key before you start.`,
+      action: { label: "Create work order", result: `WO-1061 created and assigned to you · ${owner} gets a copy` },
+    };
+  }
+  if (t.includes("horn") || t.includes("broken") || t.includes("weak") || t.includes("not working")) {
+    return {
+      text: `${last ? `${last.ref} fixed this on ${last.date}, so it is a repeat.` : ""} I will open a repair work order linked to it, so ${owner} sees the pattern.`,
+      action: { label: "Create repair work order", result: `WO-1062 created, linked to ${last?.ref ?? "the last repair"}` },
+    };
+  }
+  if (t.includes("last") || t.includes("history") || t.includes("serviced") || t.includes("when")) {
+    return {
+      text: `Here is what happened on ${a.name} lately.`,
+      card: [
+        ...a.lastWorkOrders.slice(0, 3).map((w) => ({ label: w.date, value: `${w.ref} · ${w.title}` })),
+        ...(a.aiHint ? [{ label: "Next", value: a.aiHint }] : []),
+      ],
+    };
+  }
+  if (t.includes("sop") || t.includes("procedure") || t.includes("battery") || t.includes("how")) {
+    const sop = a.docs.find((d) => d.type === "sop" && /batter/i.test(d.title)) ?? a.docs.find((d) => d.type === "sop");
+    return sop
+      ? {
+          text: `${sop.ref} covers it.${sop.match ? " It is not linked to this asset yet; I found it by its title." : ""}`,
+          card: [
+            { label: "Procedure", value: `${sop.ref} · ${sop.title}` },
+            { label: "Status", value: sop.status === "approved" ? "Approved" : "In review" },
+          ],
+        }
+      : { text: `${a.name} has no SOP yet. I can ask ${owner} to write one.` };
+  }
+  return { text: `I can open a work order, find a procedure, or tell you what happened on ${a.name}. What do you need?` };
+}
+
+/** "Something else" at the asset: Nova on the phone, already knowing which asset was scanned. */
+function MobileNova({ asset: a, onBack }: { asset: Asset; onBack: () => void }) {
+  const [msgs, setMsgs] = useState<MobileMsg[]>([]);
+  const [input, setInput] = useState("");
+  const [thinking, setThinking] = useState(false);
+  const chips = ["The horn is weak again", "Replace a leaking hose", "When was it last serviced?", "How do I charge the battery?"];
+
+  const send = (text: string) => {
+    if (!text.trim() || thinking) return;
+    setMsgs((m) => [...m, { id: `u${m.length}`, role: "user", text }]);
+    setInput("");
+    setThinking(true);
+    setTimeout(() => {
+      setMsgs((m) => [...m, { id: `n${m.length}`, role: "nova", ...answerFor(text, a) }]);
+      setThinking(false);
+    }, 900);
+  };
+
+  return (
+    <div className="flex min-h-0 flex-1 flex-col bg-[#fafafa]">
+      <div className="flex items-center gap-2 border-b border-gray-200 bg-white px-3 py-2.5">
+        <button onClick={onBack} className="rounded p-1 text-gray-500" aria-label="Back">
+          <ChevronLeft className="size-5" />
+        </button>
+        <NovaBall />
+        <span className="text-sm font-semibold text-gray-900">Nova</span>
+        <span className="ml-auto inline-flex items-center gap-1 rounded-full bg-gray-100 px-2 py-0.5 text-[11px] text-gray-700">
+          <QrCode className="size-3" /> {a.code} · {a.name}
+        </span>
+      </div>
+
+      <div className="min-h-0 flex-1 space-y-4 overflow-y-auto px-4 py-5">
+        <div className="text-center">
+          <p className="text-lg font-semibold text-gray-900">Hi Carlos. How can I help?</p>
+          <p className="mt-1 text-xs text-gray-500">
+            I know you are at {a.name}, {locationName(a.locationId)}.
+          </p>
+        </div>
+        {msgs.length === 0 ? (
+          <div className="flex flex-col items-start gap-2">
+            {chips.map((c, i) => (
+              <button
+                key={c}
+                onClick={() => send(c)}
+                className="flex items-center gap-1.5 rounded-full border border-gray-300 bg-white px-3 py-1.5 text-left text-sm font-medium text-gray-700"
+              >
+                <Sparkles className="size-3.5 shrink-0" style={{ color: ["#10B981", "#3B82F6", "#F59E0B", "#14B8A6"][i] }} />
+                {c}
+              </button>
+            ))}
+          </div>
+        ) : null}
+        {msgs.map((m) =>
+          m.role === "user" ? (
+            <div key={m.id} className="ml-auto w-fit max-w-[85%] rounded-3xl bg-[#c6d4fb]/50 px-4 py-2 text-sm text-gray-900 shadow-sm">
+              {m.text}
+            </div>
+          ) : (
+            <div key={m.id} className="space-y-2">
+              <p className="text-sm leading-6 text-gray-900">{m.text}</p>
+              {m.card ? (
+                <div className="divide-y divide-gray-200 overflow-hidden rounded-lg border border-gray-200 bg-white">
+                  {m.card.map((r) => (
+                    <div key={r.label + r.value} className="flex items-start justify-between gap-3 px-3 py-2">
+                      <span className="shrink-0 pt-0.5 text-[10px] font-semibold uppercase tracking-wider text-gray-500">{r.label}</span>
+                      <span className="text-right text-xs text-gray-900">{r.value}</span>
+                    </div>
+                  ))}
+                </div>
+              ) : null}
+              {m.action ? (
+                m.done ? (
+                  <div className="flex items-center gap-1.5 rounded-lg bg-emerald-50 px-3 py-2 text-xs font-medium text-emerald-800">
+                    <Check className="size-3.5" /> {m.action.result}
+                  </div>
+                ) : (
+                  <button
+                    onClick={() => setMsgs((list) => list.map((x) => (x.id === m.id ? { ...x, done: true } : x)))}
+                    className="rounded-full bg-[#3e63dd] px-4 py-1.5 text-sm font-medium text-white"
+                  >
+                    {m.action.label}
+                  </button>
+                )
+              ) : null}
+            </div>
+          ),
+        )}
+        {thinking ? (
+          <div className="flex items-center gap-2 text-sm text-gray-500">
+            <Loader2 className="size-4 animate-spin" /> Reading {a.name}&apos;s records…
+          </div>
+        ) : null}
+      </div>
+
+      <form
+        className="border-t border-gray-100 bg-white p-2.5"
+        onSubmit={(e) => {
+          e.preventDefault();
+          send(input);
+        }}
+      >
+        <div className="flex items-center gap-2 rounded-full border border-gray-200 bg-white py-1 pl-4 pr-1 shadow-sm">
+          <input
+            id="mobile-nova-input"
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            placeholder="Ask anything"
+            className="min-w-0 flex-1 bg-transparent text-sm outline-none placeholder:text-gray-400"
+          />
+          <button type="button" className="flex size-8 items-center justify-center rounded-full text-gray-600" aria-label="Dictate">
+            <Mic className="size-4" />
+          </button>
+          <button
+            type="submit"
+            disabled={!input.trim() || thinking}
+            className="flex size-8 items-center justify-center rounded-full bg-[#3e63dd] text-white disabled:bg-[#3e63dd]/40"
+            aria-label="Send"
+          >
+            <ArrowUp className="size-4" />
+          </button>
+        </div>
+      </form>
+    </div>
+  );
+}
+
 function MobilePage() {
   const params = useSearchParams();
   const current = params.get("asset") ?? "fl03";
@@ -432,6 +614,7 @@ function MobilePage() {
             The CMMS asset label only encodes the serial number, so it opens the asset inside the UpKeep app, not a link.
           </p>
           <ul className="space-y-1.5 text-sm text-gray-600">
+            <li>· &quot;Something else&quot; opens Nova with this asset as context: history, procedures, a new work order</li>
             <li>· The whole checklist on one screen, not a step-by-step wizard</li>
             <li>· Photos checked by AI against the SOP step</li>
             <li>· A failed item opens a work order by itself</li>
