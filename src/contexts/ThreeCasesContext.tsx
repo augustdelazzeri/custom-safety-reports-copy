@@ -34,12 +34,15 @@ export interface EventFlowState {
 interface State {
   executions: Execution[];
   flows: Record<string, EventFlowState>;
+  /** Documents the AI found by title that someone linked to their asset. */
+  linkedDocIds: string[];
   nextWo: number;
   nextCapa: number;
 }
 
 const seed = (): State => ({
   executions: [],
+  linkedDocIds: [],
   flows: Object.fromEntries(EVENTS.map((e) => [e.id, { status: "open", selectedOptionIds: [], customActions: [], woRefs: [] }])),
   nextWo: 1061,
   nextCapa: 43,
@@ -49,6 +52,7 @@ interface Ctx extends State {
   hydrated: boolean;
   createExecution: (jobId: string) => Execution;
   updateExecution: (id: string, patch: Partial<Execution>) => void;
+  linkDocs: (docIds: string[]) => void;
   runEventFlow: (eventId: string, optionIds: string[], customActions: string[]) => EventFlowState;
   closeEvent: (eventId: string, note: string) => void;
   verifyEvent: (eventId: string) => void;
@@ -104,6 +108,10 @@ export function ThreeCasesProvider({ children }: { children: React.ReactNode }) 
     setState((s) => ({ ...s, executions: s.executions.map((e) => (e.id === id ? { ...e, ...patch } : e)) }));
   }, []);
 
+  const linkDocs = useCallback((docIds: string[]) => {
+    setState((s) => ({ ...s, linkedDocIds: Array.from(new Set([...s.linkedDocIds, ...docIds])) }));
+  }, []);
+
   const runEventFlow = useCallback(
     (eventId: string, optionIds: string[], customActions: string[]) => {
       const ev = EVENTS.find((e) => e.id === eventId);
@@ -146,8 +154,8 @@ export function ThreeCasesProvider({ children }: { children: React.ReactNode }) 
   const reset = useCallback(() => setState(seed()), []);
 
   const value = useMemo<Ctx>(
-    () => ({ ...state, hydrated, createExecution, updateExecution, runEventFlow, closeEvent, verifyEvent, reset }),
-    [state, hydrated, createExecution, updateExecution, runEventFlow, closeEvent, verifyEvent, reset],
+    () => ({ ...state, hydrated, createExecution, updateExecution, linkDocs, runEventFlow, closeEvent, verifyEvent, reset }),
+    [state, hydrated, createExecution, updateExecution, linkDocs, runEventFlow, closeEvent, verifyEvent, reset],
   );
 
   return <ThreeCasesContext.Provider value={value}>{children}</ThreeCasesContext.Provider>;

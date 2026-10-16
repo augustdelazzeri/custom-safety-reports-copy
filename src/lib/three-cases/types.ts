@@ -20,6 +20,13 @@ export interface SafetyDoc {
   status: "approved" | "in_review" | "draft";
   /** Job this document enables, when it is an executable document. */
   enables?: string;
+  /**
+   * Set when the document is not linked to the asset in Safety and the AI found it by reading
+   * titles. Most real documents have no asset, so this is the common case, not the exception.
+   */
+  match?: { reason: string; confidence: "high" | "medium" };
+  /** How many assets the same document covers, when it is written for a whole area. */
+  covers?: number;
 }
 
 export interface SafetyLocation {

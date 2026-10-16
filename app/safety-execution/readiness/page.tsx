@@ -4,10 +4,11 @@ import { DOC_ICON, DocGrid } from "@/components/three-cases/doc-grid";
 import { ExecutionPlan } from "@/components/three-cases/execution-plan";
 import { CASE_B_OPTIONS, OptionSwitcher } from "@/components/three-cases/option-switcher";
 import { AiTag, PageShell, TapCompare } from "@/components/three-cases/shell";
-import { ASSETS, DOC_COLUMNS, LOCATIONS, job as getJob, jobsForAsset, locationName } from "@/lib/three-cases/data";
+import { useThreeCases } from "@/contexts/ThreeCasesContext";
+import { ASSETS, DOC_COLUMNS, DOC_MATCHES, LOCATIONS, isLinked, job as getJob, jobsForAsset, locationName } from "@/lib/three-cases/data";
 import type { Asset, DocType } from "@/lib/three-cases/types";
 import { cn } from "@/lib/utils";
-import { CalendarClock, Check, Loader2, Sparkles, X } from "lucide-react";
+import { ArrowRight, CalendarClock, Check, Link2, Loader2, Sparkles, X } from "lucide-react";
 import { useMemo, useState } from "react";
 
 /** What a safety program usually expects on file for each kind of asset. */
@@ -47,6 +48,8 @@ const AI_NOTE: Record<string, string> = {
 };
 
 export default function ReadinessPage() {
+  const { linkedDocIds, linkDocs } = useThreeCases();
+  const [reviewMatches, setReviewMatches] = useState(false);
   const [loc, setLoc] = useState("all");
   const [selected, setSelected] = useState<string[]>([]);
   const [open, setOpen] = useState<string | null>(null);
@@ -58,7 +61,10 @@ export default function ReadinessPage() {
 
   const assets = ASSETS.filter((a) => loc === "all" || a.locationId === loc);
   const missingFor = (a: Asset) =>
-    expectedDocs(a).filter((t) => !a.docs.some((d) => d.type === t) && !(drafted[a.id] ?? []).includes(t));
+    expectedDocs(a).filter(
+      (t) => !a.docs.some((d) => d.type === t && isLinked(d, linkedDocIds)) && !(drafted[a.id] ?? []).includes(t),
+    );
+  const pendingMatches = DOC_MATCHES.filter((m) => !linkedDocIds.includes(m.doc.id));
 
   const stats = useMemo(() => {
     const expected = assets.reduce((n, a) => n + expectedDocs(a).length, 0);
@@ -66,7 +72,7 @@ export default function ReadinessPage() {
     const unscheduled = assets.filter((a) => NEXT[a.id]?.tone === "none" && !scheduled.includes(a.id)).length;
     return { expected, have: expected - missing, missing, unscheduled };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [assets, drafted, scheduled]);
+  }, [assets, drafted, scheduled, linkedDocIds]);
 
   const pct = stats.expected ? Math.round((stats.have / stats.expected) * 100) : 0;
   const selectedMissing = selected.reduce((n, id) => n + missingFor(ASSETS.find((a) => a.id === id)!).length, 0);
@@ -141,6 +147,37 @@ export default function ReadinessPage() {
         </div>
       ) : null}
 
+      {pendingMatches.length > 0 ? (
+        <div className="flex flex-wrap items-center gap-3 rounded-xl border border-sky-200 bg-sky-50/70 px-4 py-3">
+          <div className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-white text-sky-600 shadow-sm">
+            <Link2 className="size-4" />
+          </div>
+          <div className="min-w-0 flex-1">
+            <div className="text-sm font-semibold text-gray-900">
+              {pendingMatches.length} documents name an asset but aren&apos;t linked to it
+            </div>
+            <div className="text-xs text-gray-600">
+              Most documents in Safety are written for a machine and never linked to it. The AI read every title and matched them to the CMMS assets.
+            </div>
+          </div>
+          <div className="hidden items-center gap-1.5 lg:flex">
+            {pendingMatches.slice(0, 2).map((m) => (
+              <span key={m.doc.id} className="inline-flex items-center gap-1 rounded-md border border-sky-200 bg-white px-2 py-1 text-[11px] text-gray-700">
+                <span className="max-w-[150px] truncate">{m.doc.title}</span>
+                <ArrowRight className="size-3 text-sky-500" />
+                <span className="font-mono text-gray-500">{m.asset.code}</span>
+              </span>
+            ))}
+          </div>
+          <button
+            onClick={() => setReviewMatches(true)}
+            className="inline-flex items-center gap-1.5 whitespace-nowrap rounded-lg bg-sky-600 px-3 py-1.5 text-sm font-semibold text-white hover:bg-sky-700"
+          >
+            <Sparkles className="size-4" /> Review {pendingMatches.length} matches
+          </button>
+        </div>
+      ) : null}
+
       <div className="grid grid-cols-1 gap-3 pb-20 md:grid-cols-2 xl:grid-cols-3">
         {assets.map((a) => {
           const exp = expectedDocs(a);
@@ -180,21 +217,24 @@ export default function ReadinessPage() {
               <div className="grid grid-cols-6 gap-1.5">
                 {DOC_COLUMNS.map((col) => {
                   const Icon = DOC_ICON[col.type];
-                  const has = a.docs.filter((d) => d.type === col.type);
+                  const all = a.docs.filter((d) => d.type === col.type);
+                  const has = all.filter((d) => isLinked(d, linkedDocIds));
+                  const found = !has.length && all.length > 0;
                   const isDraft = (drafted[a.id] ?? []).includes(col.type);
                   const expected = exp.includes(col.type);
                   const inReview = has.some((d) => d.status !== "approved");
                   return (
                     <div
                       key={col.type}
-                      title={`${col.label}: ${has.length ? has.map((d) => d.title).join(", ") : isDraft ? "AI draft, waiting for approval" : expected ? "missing" : "not needed"}`}
+                      title={`${col.label}: ${has.length ? has.map((d) => d.title).join(", ") : found ? `found by title, not linked: ${all.map((d) => d.title).join(", ")}` : isDraft ? "AI draft, waiting for approval" : expected ? "missing" : "not needed"}`}
                       className={cn(
                         "flex flex-col items-center gap-0.5 rounded-lg py-1.5 text-[10px] font-medium",
                         has.length && !inReview && "bg-indigo-50 text-indigo-700",
                         inReview && "bg-amber-50 text-amber-700",
-                        isDraft && "border border-dashed border-indigo-300 bg-white text-indigo-600",
-                        !has.length && !isDraft && expected && "border border-dashed border-rose-300 text-rose-500",
-                        !has.length && !isDraft && !expected && "text-gray-300",
+                        found && "border border-dashed border-sky-400 bg-sky-50/60 text-sky-700",
+                        isDraft && !found && "border border-dashed border-indigo-300 bg-white text-indigo-600",
+                        !all.length && !isDraft && expected && "border border-dashed border-rose-300 text-rose-500",
+                        !all.length && !isDraft && !expected && "text-gray-300",
                       )}
                     >
                       <Icon className="size-4" />
@@ -220,6 +260,7 @@ export default function ReadinessPage() {
 
       <div className="flex items-center gap-4 text-[11px] text-gray-500">
         <span className="flex items-center gap-1"><span className="size-3 rounded bg-indigo-100" /> On file</span>
+        <span className="flex items-center gap-1"><span className="size-3 rounded border border-dashed border-sky-400 bg-sky-50" /> Found by title, not linked</span>
         <span className="flex items-center gap-1"><span className="size-3 rounded border border-dashed border-rose-300" /> Missing</span>
         <span className="flex items-center gap-1"><span className="size-3 rounded border border-dashed border-indigo-300" /> AI draft</span>
         <span className="flex items-center gap-1"><span className="size-3 rounded bg-amber-100" /> In review</span>
@@ -247,6 +288,28 @@ export default function ReadinessPage() {
             <X className="size-4" />
           </button>
         </div>
+      ) : null}
+
+      {reviewMatches ? (
+        <MatchReview
+          onClose={() => setReviewMatches(false)}
+          onLink={(ids) => {
+            const before = pct;
+            linkDocs(ids);
+            const linked = [...linkedDocIds, ...ids];
+            const exp = assets.reduce((n, a) => n + expectedDocs(a).length, 0);
+            const miss = assets.reduce(
+              (n, a) =>
+                n +
+                expectedDocs(a).filter((t) => !a.docs.some((d) => d.type === t && isLinked(d, linked)) && !(drafted[a.id] ?? []).includes(t)).length,
+              0,
+            );
+            const after = exp ? Math.round(((exp - miss) / exp) * 100) : 0;
+            setBanner(`Linked ${ids.length} documents to their assets. Readiness went from ${before}% to ${after}% without writing anything new.`);
+            setReviewMatches(false);
+          }}
+          matches={pendingMatches}
+        />
       ) : null}
 
       {openAsset ? (
@@ -299,5 +362,88 @@ export default function ReadinessPage() {
         </div>
       ) : null}
     </PageShell>
+  );
+}
+
+type Match = (typeof DOC_MATCHES)[number];
+
+/** The AI's document-to-asset matches, approved in one go. */
+function MatchReview({ matches, onClose, onLink }: { matches: Match[]; onClose: () => void; onLink: (docIds: string[]) => void }) {
+  const [skip, setSkip] = useState<string[]>([]);
+  const chosen = matches.filter((m) => !skip.includes(m.doc.id));
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 p-4" onClick={onClose}>
+      <div className="flex max-h-full w-[720px] max-w-full flex-col overflow-hidden rounded-2xl bg-white shadow-2xl" onClick={(e) => e.stopPropagation()}>
+        <div className="flex items-start justify-between gap-3 border-b border-gray-100 px-5 py-4">
+          <div>
+            <div className="flex items-center gap-2">
+              <AiTag label="Matched by AI" />
+              <h2 className="text-base font-semibold text-gray-900">Link documents to their assets</h2>
+            </div>
+            <p className="mt-1 text-xs text-gray-500">
+              Read from document titles and the asset records in the CMMS. Nothing changes in the documents, only the link.
+            </p>
+          </div>
+          <button onClick={onClose} className="rounded p-1 text-gray-500 hover:bg-gray-100" aria-label="Close">
+            <X className="size-5" />
+          </button>
+        </div>
+
+        <div className="min-h-0 flex-1 divide-y divide-gray-100 overflow-y-auto">
+          {matches.map((m) => {
+            const Icon = DOC_ICON[m.doc.type];
+            const on = !skip.includes(m.doc.id);
+            return (
+              <label key={m.doc.id} className={cn("flex cursor-pointer items-start gap-3 px-5 py-3", on ? "bg-white" : "bg-gray-50/70")}>
+                <input
+                  type="checkbox"
+                  checked={on}
+                  onChange={() => setSkip((s) => (s.includes(m.doc.id) ? s.filter((x) => x !== m.doc.id) : [...s, m.doc.id]))}
+                  className="mt-1 size-4 accent-sky-600"
+                />
+                <div className="grid min-w-0 flex-1 grid-cols-[minmax(0,1fr)_auto_minmax(0,0.8fr)] items-center gap-3">
+                  <div className="min-w-0">
+                    <div className="flex items-center gap-1.5 font-mono text-[11px] text-gray-500">
+                      <Icon className="size-3.5" /> {m.doc.ref}
+                    </div>
+                    <div className="truncate text-sm font-medium text-gray-900">{m.doc.title}</div>
+                  </div>
+                  <ArrowRight className="size-4 text-sky-500" />
+                  <div className="min-w-0">
+                    <div className="font-mono text-[11px] text-gray-500">{m.asset.code}</div>
+                    <div className="truncate text-sm font-medium text-gray-900">{m.asset.name}</div>
+                  </div>
+                  <div className="col-span-3 flex items-center gap-2 text-xs text-gray-600">
+                    <span
+                      className={cn(
+                        "rounded-full px-1.5 py-0.5 text-[10px] font-semibold",
+                        m.doc.match?.confidence === "high" ? "bg-emerald-50 text-emerald-700" : "bg-amber-50 text-amber-800",
+                      )}
+                    >
+                      {m.doc.match?.confidence === "high" ? "Sure" : "Check"}
+                    </span>
+                    {m.doc.match?.reason}
+                  </div>
+                </div>
+              </label>
+            );
+          })}
+        </div>
+
+        <div className="flex items-center justify-between gap-3 border-t border-gray-100 px-5 py-3">
+          <span className="text-xs text-gray-500">
+            {chosen.length} of {matches.length} selected · {matches.filter((m) => m.doc.match?.confidence !== "high").length} marked Check
+          </span>
+          <button
+            disabled={chosen.length === 0}
+            onClick={() => onLink(chosen.map((m) => m.doc.id))}
+            className="inline-flex items-center gap-1.5 rounded-lg bg-sky-600 px-3 py-1.5 text-sm font-semibold text-white hover:bg-sky-700 disabled:opacity-40"
+          >
+            <Link2 className="size-4" /> Link {chosen.length} documents
+          </button>
+        </div>
+      </div>
+    </div>
   );
 }

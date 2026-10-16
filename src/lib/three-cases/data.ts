@@ -4,6 +4,7 @@ import type {
   DocColumn,
   ExecutionJob,
   Person,
+  SafetyDoc,
   SafetyEventDemo,
   SafetyLocation,
 } from "./types";
@@ -55,10 +56,18 @@ export const ASSETS: Asset[] = [
       { ref: "WO-0997", title: "Hydraulic leak at tilt cylinder", date: "Aug 14" },
     ],
     docs: [
-      { id: "d-fl-jha", type: "jha", ref: "JHA-0012", title: "Forklift operation", status: "approved" },
+      { id: "d-fl-jha", type: "jha", ref: "JHA-0012", title: "Forklift operation", status: "approved", covers: 2 },
       { id: "d-fl-sop-clean", type: "sop", ref: "SOP-0031", title: "Forklift cleaning and degreasing", status: "approved", enables: "fl03-clean" },
-      { id: "d-fl-sop-batt", type: "sop", ref: "SOP-0032", title: "Battery charging and watering", status: "approved", enables: "fl03-battery" },
-      { id: "d-fl-insp", type: "audit", ref: "AUD-0009", title: "Forklift pre-use inspection (OSHA 1910.178)", status: "approved", enables: "fl03-inspect" },
+      {
+        id: "d-fl-sop-batt",
+        type: "sop",
+        ref: "SOP-0032",
+        title: "SOP: Battery charging and watering, electric forklifts",
+        status: "approved",
+        enables: "fl03-battery",
+        match: { reason: "Title says electric forklifts, and FL-03 is the only electric one in the Warehouse", confidence: "medium" },
+      },
+      { id: "d-fl-insp", type: "audit", ref: "AUD-0009", title: "Forklift pre-use inspection (OSHA 1910.178)", status: "approved", enables: "fl03-inspect", covers: 2 },
       { id: "d-fl-sds-acid", type: "sds", ref: "SDS-0104", title: "Battery electrolyte (sulfuric acid)", status: "approved" },
       { id: "d-fl-sds-degr", type: "sds", ref: "SDS-0118", title: "Citrus degreaser", status: "approved" },
     ],
@@ -74,8 +83,8 @@ export const ASSETS: Asset[] = [
     aiHintTone: "event",
     lastWorkOrders: [{ ref: "WO-1040", title: "Horn not working", date: "Oct 2" }],
     docs: [
-      { id: "d-fl4-jha", type: "jha", ref: "JHA-0012", title: "Forklift operation", status: "approved" },
-      { id: "d-fl4-insp", type: "audit", ref: "AUD-0009", title: "Forklift pre-use inspection (OSHA 1910.178)", status: "approved", enables: "fl04-inspect" },
+      { id: "d-fl4-jha", type: "jha", ref: "JHA-0012", title: "Forklift operation", status: "approved", covers: 2 },
+      { id: "d-fl4-insp", type: "audit", ref: "AUD-0009", title: "Forklift pre-use inspection (OSHA 1910.178)", status: "approved", enables: "fl04-inspect", covers: 2 },
     ],
   },
   {
@@ -86,7 +95,7 @@ export const ASSETS: Asset[] = [
     category: "Storage rack",
     ownerId: "jo",
     lastWorkOrders: [],
-    docs: [{ id: "d-rk-insp", type: "audit", ref: "AUD-0014", title: "Monthly rack inspection", status: "approved", enables: "rka-inspect" }],
+    docs: [{ id: "d-rk-insp", type: "audit", ref: "AUD-0014", title: "Monthly rack inspection", status: "approved", enables: "rka-inspect", covers: 4 }],
   },
   {
     id: "hp04",
@@ -105,7 +114,14 @@ export const ASSETS: Asset[] = [
       { id: "d-hp4-jha", type: "jha", ref: "JHA-0020", title: "Hydraulic press operation", status: "approved" },
       { id: "d-hp4-sop-die", type: "sop", ref: "SOP-0044", title: "Press 4 die change", status: "approved", enables: "hp04-die" },
       { id: "d-hp4-sop-clean", type: "sop", ref: "SOP-0045", title: "Press 4 cleaning", status: "approved", enables: "hp04-clean" },
-      { id: "d-hp4-loto", type: "loto", ref: "LOTO-0017", title: "Press 4 energy isolation", status: "approved" },
+      {
+        id: "d-hp4-loto",
+        type: "loto",
+        ref: "LOTO-0017",
+        title: "LOTO: 150 t Hydraulic Press #4",
+        status: "approved",
+        match: { reason: "Title names Press #4 and its 150 t rating", confidence: "high" },
+      },
       { id: "d-hp4-ptw", type: "ptw", ref: "PTW-0006", title: "Work inside the press guard area", status: "approved" },
       { id: "d-hp4-insp", type: "audit", ref: "AUD-0021", title: "Press 4 daily guard and e-stop check", status: "approved", enables: "hp04-inspect" },
       { id: "d-hp4-sds", type: "sds", ref: "SDS-0090", title: "Hydraulic oil ISO 46", status: "approved" },
@@ -139,7 +155,14 @@ export const ASSETS: Asset[] = [
     docs: [
       { id: "d-cv-jha", type: "jha", ref: "JHA-0030", title: "Conveyor operation and clearing jams", status: "approved" },
       { id: "d-cv-sop", type: "sop", ref: "SOP-0051", title: "Belt tracking adjustment", status: "approved", enables: "cv12-tracking" },
-      { id: "d-cv-loto", type: "loto", ref: "LOTO-0022", title: "Conveyor 12 energy isolation", status: "approved" },
+      {
+        id: "d-cv-loto",
+        type: "loto",
+        ref: "LOTO-0022",
+        title: "LOTO: Conveyor 12, Pack Line 2",
+        status: "approved",
+        match: { reason: "Title names Conveyor 12 and its line", confidence: "high" },
+      },
       { id: "d-cv-insp", type: "audit", ref: "AUD-0025", title: "Monthly guarding and e-stop inspection", status: "approved", enables: "cv12-inspect" },
     ],
   },
@@ -164,7 +187,14 @@ export const ASSETS: Asset[] = [
     aiHintTone: "due",
     lastWorkOrders: [{ ref: "WO-1011", title: "Replace air filter", date: "Sep 9" }],
     docs: [
-      { id: "d-ac-loto", type: "loto", ref: "LOTO-0009", title: "Air compressor 2 isolation", status: "approved" },
+      {
+        id: "d-ac-loto",
+        type: "loto",
+        ref: "LOTO-0009",
+        title: "LOTO: Ingersoll Rand R55 compressor",
+        status: "approved",
+        match: { reason: "Model R55 matches the asset record, and there is one R55 in the plant", confidence: "medium" },
+      },
       { id: "d-ac-insp", type: "audit", ref: "AUD-0030", title: "Pressure vessel inspection", status: "approved", enables: "ac2-inspect" },
       { id: "d-ac-sds", type: "sds", ref: "SDS-0071", title: "Compressor oil", status: "approved" },
     ],
@@ -192,13 +222,26 @@ export const ASSETS: Asset[] = [
     lastWorkOrders: [],
     docs: [
       { id: "d-dl-jha", type: "jha", ref: "JHA-0050", title: "Dock leveler operation", status: "approved" },
-      { id: "d-dl-loto", type: "loto", ref: "LOTO-0030", title: "Dock leveler 2 isolation", status: "approved" },
+      {
+        id: "d-dl-loto",
+        type: "loto",
+        ref: "LOTO-0030",
+        title: "LOTO: Dock leveler #2",
+        status: "approved",
+        match: { reason: "Title names Dock leveler #2", confidence: "high" },
+      },
       { id: "d-dl-insp", type: "audit", ref: "AUD-0033", title: "Quarterly dock leveler inspection", status: "approved", enables: "dl2-inspect" },
     ],
   },
 ];
 
 export const asset = (id: string) => ASSETS.find((a) => a.id === id);
+
+/** Documents the AI found for an asset by reading titles, not yet linked in Safety. */
+export const DOC_MATCHES = ASSETS.flatMap((a) => a.docs.filter((d) => d.match).map((d) => ({ asset: a, doc: d })));
+
+/** A document counts as on file for the asset only once it is linked. */
+export const isLinked = (doc: SafetyDoc, linkedDocIds: string[]) => !doc.match || linkedDocIds.includes(doc.id);
 
 /** Assets the AI puts on top, in this order. */
 export const SUGGESTED_ASSET_IDS = ["fl03", "hp07", "cv12", "ac2"];

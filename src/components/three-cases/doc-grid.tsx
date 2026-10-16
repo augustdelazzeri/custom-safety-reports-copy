@@ -1,9 +1,10 @@
 "use client";
 
-import { DOC_COLUMNS } from "@/lib/three-cases/data";
+import { useThreeCases } from "@/contexts/ThreeCasesContext";
+import { DOC_COLUMNS, isLinked } from "@/lib/three-cases/data";
 import type { Asset, DocType } from "@/lib/three-cases/types";
 import { cn } from "@/lib/utils";
-import { Clipboard, ClipboardList, FileCheck, FlaskConical, HardHat, Lock, Plus } from "lucide-react";
+import { Check, Clipboard, ClipboardList, FileCheck, FlaskConical, HardHat, Link2, Lock, Plus, Sparkles } from "lucide-react";
 
 export const DOC_ICON: Record<DocType, React.ComponentType<{ className?: string }>> = {
   jha: HardHat,
@@ -16,7 +17,8 @@ export const DOC_ICON: Record<DocType, React.ComponentType<{ className?: string 
 
 /**
  * Fixed grid of the asset's documents, always in the sidebar order.
- * Empty cells stay visible so the gap is obvious.
+ * Empty cells stay visible so the gap is obvious. Documents the AI found by title but nobody
+ * linked yet show dashed, with the reason and a one-click link.
  */
 export function DocGrid({
   asset,
@@ -27,6 +29,8 @@ export function DocGrid({
   highlight?: string[];
   compact?: boolean;
 }) {
+  const { linkedDocIds, linkDocs } = useThreeCases();
+
   return (
     <div className="grid grid-cols-6 gap-2">
       {DOC_COLUMNS.map((col) => {
@@ -62,27 +66,74 @@ export function DocGrid({
                   <Plus className="size-3" /> None
                 </span>
               ) : (
-                docs.map((d) => (
-                  <div
-                    key={d.id}
-                    className={cn(
-                      "rounded-md border px-2 py-1.5 transition-colors",
-                      highlight.includes(d.id) ? "border-indigo-300 bg-indigo-50" : "border-gray-100 bg-gray-50",
-                    )}
-                    title={`${d.ref} · ${d.title}`}
-                  >
-                    <div className="font-mono text-[10px] text-gray-500">{d.ref}</div>
-                    <div className="line-clamp-2 text-[11px] leading-snug text-gray-800">{d.title}</div>
-                    {d.status !== "approved" ? (
-                      <div className="mt-0.5 text-[10px] font-medium text-amber-700">In review</div>
-                    ) : null}
-                  </div>
-                ))
+                docs.map((d) => {
+                  const linked = isLinked(d, linkedDocIds);
+                  const justLinked = Boolean(d.match) && linked;
+                  return (
+                    <div
+                      key={d.id}
+                      className={cn(
+                        "rounded-md border px-2 py-1.5 transition-colors",
+                        !linked
+                          ? "border-dashed border-sky-400 bg-sky-50/50"
+                          : highlight.includes(d.id)
+                            ? "border-indigo-300 bg-indigo-50"
+                            : "border-gray-100 bg-gray-50",
+                      )}
+                      title={d.match ? `${d.ref} · ${d.title}\nFound by AI: ${d.match.reason}` : `${d.ref} · ${d.title}`}
+                    >
+                      <div className="font-mono text-[10px] text-gray-500">{d.ref}</div>
+                      <div className="line-clamp-2 text-[11px] leading-snug text-gray-800">{d.title}</div>
+                      {d.status !== "approved" ? <div className="mt-0.5 text-[10px] font-medium text-amber-700">In review</div> : null}
+                      {d.covers ? <div className="mt-0.5 text-[10px] text-gray-500">Covers {d.covers} assets</div> : null}
+                      {!linked ? (
+                        <div className="mt-1 flex flex-wrap items-center justify-between gap-1">
+                          <span className="flex items-center gap-0.5 whitespace-nowrap text-[10px] font-medium text-sky-700">
+                            <Sparkles className="size-2.5" /> AI found
+                          </span>
+                          <button
+                            onClick={() => linkDocs([d.id])}
+                            className="inline-flex items-center gap-0.5 rounded bg-sky-600 px-1.5 py-0.5 text-[10px] font-semibold text-white hover:bg-sky-700"
+                          >
+                            <Link2 className="size-2.5" /> Link
+                          </button>
+                        </div>
+                      ) : null}
+                      {justLinked ? (
+                        <div className="mt-0.5 flex items-center gap-0.5 text-[10px] font-medium text-emerald-700">
+                          <Check className="size-2.5" /> Linked
+                        </div>
+                      ) : null}
+                    </div>
+                  );
+                })
               )}
             </div>
           </div>
         );
       })}
+    </div>
+  );
+}
+
+/** One line above the grid when the AI found documents for this asset that nobody linked. */
+export function UnlinkedBanner({ asset }: { asset: Asset }) {
+  const { linkedDocIds, linkDocs } = useThreeCases();
+  const pending = asset.docs.filter((d) => !isLinked(d, linkedDocIds));
+  if (pending.length === 0) return null;
+  return (
+    <div className="mb-2 flex flex-wrap items-center gap-2 rounded-lg border border-sky-200 bg-sky-50 px-3 py-1.5 text-xs text-sky-900">
+      <Sparkles className="size-3.5 text-sky-600" />
+      <span>
+        {pending.length === 1 ? "1 document names" : `${pending.length} documents name`} {asset.name} but {pending.length === 1 ? "isn't" : "aren't"} linked to
+        it: {pending.map((d) => d.ref).join(", ")}
+      </span>
+      <button
+        onClick={() => linkDocs(pending.map((d) => d.id))}
+        className="ml-auto inline-flex items-center gap-1 rounded-md bg-sky-600 px-2 py-1 font-semibold text-white hover:bg-sky-700"
+      >
+        <Link2 className="size-3" /> Link {pending.length === 1 ? "it" : "all"}
+      </button>
     </div>
   );
 }

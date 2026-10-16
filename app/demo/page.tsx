@@ -10,7 +10,7 @@ import { useState } from "react";
 const TRY: Record<string, string> = {
   "/safety-execution": "Type “Every last Friday of the month, clean Hydraulic Press 7”, or pick Forklift 3 and choose Clean.",
   "/compliance-calendar": "Open a dashed AI chip, then approve the week.",
-  "/safety-execution/readiness": "Select Press 7 and Stretch wrapper 2, then draft the missing documents.",
+  "/safety-execution/readiness": "Review the 5 AI matches first, then select Press 7 and Stretch wrapper 2 and draft what is missing.",
   "/safety-execution/mobile": "Run the pre-use inspection and fail one item.",
   "/inbox": "Pick two actions on the Press 4 injury and run the flow.",
   "/events/ev-2041": "Same flow, on the event page. Use the arrows to move between events.",

@@ -1,6 +1,6 @@
 "use client";
 
-import { DocGrid } from "@/components/three-cases/doc-grid";
+import { DocGrid, UnlinkedBanner } from "@/components/three-cases/doc-grid";
 import { ExecutionPlan } from "@/components/three-cases/execution-plan";
 import { CASE_B_OPTIONS, OptionSwitcher } from "@/components/three-cases/option-switcher";
 import { AiTag, PageShell, TapCompare } from "@/components/three-cases/shell";
@@ -59,7 +59,9 @@ export default function SafetyExecutionPage() {
     const trail = a
       ? [
           `Found ${a.name} at ${locationName(a.locationId)}`,
-          `Read ${a.docs.length} document${a.docs.length === 1 ? "" : "s"} linked to it`,
+          a.docs.some((d) => d.match)
+            ? `Read ${a.docs.length} documents: ${a.docs.filter((d) => !d.match).length} linked, ${a.docs.filter((d) => d.match).length} found by title`
+            : `Read ${a.docs.length} document${a.docs.length === 1 ? "" : "s"} linked to it`,
           result.jobId ? "Drafted the plan" : "Waiting for the job",
         ]
       : [];
@@ -222,6 +224,7 @@ export default function SafetyExecutionPage() {
                     ))}
                   </div>
                 </div>
+                <UnlinkedBanner asset={selected} />
                 <DocGrid asset={selected} highlight={selectedJob?.basedOn ?? []} compact={Boolean(selectedJob)} />
               </div>
 

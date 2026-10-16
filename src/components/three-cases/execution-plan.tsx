@@ -2,7 +2,7 @@
 
 import { Button } from "@/components/ui/button";
 import { useThreeCases } from "@/contexts/ThreeCasesContext";
-import { asset as getAsset } from "@/lib/three-cases/data";
+import { asset as getAsset, isLinked } from "@/lib/three-cases/data";
 import type { ExecutionJob, PlanItemKind } from "@/lib/three-cases/types";
 import { cn } from "@/lib/utils";
 import {
@@ -46,12 +46,14 @@ const KIND_LABEL: Record<PlanItemKind, string> = {
 
 /** The plan the AI proposes for a job, approved with one click. */
 export function ExecutionPlan({ job, onBack, dense = false }: { job: ExecutionJob; onBack?: () => void; dense?: boolean }) {
-  const { createExecution } = useThreeCases();
+  const { createExecution, linkDocs, linkedDocIds } = useThreeCases();
   const [phase, setPhase] = useState<"review" | "running" | "done">("review");
   const [step, setStep] = useState(0);
   const [executionId, setExecutionId] = useState<string | null>(null);
   const actionable = job.plan.filter((p) => p.kind !== "note" && p.kind !== "attach");
   const a = getAsset(job.assetId);
+  // Documents the plan relies on that the AI found by title: approving the plan links them.
+  const toLink = (a?.docs ?? []).filter((d) => job.basedOn.includes(d.id) && !isLinked(d, linkedDocIds));
 
   useEffect(() => {
     setPhase("review");
@@ -63,13 +65,14 @@ export function ExecutionPlan({ job, onBack, dense = false }: { job: ExecutionJo
     if (phase !== "running") return;
     if (step >= actionable.length) {
       const ex = createExecution(job.id);
+      linkDocs(job.basedOn);
       setExecutionId(ex.id);
       setPhase("done");
       return;
     }
     const t = setTimeout(() => setStep((s) => s + 1), 550);
     return () => clearTimeout(t);
-  }, [phase, step, actionable.length, createExecution, job.id]);
+  }, [phase, step, actionable.length, createExecution, linkDocs, job.id, job.basedOn]);
 
   return (
     <div className="flex h-full min-h-0 flex-col rounded-xl border border-indigo-200 bg-white shadow-sm">
@@ -171,7 +174,8 @@ export function ExecutionPlan({ job, onBack, dense = false }: { job: ExecutionJo
         ) : (
           <>
             <span className="text-xs text-gray-500">
-              {actionable.length} items · nothing is created until you approve
+              {actionable.length} items
+              {toLink.length ? ` · also links ${toLink.map((d) => d.ref).join(", ")} to ${a?.name}` : ""} · nothing is created until you approve
             </span>
             <Button size="sm" disabled={phase === "running"} onClick={() => setPhase("running")}>
               {phase === "running" ? (
