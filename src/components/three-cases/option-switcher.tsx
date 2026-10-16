@@ -27,7 +27,10 @@ export const CASE_C_OPTIONS: OptionLink[] = [
 /** Small switcher so the reviewer can compare the prototype options of one use case. */
 export function OptionSwitcher({ caseLabel, options }: { caseLabel: string; options: OptionLink[] }) {
   const pathname = usePathname();
-  const active = [...options].sort((a, b) => b.href.length - a.href.length).find((o) => pathname === o.href || pathname.startsWith(`${o.href}/`));
+  const isEventDetail = /^\/events\/ev-/.test(pathname);
+  const active = isEventDetail
+    ? options.find((o) => o.href.startsWith("/events/ev-"))
+    : [...options].sort((a, b) => b.href.length - a.href.length).find((o) => pathname === o.href || pathname.startsWith(`${o.href}/`));
   return (
     <div className="flex flex-wrap items-center gap-2 rounded-lg border border-gray-200 bg-white px-2 py-1.5">
       <span className="px-1 text-[11px] font-semibold uppercase tracking-wide text-gray-400">{caseLabel}</span>
