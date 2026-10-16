@@ -1,7 +1,7 @@
 "use client";
 
-import { AssetWorkOrders, useCreatedRecords } from "@/components/three-cases/asset-records";
-import { DocGrid, UnlinkedBanner } from "@/components/three-cases/doc-grid";
+import { useCreatedRecords } from "@/components/three-cases/asset-records";
+import { DocGrid } from "@/components/three-cases/doc-grid";
 import { ExecutionPlan } from "@/components/three-cases/execution-plan";
 import { CASE_B_OPTIONS, OptionSwitcher } from "@/components/three-cases/option-switcher";
 import { AiTag, PageShell, TapCompare } from "@/components/three-cases/shell";
@@ -18,8 +18,8 @@ import {
   person,
 } from "@/lib/three-cases/data";
 import { cn } from "@/lib/utils";
-import { ArrowUp, Building2, ChevronRight, Loader2, MapPin, Mic, Package, PanelLeftClose, PanelLeftOpen, Sparkles } from "lucide-react";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { ArrowRight, ArrowUp, ChevronRight, Loader2, MapPin, Mic, PanelLeftClose, PanelLeftOpen, Sparkles } from "lucide-react";
+import { useState } from "react";
 
 const TONE: Record<string, string> = {
   due: "text-amber-700",
@@ -27,11 +27,17 @@ const TONE: Record<string, string> = {
   event: "text-indigo-700",
 };
 
+const DOT: Record<string, string> = {
+  due: "bg-amber-500",
+  gap: "bg-rose-500",
+  event: "bg-indigo-500",
+};
+
 export default function SafetyExecutionPage() {
-  const [locationId, setLocationId] = useState<string>("all");
   const [assetId, setAssetId] = useState<string | null>(null);
   const [jobId, setJobId] = useState<string | null>(null);
   const [prompt, setPrompt] = useState("");
+  const [asked, setAsked] = useState<string | null>(null);
   const [thinking, setThinking] = useState(false);
   const [aiReply, setAiReply] = useState<string | null>(null);
   const [aiTrail, setAiTrail] = useState<string[]>([]);
@@ -39,34 +45,27 @@ export default function SafetyExecutionPage() {
 
   const selected = assetId ? getAsset(assetId) : undefined;
   const created = useCreatedRecords(selected?.id);
-  // When a plan creates records, bring the asset back into view so the new permit and work order show.
-  const assetCard = useRef<HTMLDivElement>(null);
-  const createdCount = useRef(created.executions.length);
-  useEffect(() => {
-    if (created.executions.length > createdCount.current) {
-      setTimeout(() => assetCard.current?.scrollIntoView({ behavior: "smooth", block: "start" }), 600);
-    }
-    createdCount.current = created.executions.length;
-  }, [created.executions.length]);
   const selectedJob = jobId ? getJob(jobId) : undefined;
-  const visibleAssets = useMemo(
-    () => ASSETS.filter((a) => locationId === "all" || a.locationId === locationId),
-    [locationId],
-  );
 
   const pickAsset = (id: string) => {
     setAssetId(id);
     setJobId(null);
     setAiReply(null);
     setAiTrail([]);
+    setAsked(null);
   };
 
   const submit = (text: string) => {
     if (!text.trim()) return;
-    setPrompt(text);
+    const t = text.toLowerCase();
+    setPrompt("");
     setThinking(true);
     setAiReply(null);
-    const result = interpretPrompt(text);
+    // With an asset open, "clean it" or "inspect" means this asset's job.
+    const local = selected ? jobsForAsset(selected.id).find((j) => t.includes(j.verb.toLowerCase())) : undefined;
+    const result = local
+      ? { jobId: local.id, assetId: local.assetId, reply: local.reason }
+      : interpretPrompt(text);
     const a = result.assetId ? getAsset(result.assetId) : undefined;
     const trail = a
       ? [
@@ -78,20 +77,25 @@ export default function SafetyExecutionPage() {
         ]
       : [];
     setAiTrail([]);
-    trail.forEach((line, i) => setTimeout(() => setAiTrail((t) => [...t, line]), 350 * (i + 1)));
+    trail.forEach((line, i) => setTimeout(() => setAiTrail((tr) => [...tr, line]), 350 * (i + 1)));
     setTimeout(() => {
       setThinking(false);
-      setAiReply(result.reply);
-      if (result.assetId) {
-        setLocationId(getAsset(result.assetId)?.locationId ?? "all");
-        setAssetId(result.assetId);
+      if (!result.assetId && selected) {
+        setAiReply(
+          `No document on ${selected.name} covers that yet. I can open a plain work order with JHA attached, or draft an SOP for it first.`,
+        );
+        return;
       }
+      setAiReply(result.reply);
+      if (result.assetId) setAssetId(result.assetId);
+      if (result.jobId) setAsked(text);
       setJobId(result.jobId ?? null);
     }, 350 * (trail.length + 1));
   };
 
   const suggestions = selected ? jobsForAsset(selected.id) : [];
   const onlyPrereqs = selected ? !selected.docs.some((d) => d.enables) : false;
+  const askProps = { prompt, setPrompt, thinking, trail: aiTrail, reply: aiReply, onSubmit: submit };
 
   return (
     <PageShell title="Safety Execution" mainClassName="flex flex-col gap-3 overflow-hidden p-4">
@@ -100,209 +104,104 @@ export default function SafetyExecutionPage() {
         <TapCompare today="~25 clicks, 4 screens" todayDetail="open each document, then the CMMS, then link back" here="3 clicks" />
       </div>
 
-      {/* Ask the AI */}
-      <div className="rounded-xl border border-indigo-200 bg-white p-3 shadow-sm">
-        <form
-          className="flex items-center gap-2"
-          onSubmit={(e) => {
-            e.preventDefault();
-            submit(prompt);
-          }}
-        >
-          <Sparkles className="size-5 shrink-0 text-indigo-600" />
-          <input
-            id="execution-prompt"
-            value={prompt}
-            onChange={(e) => setPrompt(e.target.value)}
-            placeholder="What are we executing for safety today?"
-            className="min-w-0 flex-1 bg-transparent text-[15px] outline-none placeholder:text-gray-400"
-          />
-          <button type="button" className="rounded-md p-2 text-gray-500 hover:bg-gray-100" aria-label="Speak">
-            <Mic className="size-4" />
-          </button>
-          <button
-            type="submit"
-            className="flex size-8 items-center justify-center rounded-md bg-indigo-600 text-white hover:bg-indigo-700 disabled:opacity-40"
-            disabled={!prompt.trim() || thinking}
-            aria-label="Send"
-          >
-            {thinking ? <Loader2 className="size-4 animate-spin" /> : <ArrowUp className="size-4" />}
-          </button>
-        </form>
-        <div className="mt-2 flex flex-wrap items-center gap-1.5">
-          {aiTrail.length > 0 || aiReply ? (
-            <div className="flex flex-wrap items-center gap-1.5 text-xs text-gray-600">
-              {aiTrail.map((line) => (
-                <span key={line} className="inline-flex items-center gap-1 rounded-full bg-gray-100 px-2 py-0.5">
-                  <ChevronRight className="size-3 text-gray-400" />
-                  {line}
-                </span>
-              ))}
-              {aiReply ? <span className="font-medium text-indigo-800">{aiReply}</span> : null}
-            </div>
-          ) : (
-            PROMPT_EXAMPLES.map((ex) => (
-              <button
-                key={ex}
-                type="button"
-                onClick={() => submit(ex)}
-                className="rounded-full border border-gray-200 px-2.5 py-1 text-xs text-gray-600 hover:border-indigo-300 hover:text-indigo-700"
-              >
-                {ex}
-              </button>
-            ))
-          )}
-        </div>
-      </div>
-
-      {/* Location, asset, workspace */}
-      <div
-        className={cn(
-          "grid min-h-0 flex-1 gap-3",
-          navHidden ? "grid-cols-[40px_minmax(0,1fr)]" : "grid-cols-[180px_230px_minmax(0,1fr)]",
-        )}
-      >
+      <div className={cn("grid min-h-0 flex-1 gap-3", navHidden ? "grid-cols-[40px_minmax(0,1fr)]" : "grid-cols-[230px_minmax(0,1fr)]")}>
         {navHidden ? (
           <button
             onClick={() => setNavHidden(false)}
             className="flex min-h-0 flex-col items-center gap-3 rounded-xl border border-gray-200 bg-white py-2 text-gray-500 hover:text-gray-800"
-            aria-label="Show locations and assets"
-            title="Show locations and assets"
+            aria-label="Show assets"
+            title="Show assets"
           >
             <PanelLeftOpen className="size-4" />
             <span className="text-[11px] font-medium text-gray-600 [writing-mode:vertical-rl]">
-              {locationId === "all" ? "All locations" : locationName(locationId)}
-              {selected ? ` · ${selected.name}` : ""}
+              {selected ? `${selected.code} · ${selected.name}` : "Assets"}
             </span>
           </button>
-        ) : null}
-        <div className={cn("min-h-0 flex-col rounded-xl border border-gray-200 bg-white", navHidden ? "hidden" : "flex")}>
-          <div className="flex items-center justify-between border-b border-gray-100 px-3 py-2 text-[11px] font-semibold uppercase tracking-wide text-gray-400">
-            Locations
-            <button
-              onClick={() => setNavHidden(true)}
-              className="rounded p-0.5 text-gray-400 hover:bg-gray-100 hover:text-gray-700"
-              aria-label="Hide locations and assets"
-              title="Hide locations and assets"
-            >
-              <PanelLeftClose className="size-3.5" />
-            </button>
-          </div>
-          <div className="flex-1 space-y-0.5 overflow-y-auto p-1.5">
-            {[{ id: "all", name: "All locations" }, ...LOCATIONS.filter((l) => l.parentId)].map((l) => {
-              const count = l.id === "all" ? ASSETS.length : ASSETS.filter((a) => a.locationId === l.id).length;
-              return (
-                <button
-                  key={l.id}
-                  onClick={() => setLocationId(l.id)}
-                  className={cn(
-                    "flex w-full items-center justify-between gap-2 rounded-md px-2 py-1.5 text-left text-sm",
-                    locationId === l.id ? "bg-indigo-50 font-medium text-indigo-800" : "text-gray-700 hover:bg-gray-50",
-                  )}
-                >
-                  <span className="flex min-w-0 items-center gap-1.5">
-                    {l.id === "all" ? <Building2 className="size-3.5 shrink-0 text-gray-400" /> : <MapPin className="size-3.5 shrink-0 text-gray-400" />}
-                    <span className="truncate">{l.name}</span>
-                  </span>
-                  <span className="text-xs text-gray-400">{count}</span>
-                </button>
-              );
-            })}
-          </div>
-        </div>
+        ) : (
+          <AssetTree selectedId={assetId} onPick={pickAsset} onHide={() => setNavHidden(true)} />
+        )}
 
-        <div className={cn("min-h-0 flex-col rounded-xl border border-gray-200 bg-white", navHidden ? "hidden" : "flex")}>
-          <div className="border-b border-gray-100 px-3 py-2 text-[11px] font-semibold uppercase tracking-wide text-gray-400">Assets</div>
-          <div className="flex-1 overflow-y-auto p-1.5">
-            {locationId === "all" ? (
-              <>
-                <div className="flex items-center gap-1 px-2 pb-1 pt-1 text-[11px] font-semibold text-indigo-700">
-                  <Sparkles className="size-3" /> Suggested for today
-                </div>
-                {SUGGESTED_ASSET_IDS.map((id) => {
-                  const a = getAsset(id);
-                  if (!a) return null;
-                  return <AssetRow key={id} id={id} active={assetId === id} onPick={pickAsset} hint={a.aiHint} tone={a.aiHintTone} />;
-                })}
-                <div className="px-2 pb-1 pt-3 text-[11px] font-semibold text-gray-400">All assets</div>
-              </>
-            ) : null}
-            {visibleAssets
-              .filter((a) => locationId !== "all" || !SUGGESTED_ASSET_IDS.includes(a.id))
-              .map((a) => (
-                <AssetRow key={a.id} id={a.id} active={assetId === a.id} onPick={pickAsset} hint={a.aiHint} tone={a.aiHintTone} />
-              ))}
-          </div>
-        </div>
-
-        <div className="flex min-h-0 flex-col gap-3 overflow-y-auto">
+        <div className="flex min-h-0 flex-col gap-3">
           {!selected ? (
-            <div className="flex flex-1 flex-col items-center justify-center gap-2 rounded-xl border border-dashed border-gray-300 bg-white text-center">
-              <Package className="size-8 text-gray-300" />
-              <p className="text-sm font-medium text-gray-700">Pick an asset, or tell the AI what you need to do</p>
-              <p className="max-w-sm text-xs text-gray-500">
-                The AI reads the asset&apos;s JHA, SOP, LOTO, permit, inspections and SDS, then proposes the work with everything attached.
-              </p>
+            <div className="flex flex-1 flex-col items-center justify-center rounded-xl border border-gray-200 bg-white p-6">
+              <div className="w-full max-w-xl">
+                <div className="mb-3 flex items-center gap-2">
+                  <Sparkles className="size-5 text-indigo-600" />
+                  <h2 className="text-base font-semibold text-gray-900">What are we executing for safety today?</h2>
+                </div>
+                <AskBox {...askProps} placeholder="Clean Forklift 3 tomorrow morning" examples={PROMPT_EXAMPLES} autoFocus />
+                <p className="mt-4 text-xs text-gray-500">
+                  Or pick an asset on the left. The AI reads its JHA, SOP, LOTO, permit, inspections and SDS, then proposes the work with everything
+                  attached.
+                </p>
+              </div>
             </div>
           ) : (
             <>
-              <div ref={assetCard} className="scroll-mt-1 rounded-xl border border-gray-200 bg-white p-3">
-                <div className="mb-2 flex flex-wrap items-baseline justify-between gap-2">
-                  <div className="min-w-0">
-                    <div className="flex items-center gap-2">
-                      <span className="font-mono text-xs text-gray-500">{selected.code}</span>
-                      <h2 className="truncate text-base font-semibold text-gray-900">{selected.name}</h2>
-                    </div>
-                    <p className="text-xs text-gray-500">
-                      {locationName(selected.locationId)} · {selected.category} · Owner {person(selected.ownerId).name}
-                    </p>
-                  </div>
+              <div className="shrink-0 rounded-xl border border-gray-200 bg-white p-3">
+                <div className="mb-2 flex flex-wrap items-center gap-x-3 gap-y-1">
+                  <span className="font-mono text-xs text-gray-500">{selected.code}</span>
+                  <h2 className="text-base font-semibold text-gray-900">{selected.name}</h2>
+                  <span className="text-xs text-gray-500">
+                    {locationName(selected.locationId)} · {selected.category} · Owner {person(selected.ownerId).name}
+                  </span>
                 </div>
-                <UnlinkedBanner asset={selected} />
-                <DocGrid asset={selected} highlight={selectedJob?.basedOn ?? []} compact={Boolean(selectedJob)} created={created.docs} />
-                <AssetWorkOrders asset={selected} compact={Boolean(selectedJob)} />
+                <DocGrid
+                  asset={selected}
+                  highlight={selectedJob?.basedOn ?? []}
+                  created={created.docs}
+                  variant={selectedJob ? "refs" : "full"}
+                  workOrders
+                />
               </div>
 
-              <div className={selectedJob ? "shrink-0" : "min-h-0 flex-1"}>
-                {selectedJob ? (
-                  <ExecutionPlan job={selectedJob} onBack={() => setJobId(null)} />
-                ) : (
-                  <div className="flex h-full flex-col rounded-xl border border-gray-200 bg-white p-3">
-                    <div className="mb-2 flex items-center gap-2">
-                      <AiTag label="Read the documents" />
-                      <span className="text-sm font-medium text-gray-800">What do you want to do on {selected.name}?</span>
-                    </div>
-                    <div className="grid grid-cols-1 gap-2 md:grid-cols-3">
-                      {suggestions.map((j) => (
-                        <button
-                          key={j.id}
-                          onClick={() => setJobId(j.id)}
-                          className="group flex flex-col items-start gap-1 rounded-lg border border-gray-200 p-3 text-left transition hover:border-indigo-300 hover:bg-indigo-50/40"
-                        >
-                          <span className="text-[11px] font-semibold uppercase tracking-wide text-indigo-700">{j.verb}</span>
-                          <span className="text-sm font-semibold text-gray-900">{j.title}</span>
-                          <span className="text-xs text-gray-500">{j.reason}</span>
-                          <span className="mt-1 text-xs font-medium text-indigo-700 group-hover:underline">Prepare it</span>
-                        </button>
-                      ))}
-                      {onlyPrereqs ? (
-                        <button
-                          onClick={() => setJobId("hp07-monthly")}
-                          className="flex flex-col items-start gap-1 rounded-lg border border-rose-200 bg-rose-50/40 p-3 text-left hover:border-rose-300"
-                        >
-                          <span className="text-[11px] font-semibold uppercase tracking-wide text-rose-700">Missing documents</span>
-                          <span className="text-sm font-semibold text-gray-900">Create what is needed to service {selected.name}</span>
-                          <span className="text-xs text-gray-500">Only a JHA is on file. The AI drafts the SOP, LOTO and permit first.</span>
-                          <span className="mt-1 text-xs font-medium text-rose-700">Draft them and plan the work</span>
-                        </button>
-                      ) : null}
-                      <div className="flex flex-col justify-center rounded-lg border border-dashed border-gray-300 p-3 text-xs text-gray-500">
-                        Something else? Type it above, for example &quot;replace the hose tomorrow&quot;.
-                      </div>
-                    </div>
+              {selectedJob ? (
+                <div className="min-h-0 flex-1">
+                  <ExecutionPlan job={selectedJob} asked={asked ?? undefined} onBack={() => setJobId(null)} />
+                </div>
+              ) : (
+                <div className="shrink-0 rounded-xl border border-gray-200 bg-white p-3">
+                  <div className="mb-2 flex items-center gap-2">
+                    <AiTag label="Read the documents" />
+                    <span className="text-sm font-medium text-gray-800">What do you want to do on {selected.name}?</span>
                   </div>
-                )}
-              </div>
+                  <div className="grid grid-cols-[repeat(auto-fit,minmax(170px,1fr))] gap-2">
+                    {suggestions.map((j) => (
+                      <button
+                        key={j.id}
+                        onClick={() => {
+                          setAsked(null);
+                          setJobId(j.id);
+                        }}
+                        className="group flex flex-col items-start gap-0.5 rounded-lg border border-gray-200 px-3 py-2 text-left transition hover:border-indigo-300 hover:bg-indigo-50/40"
+                      >
+                        <span className="flex w-full items-center justify-between text-[11px] font-semibold uppercase tracking-wide text-indigo-700">
+                          {j.verb}
+                          <ArrowRight className="size-3.5 text-gray-300 transition group-hover:translate-x-0.5 group-hover:text-indigo-600" />
+                        </span>
+                        <span className="text-sm font-semibold text-gray-900">{j.title}</span>
+                        <span className="line-clamp-2 text-xs text-gray-500">{j.reason}</span>
+                      </button>
+                    ))}
+                    {onlyPrereqs ? (
+                      <button
+                        onClick={() => setJobId("hp07-monthly")}
+                        className="group flex flex-col items-start gap-0.5 rounded-lg border border-rose-200 bg-rose-50/40 px-3 py-2 text-left hover:border-rose-300"
+                      >
+                        <span className="flex w-full items-center justify-between text-[11px] font-semibold uppercase tracking-wide text-rose-700">
+                          Missing documents
+                          <ArrowRight className="size-3.5 text-rose-300 group-hover:text-rose-600" />
+                        </span>
+                        <span className="text-sm font-semibold text-gray-900">Create what is needed to service {selected.name}</span>
+                        <span className="line-clamp-2 text-xs text-gray-500">Only a JHA is on file. The AI drafts the SOP, LOTO and permit first.</span>
+                      </button>
+                    ) : null}
+                  </div>
+                  <div className="mt-2.5">
+                    <AskBox {...askProps} placeholder={`Something else on ${selected.name}? For example "replace the hose tomorrow"`} />
+                  </div>
+                </div>
+              )}
             </>
           )}
         </div>
@@ -311,34 +210,161 @@ export default function SafetyExecutionPage() {
   );
 }
 
-function AssetRow({
-  id,
-  active,
-  onPick,
-  hint,
-  tone,
+/** The chat input: lives where the decision is made, not on top of the page. */
+function AskBox({
+  prompt,
+  setPrompt,
+  thinking,
+  trail,
+  reply,
+  onSubmit,
+  placeholder,
+  examples,
+  autoFocus,
 }: {
-  id: string;
-  active: boolean;
-  onPick: (id: string) => void;
-  hint?: string;
-  tone?: string;
+  prompt: string;
+  setPrompt: (v: string) => void;
+  thinking: boolean;
+  trail: string[];
+  reply: string | null;
+  onSubmit: (text: string) => void;
+  placeholder: string;
+  examples?: string[];
+  autoFocus?: boolean;
 }) {
-  const a = getAsset(id);
-  if (!a) return null;
+  const working = thinking || trail.length > 0 || reply;
   return (
-    <button
-      onClick={() => onPick(id)}
-      className={cn(
-        "mb-0.5 flex w-full flex-col rounded-md px-2 py-1.5 text-left",
-        active ? "bg-indigo-50 ring-1 ring-indigo-200" : "hover:bg-gray-50",
-      )}
-    >
-      <span className="flex items-center gap-1.5 text-sm text-gray-900">
-        <span className="font-mono text-[10px] text-gray-400">{a.code}</span>
-        <span className="truncate font-medium">{a.name}</span>
-      </span>
-      {hint ? <span className={cn("truncate text-[11px]", tone ? TONE[tone] : "text-gray-500")}>{hint}</span> : null}
-    </button>
+    <div>
+      <form
+        className="flex items-center gap-2 rounded-xl border border-gray-200 bg-white px-3 py-1.5 shadow-sm focus-within:border-indigo-300"
+        onSubmit={(e) => {
+          e.preventDefault();
+          onSubmit(prompt);
+        }}
+      >
+        <Sparkles className="size-4 shrink-0 text-indigo-500" />
+        <input
+          id="execution-prompt"
+          value={prompt}
+          onChange={(e) => setPrompt(e.target.value)}
+          placeholder={placeholder}
+          autoFocus={autoFocus}
+          className="min-w-0 flex-1 bg-transparent py-1 text-sm outline-none placeholder:text-gray-400"
+        />
+        <button type="button" className="rounded-md p-1.5 text-gray-500 hover:bg-gray-100" aria-label="Speak">
+          <Mic className="size-4" />
+        </button>
+        <button
+          type="submit"
+          className="flex size-7 items-center justify-center rounded-md bg-indigo-600 text-white hover:bg-indigo-700 disabled:opacity-40"
+          disabled={!prompt.trim() || thinking}
+          aria-label="Send"
+        >
+          {thinking ? <Loader2 className="size-4 animate-spin" /> : <ArrowUp className="size-4" />}
+        </button>
+      </form>
+      {working ? (
+        <div className="mt-1.5 flex flex-wrap items-center gap-1.5 text-xs text-gray-600">
+          {trail.map((line) => (
+            <span key={line} className="inline-flex items-center gap-1 rounded-full bg-gray-100 px-2 py-0.5">
+              <ChevronRight className="size-3 text-gray-400" />
+              {line}
+            </span>
+          ))}
+          {reply ? <span className="font-medium text-indigo-800">{reply}</span> : null}
+        </div>
+      ) : examples ? (
+        <div className="mt-2 flex flex-wrap gap-1.5">
+          {examples.map((ex) => (
+            <button
+              key={ex}
+              type="button"
+              onClick={() => onSubmit(ex)}
+              className="rounded-full border border-gray-200 px-2.5 py-1 text-xs text-gray-600 hover:border-indigo-300 hover:text-indigo-700"
+            >
+              {ex}
+            </button>
+          ))}
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
+/** Locations and assets in one tree, like the CMMS, with the AI's picks for today on top. */
+function AssetTree({ selectedId, onPick, onHide }: { selectedId: string | null; onPick: (id: string) => void; onHide: () => void }) {
+  const selected = selectedId ? getAsset(selectedId) : undefined;
+  const [open, setOpen] = useState<Record<string, boolean>>({});
+
+  return (
+    <div className="flex min-h-0 flex-col rounded-xl border border-gray-200 bg-white">
+      <div className="flex items-center justify-between border-b border-gray-100 px-3 py-2 text-[11px] font-semibold uppercase tracking-wide text-gray-400">
+        Assets
+        <button onClick={onHide} className="rounded p-0.5 text-gray-400 hover:bg-gray-100 hover:text-gray-700" aria-label="Hide assets" title="Hide assets">
+          <PanelLeftClose className="size-3.5" />
+        </button>
+      </div>
+      <div className="flex-1 overflow-y-auto p-1.5">
+        <div className="flex items-center gap-1 px-2 pb-1 pt-1 text-[11px] font-semibold text-indigo-700">
+          <Sparkles className="size-3" /> Suggested for today
+        </div>
+        {SUGGESTED_ASSET_IDS.map((id) => {
+          const a = getAsset(id);
+          if (!a) return null;
+          return (
+            <button
+              key={id}
+              onClick={() => onPick(id)}
+              className={cn(
+                "mb-0.5 flex w-full flex-col rounded-md px-2 py-1.5 text-left",
+                selectedId === id ? "bg-indigo-50 ring-1 ring-indigo-200" : "hover:bg-gray-50",
+              )}
+            >
+              <span className="flex items-center gap-1.5 text-sm text-gray-900">
+                <span className="font-mono text-[10px] text-gray-400">{a.code}</span>
+                <span className="truncate font-medium">{a.name}</span>
+              </span>
+              {a.aiHint ? <span className={cn("truncate text-[11px]", a.aiHintTone ? TONE[a.aiHintTone] : "text-gray-500")}>{a.aiHint}</span> : null}
+            </button>
+          );
+        })}
+
+        <div className="px-2 pb-1 pt-3 text-[11px] font-semibold text-gray-400">{LOCATIONS.find((l) => !l.parentId)?.name}</div>
+        {LOCATIONS.filter((l) => l.parentId).map((l) => {
+          const assets = ASSETS.filter((a) => a.locationId === l.id);
+          const isOpen = open[l.id] ?? selected?.locationId === l.id;
+          return (
+            <div key={l.id}>
+              <button
+                onClick={() => setOpen((o) => ({ ...o, [l.id]: !isOpen }))}
+                className="flex w-full items-center gap-1.5 rounded-md px-2 py-1.5 text-left text-sm text-gray-700 hover:bg-gray-50"
+              >
+                <ChevronRight className={cn("size-3.5 shrink-0 text-gray-400 transition", isOpen && "rotate-90")} />
+                <MapPin className="size-3.5 shrink-0 text-gray-400" />
+                <span className="truncate">{l.name}</span>
+                <span className="ml-auto text-xs text-gray-400">{assets.length}</span>
+              </button>
+              {isOpen
+                ? assets.map((a) => (
+                    <button
+                      key={a.id}
+                      onClick={() => onPick(a.id)}
+                      title={a.aiHint}
+                      className={cn(
+                        "mb-0.5 flex w-full items-center gap-1.5 rounded-md py-1 pl-8 pr-2 text-left text-sm",
+                        selectedId === a.id ? "bg-indigo-50 font-medium text-indigo-900" : "text-gray-800 hover:bg-gray-50",
+                      )}
+                    >
+                      <span className="font-mono text-[10px] text-gray-400">{a.code}</span>
+                      <span className="truncate">{a.name}</span>
+                      {a.aiHintTone ? <span className={cn("ml-auto size-1.5 shrink-0 rounded-full", DOT[a.aiHintTone])} /> : null}
+                    </button>
+                  ))
+                : null}
+            </div>
+          );
+        })}
+      </div>
+    </div>
   );
 }

@@ -79,13 +79,15 @@ export function AiTag({ label = "AI", className }: { label?: string; className?:
   );
 }
 
-/** "Today vs here" click estimate, so the reader sees the step-change in effort. */
+/** "Today vs here" click estimate, so the reader sees the step-change in effort. The detail sits in the tooltip. */
 export function TapCompare({ today, here, todayDetail }: { today: string; here: string; todayDetail: string }) {
   return (
-    <div className="flex items-center gap-3 rounded-lg border border-dashed border-gray-300 bg-white px-3 py-2 text-xs text-gray-600">
-      <span>
+    <div
+      className="flex items-center gap-3 rounded-lg border border-dashed border-gray-300 bg-white px-3 py-1.5 text-xs text-gray-600"
+      title={`Today: ${today} (${todayDetail})`}
+    >
+      <span className="whitespace-nowrap">
         <span className="font-semibold text-gray-900">Today:</span> {today}
-        <span className="text-gray-400"> ({todayDetail})</span>
       </span>
       <span className="h-4 w-px bg-gray-200" />
       <span>
