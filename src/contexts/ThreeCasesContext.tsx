@@ -36,6 +36,8 @@ interface State {
   flows: Record<string, EventFlowState>;
   /** Documents the AI found by title that someone linked to their asset. */
   linkedDocIds: string[];
+  /** Nova proposals approved in the Compliance Calendar. */
+  novaDone: string[];
   nextWo: number;
   nextCapa: number;
 }
@@ -43,6 +45,7 @@ interface State {
 const seed = (): State => ({
   executions: [],
   linkedDocIds: [],
+  novaDone: [],
   flows: Object.fromEntries(EVENTS.map((e) => [e.id, { status: "open", selectedOptionIds: [], customActions: [], woRefs: [] }])),
   nextWo: 1061,
   nextCapa: 43,
@@ -53,6 +56,7 @@ interface Ctx extends State {
   createExecution: (jobId: string) => Execution;
   updateExecution: (id: string, patch: Partial<Execution>) => void;
   linkDocs: (docIds: string[]) => void;
+  markNovaDone: (ids: string[]) => void;
   runEventFlow: (eventId: string, optionIds: string[], customActions: string[]) => EventFlowState;
   closeEvent: (eventId: string, note: string) => void;
   verifyEvent: (eventId: string) => void;
@@ -112,6 +116,10 @@ export function ThreeCasesProvider({ children }: { children: React.ReactNode }) 
     setState((s) => ({ ...s, linkedDocIds: Array.from(new Set([...s.linkedDocIds, ...docIds])) }));
   }, []);
 
+  const markNovaDone = useCallback((ids: string[]) => {
+    setState((s) => ({ ...s, novaDone: Array.from(new Set([...s.novaDone, ...ids])) }));
+  }, []);
+
   const runEventFlow = useCallback(
     (eventId: string, optionIds: string[], customActions: string[]) => {
       const ev = EVENTS.find((e) => e.id === eventId);
@@ -154,8 +162,8 @@ export function ThreeCasesProvider({ children }: { children: React.ReactNode }) 
   const reset = useCallback(() => setState(seed()), []);
 
   const value = useMemo<Ctx>(
-    () => ({ ...state, hydrated, createExecution, updateExecution, linkDocs, runEventFlow, closeEvent, verifyEvent, reset }),
-    [state, hydrated, createExecution, updateExecution, linkDocs, runEventFlow, closeEvent, verifyEvent, reset],
+    () => ({ ...state, hydrated, createExecution, updateExecution, linkDocs, markNovaDone, runEventFlow, closeEvent, verifyEvent, reset }),
+    [state, hydrated, createExecution, updateExecution, linkDocs, markNovaDone, runEventFlow, closeEvent, verifyEvent, reset],
   );
 
   return <ThreeCasesContext.Provider value={value}>{children}</ThreeCasesContext.Provider>;
