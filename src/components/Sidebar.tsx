@@ -73,7 +73,7 @@ export default function Sidebar() {
     ]},
     { id: "access", label: "ACCESS & COMPLIANCE", items: [
       { label: "Access Points", icon: <QrCode className="size-5" />, href: "/access-points" },
-      { label: "Compliance Calendar", icon: <CalendarDays className="size-5" />, href: "#" },
+      { label: "Compliance Calendar", icon: <CalendarDays className="size-5" />, href: "/compliance-calendar" },
     ]},
     { id: "osha", label: "OSHA", items: [
       { label: "OSHA Log (Form 300)", icon: <FileBarChart className="size-5" />, href: "/osha/logs" },
