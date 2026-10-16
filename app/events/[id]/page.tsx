@@ -28,7 +28,7 @@ export default function EventDetailPage({ params }: { params: Promise<{ id: stri
   const idx = EVENTS.findIndex((e) => e.id === ev.id);
   const prev = EVENTS[(idx - 1 + EVENTS.length) % EVENTS.length];
   const next = EVENTS[(idx + 1) % EVENTS.length];
-  const status = flow?.status === "open" ? "Open" : flow?.status === "in_progress" ? "In review" : "Closed";
+  const status = flow?.status === "open" ? "Open" : flow?.status === "in_review" ? "In review" : "Closed";
 
   return (
     <PageShell title="Events" mainClassName="p-4 md:p-6">
@@ -128,9 +128,12 @@ export default function EventDetailPage({ params }: { params: Promise<{ id: stri
               <ol className="space-y-2 text-xs text-gray-600">
                 <li>{ev.reportedAt} · Reported by {ev.reportedBy}</li>
                 <li>{ev.reportedAt} · AI triage: {ev.aiRecommendation}</li>
-                {flow?.capaRef ? <li>Now · {flow.capaRef} created with {flow.woRefs.length} work orders</li> : null}
-                {flow?.status === "verified" ? <li>Now · AI verified the fix and closed the event</li> : null}
-                {flow?.status === "closed" ? <li>Now · Closed. {flow.closedNote}</li> : null}
+                {flow?.updates.map((u, i) => (
+                  <li key={i}>
+                    {u.at} · {u.text}
+                  </li>
+                ))}
+                {flow?.status === "closed" && !flow.capaRef ? <li>Now · Closed. {flow.closedNote}</li> : null}
               </ol>
             </section>
           </aside>

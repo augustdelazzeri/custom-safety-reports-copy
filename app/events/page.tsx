@@ -16,7 +16,7 @@ export default function EventsPage() {
   const router = useRouter();
   const [tab, setTab] = useState<"all" | "action">("all");
   const [selected, setSelected] = useState(EVENTS[0].id);
-  const needsAction = EVENTS.filter((e) => flows[e.id]?.status === "open");
+  const needsAction = EVENTS.filter((e) => !flows[e.id]?.decided && flows[e.id]?.status !== "closed");
 
   return (
     <PageShell title="Events" mainClassName="flex flex-col gap-3 overflow-hidden p-4">
@@ -65,7 +65,7 @@ export default function EventsPage() {
               {EVENTS.map((e) => {
                 const flow = flows[e.id];
                 const next = nextStepLabel(e, flow);
-                const status = flow?.status === "open" ? "Open" : flow?.status === "in_progress" ? "In review" : "Closed";
+                const status = flow?.status === "open" ? "Open" : flow?.status === "in_review" ? "In review" : "Closed";
                 return (
                   <tr key={e.id} onClick={() => router.push(`/events/${e.id}`)} className="cursor-pointer hover:bg-gray-50">
                     <td className="px-4 py-3">
@@ -124,7 +124,7 @@ export default function EventsPage() {
             ))}
           </div>
           <div className="min-h-0 overflow-y-auto rounded-xl border border-gray-200 bg-white p-4">
-            {needsAction.some((e) => e.id === selected) || flows[selected]?.status !== "open" ? <EventFlowPanel eventId={selected} /> : null}
+<EventFlowPanel eventId={selected} />
           </div>
         </div>
       )}

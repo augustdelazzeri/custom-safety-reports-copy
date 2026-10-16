@@ -852,6 +852,54 @@ export const EVENTS: SafetyEventDemo[] = [
     ],
     options: [],
   },
+  // Decided two weeks ago: the shape of a real account (event 119, CAPA 33, 3 work orders, 1 done).
+  {
+    id: "ev-0119",
+    ref: "EVT-0119",
+    title: "Back strain lifting a die by hand at the Press Line",
+    description:
+      "The die hoist was out of service, so the operator lifted a 25 kg die from the rack to Press 4 by hand. Sharp pain in the lower back; first aid and rest, back at work the next day.",
+    type: "Incident",
+    severity: "Medium",
+    locationId: "press",
+    reportedBy: "Maria Lopez",
+    reportedVia: "Web",
+    reportedAt: "Oct 2, 14:10",
+    oshaRecordable: false,
+    aiSummary: "First aid only, so not recordable. The die hoist had been out of service for 5 days with no work order.",
+    aiRecommendation: "A CAPA with work orders is required.",
+    steps: [
+      { key: "reported", label: "Reported", requirement: "done" },
+      { key: "capa", label: "CAPA", requirement: "required" },
+      { key: "wo", label: "Work order", requirement: "required" },
+      { key: "osha", label: "OSHA log", requirement: "not_needed" },
+    ],
+    options: [
+      {
+        id: "o1",
+        title: "Repair the die hoist",
+        controlLevel: "engineering",
+        why: "Out of service since Sep 27 with no work order.",
+        workOrder: { title: "Repair die hoist, Press Line", assigneeId: "carlos", due: "Oct 6" },
+      },
+      {
+        id: "o2",
+        title: "Place a die cart at the Press Line",
+        controlLevel: "engineering",
+        why: "Moves dies at rack height when the hoist is down.",
+        workOrder: { title: "Buy and place a die cart, Press Line", assigneeId: "tom", due: "Oct 14" },
+      },
+      {
+        id: "o3",
+        title: "Add the hoist to the weekly guarding inspection",
+        controlLevel: "administrative",
+        why: "Nobody reported the hoist for 5 days.",
+        workOrder: { title: "Add hoist check to AUD-0021", assigneeId: "dan", due: "Oct 23" },
+      },
+    ],
+    capaDefaults: { ownerId: "dan", due: "Oct 30", priority: "Medium", type: "Corrective" },
+    verifyEvidence: "Photos show the hoist load test and the die cart in place.",
+  },
 ];
 
 export const event = (id: string) => EVENTS.find((e) => e.id === id);

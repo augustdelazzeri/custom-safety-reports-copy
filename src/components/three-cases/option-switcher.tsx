@@ -18,10 +18,9 @@ export const CASE_B_OPTIONS: OptionLink[] = [
 ];
 
 export const CASE_C_OPTIONS: OptionLink[] = [
-  { href: "/inbox", label: "A · Inbox", hint: "Decide from the queue" },
+  { href: "/inbox", label: "A · Inbox + Nova", hint: "Open, Waiting, Done; Nova runs the usual flow" },
   { href: "/events/ev-2041", label: "B · Inside the event", hint: "The next steps live on the event" },
-  { href: "/events/board", label: "C · Board", hint: "Every event by stage" },
-  { href: "/events/autopilot", label: "D · Autopilot", hint: "AI runs the flow, you handle exceptions" },
+  { href: "/events/board", label: "C · Board", hint: "Open, In review, Closed; drag or decide on the card" },
 ];
 
 /** Small switcher so the reviewer can compare the prototype options of one use case. */

@@ -9,13 +9,12 @@ import { useState } from "react";
 
 const TRY: Record<string, string> = {
   "/safety-execution": "Type “Every last Friday of the month, clean Hydraulic Press 7”, or pick Forklift 3 and choose Clean.",
-  "/compliance-calendar": "Open a dashed AI chip, then approve the week.",
+  "/compliance-calendar": "Approve Nova's 3 proposals, then ask “What else this week?”.",
   "/safety-execution/readiness": "Review the 5 AI matches first, then select Press 7 and Stretch wrapper 2 and draft what is missing.",
-  "/safety-execution/mobile": "Run the pre-use inspection and fail one item.",
-  "/inbox": "Pick two actions on the Press 4 injury and run the flow.",
+  "/safety-execution/mobile": "Scan, run the pre-use inspection, or tap Something else to ask Nova.",
+  "/inbox": "Run the flow on the Press 4 injury, then follow CAPA-0033 in Waiting. Open Nova for the usual flows.",
   "/events/ev-2041": "Same flow, on the event page. Use the arrows to move between events.",
-  "/events/board": "Every event by stage. Open a card in Decide.",
-  "/events/autopilot": "The AI already ran the flow inside the policy. Approve the one injury, undo anything.",
+  "/events/board": "Drag a card from Open to In review, or switch to On the card and decide there.",
 };
 
 export default function DemoPage() {
@@ -76,11 +75,12 @@ export default function DemoPage() {
           <div className="flex items-center gap-2">
             <Workflow className="size-5 text-indigo-600" />
             <h2 className="text-lg font-semibold text-gray-900">3 · Closing the loop on an event</h2>
-            <span className="rounded-full bg-indigo-50 px-2 py-0.5 text-xs font-medium text-indigo-700">4 options</span>
+            <span className="rounded-full bg-indigo-50 px-2 py-0.5 text-xs font-medium text-indigo-700">3 options</span>
           </div>
           <p className="mt-2 text-sm text-gray-600">
             Events get created and closed, but few become a CAPA or a work order. The AI shows the steps each event needs and suggests the actions. One click creates the
-            CAPA, the work orders and the OSHA entry, then the AI checks the completion photo and closes it.
+            CAPA, the work orders and the OSHA entry. Event, CAPA and each work order then keep their own status: the CAPA owner hears about every work order change,
+            gets the CAPA back when all are done, and the event can close while the CAPA stays open.
           </p>
           <div className="mt-4 grid grid-cols-1 gap-3 md:grid-cols-2">
             {CASE_C_OPTIONS.map((o) => (
