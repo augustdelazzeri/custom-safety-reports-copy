@@ -26,7 +26,8 @@ import {
 import { useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useMemo, useState } from "react";
 
-type Screen = "home" | "precheck" | "run" | "done";
+type Screen = "scan" | "home" | "precheck" | "run" | "done";
+type Tab = "work" | "report" | "docs";
 type ItemState = { done: boolean; failed?: boolean; photo?: "checking" | "ok" };
 
 const HAZARDS: Record<string, string[]> = {
@@ -47,7 +48,9 @@ function MobileInner() {
   const fromWo = executions.find((e) => e.id === params.get("wo"));
   const initialAsset = params.get("asset") ?? (fromWo ? getJob(fromWo.jobId)?.assetId : undefined) ?? "fl03";
   const [assetId, setAssetId] = useState(initialAsset);
-  const [screen, setScreen] = useState<Screen>(fromWo ? "precheck" : "home");
+  // Opens on the camera: the entry is the Safety Access Point QR stuck on the machine.
+  const [screen, setScreen] = useState<Screen>(fromWo ? "precheck" : "scan");
+  const [tab, setTab] = useState<Tab>("work");
   const [jobId, setJobId] = useState<string | null>(fromWo?.jobId ?? null);
   const [ack, setAck] = useState(false);
   const [permitAsked, setPermitAsked] = useState(false);
@@ -98,27 +101,111 @@ function MobileInner() {
         <span>5G</span>
       </div>
 
-      {/* Asset header, always visible */}
-      <div className="flex items-center gap-2 border-b border-gray-100 px-4 py-3">
-        {screen !== "home" ? (
-          <button onClick={() => reset(screen === "run" ? "precheck" : "home")} className="-ml-1 rounded p-1 text-gray-500" aria-label="Back">
-            <ChevronLeft className="size-5" />
-          </button>
-        ) : (
-          <QrCode className="size-5 text-gray-400" />
-        )}
-        <div className="min-w-0 flex-1">
-          <div className="truncate text-sm font-semibold text-gray-900">
-            {a.code} · {a.name}
+      {/* Asset header, visible once the QR is scanned */}
+      {screen !== "scan" ? (
+        <>
+          <div className="truncate bg-gray-100 px-4 py-1 text-center font-mono text-[10px] text-gray-500">app.upkeep.com/ehs/public/qr/ap-{a.code.toLowerCase()}</div>
+          <div className="flex items-center gap-2 border-b border-gray-100 px-4 py-3">
+            {screen !== "home" ? (
+              <button onClick={() => reset(screen === "run" ? "precheck" : "home")} className="-ml-1 rounded p-1 text-gray-500" aria-label="Back">
+                <ChevronLeft className="size-5" />
+              </button>
+            ) : (
+              <QrCode className="size-5 text-gray-400" />
+            )}
+            <div className="min-w-0 flex-1">
+              <div className="truncate text-sm font-semibold text-gray-900">
+                {a.code} · {a.name}
+              </div>
+              <div className="text-[11px] text-gray-500">{locationName(a.locationId)} · Access Point QR, scanned just now</div>
+            </div>
+            <span className="flex size-7 items-center justify-center rounded-full bg-gray-100 text-[10px] font-semibold text-gray-700">CR</span>
           </div>
-          <div className="text-[11px] text-gray-500">{locationName(a.locationId)} · scanned just now</div>
-        </div>
-        <span className="flex size-7 items-center justify-center rounded-full bg-gray-100 text-[10px] font-semibold text-gray-700">CR</span>
-      </div>
+        </>
+      ) : null}
 
       <div className="flex-1 overflow-y-auto bg-gray-50/60">
+        {screen === "scan" ? (
+          <div className="flex h-full flex-col items-center justify-center gap-5 bg-gray-900 p-6 text-center">
+            <p className="text-sm text-gray-300">Point the camera at the QR on the machine</p>
+            <div className="relative rounded-2xl border-2 border-white/80 p-3">
+              <div className="w-48 rounded-xl bg-white p-3 text-left shadow-lg">
+                <div className="flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-wide text-indigo-700">
+                  <ShieldCheck className="size-3" /> UpKeep Safety
+                </div>
+                <QrCode className="mx-auto my-2 size-24 text-gray-900" />
+                <div className="text-xs font-semibold text-gray-900">
+                  {a.code} · {a.name}
+                </div>
+                <div className="text-[10px] text-gray-500">{locationName(a.locationId)} · Report a hazard or start work</div>
+              </div>
+            </div>
+            <button onClick={() => setScreen("home")} className="rounded-full bg-white px-5 py-2 text-sm font-semibold text-gray-900">
+              Scan
+            </button>
+            <p className="text-[11px] leading-relaxed text-gray-400">
+              The Access Point label Safety already prints, linked to this asset. Today it opens Report and Documents without login.
+            </p>
+          </div>
+        ) : null}
+
         {screen === "home" ? (
+          <div className="flex rounded-none border-b border-gray-200 bg-white px-2 text-sm">
+            {(
+              [
+                ["work", "Work", true],
+                ["report", "Report", false],
+                ["docs", "Documents", false],
+              ] as const
+            ).map(([id, label, isNew]) => (
+              <button
+                key={id}
+                onClick={() => setTab(id)}
+                className={cn(
+                  "flex flex-1 items-center justify-center gap-1 border-b-2 py-2.5 font-medium",
+                  tab === id ? "border-indigo-600 text-indigo-700" : "border-transparent text-gray-500",
+                )}
+              >
+                {label}
+                {isNew ? <span className="rounded bg-indigo-100 px-1 text-[9px] font-bold uppercase text-indigo-700">New</span> : null}
+              </button>
+            ))}
+          </div>
+        ) : null}
+
+        {screen === "home" && tab === "report" ? (
           <div className="space-y-3 p-4">
+            <p className="text-lg font-semibold text-gray-900">What happened?</p>
+            <p className="text-xs text-gray-500">The public event flow of this Access Point, as it works today. No login needed.</p>
+            <div className="flex min-h-24 items-start rounded-2xl border border-gray-200 bg-white p-3 text-sm text-gray-400">Speak or type, the AI fills the form</div>
+            <div className="grid grid-cols-2 gap-2">
+              <button className="flex items-center justify-center gap-2 rounded-xl border border-gray-200 bg-white py-2.5 text-sm font-medium text-gray-800">
+                <Mic className="size-4 text-indigo-600" /> Speak
+              </button>
+              <button className="flex items-center justify-center gap-2 rounded-xl border border-gray-200 bg-white py-2.5 text-sm font-medium text-gray-800">
+                <Camera className="size-4 text-gray-600" /> Photo
+              </button>
+            </div>
+          </div>
+        ) : null}
+
+        {screen === "home" && tab === "docs" ? (
+          <div className="space-y-2 p-4">
+            <p className="text-xs text-gray-500">Documents linked to this Access Point, as today. Read only, no login needed.</p>
+            {a.docs.map((d) => (
+              <div key={d.id} className="rounded-xl border border-gray-200 bg-white px-3 py-2">
+                <div className="font-mono text-[10px] text-gray-500">{d.ref}</div>
+                <div className="text-sm text-gray-900">{d.title}</div>
+              </div>
+            ))}
+          </div>
+        ) : null}
+
+        {screen === "home" && tab === "work" ? (
+          <div className="space-y-3 p-4">
+            <div className="flex items-center gap-1.5 rounded-lg bg-indigo-50 px-2.5 py-1.5 text-[11px] text-indigo-800">
+              <ShieldCheck className="size-3.5" /> Signed in as Carlos Rivera · work needs a login, reporting does not
+            </div>
             {executions
               .filter((e) => getJob(e.jobId)?.assetId === assetId)
               .slice(0, 1)
@@ -163,7 +250,10 @@ function MobileInner() {
               </button>
             ))}
             <div className="grid grid-cols-2 gap-2">
-              <button className="flex items-center gap-2 rounded-2xl border border-gray-200 bg-white p-3 text-left text-sm font-medium text-gray-800">
+              <button
+                onClick={() => setTab("report")}
+                className="flex items-center gap-2 rounded-2xl border border-gray-200 bg-white p-3 text-left text-sm font-medium text-gray-800"
+              >
                 <Megaphone className="size-4 text-rose-600" /> Report a problem
               </button>
               <button className="flex items-center gap-2 rounded-2xl border border-gray-200 bg-white p-3 text-left text-sm font-medium text-gray-800">
@@ -334,8 +424,12 @@ function MobilePage() {
         <aside className="hidden w-72 shrink-0 space-y-3 pt-6 lg:block">
           <h2 className="text-lg font-semibold text-gray-900">At the asset</h2>
           <p className="text-sm text-gray-600">
-            The technician scans the QR already on the machine. The AI reads the asset&apos;s documents and offers only the jobs they allow.
-            Before starting, it shows what is missing: permit, hazards, PPE.
+            The technician scans the Safety Access Point QR on the machine. Access Points already link assets and documents, and today the
+            public page offers Report and Documents without login. New: a signed-in person also gets Work, where the AI offers only the jobs
+            the asset&apos;s documents allow and shows what is missing before starting: permit, hazards, PPE.
+          </p>
+          <p className="text-xs text-gray-500">
+            The CMMS asset label only encodes the serial number, so it opens the asset inside the UpKeep app, not a link.
           </p>
           <ul className="space-y-1.5 text-sm text-gray-600">
             <li>· The whole checklist on one screen, not a step-by-step wizard</li>

@@ -320,7 +320,8 @@ export default function ExecutionWorkOrderPage({ params }: { params: Promise<{ i
                 <QrCode className="size-10" />
               </div>
               <p className="text-xs text-gray-600">
-                The QR on {a?.code} opens this work order for whoever is on shift. Same QR the plant already uses for reporting.
+                The Safety Access Point QR on {a?.code} opens this work order for whoever is on shift. It is the same QR the plant already uses to
+                report events.
               </p>
             </section>
           </div>
