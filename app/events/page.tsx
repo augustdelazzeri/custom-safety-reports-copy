@@ -84,7 +84,7 @@ export default function EventsPage() {
                     <td className="px-3 py-3">
                       <span
                         className={cn(
-                          "rounded-full px-2 py-0.5 text-[11px] font-medium",
+                          "inline-block whitespace-nowrap rounded-full px-2 py-0.5 text-[11px] font-medium",
                           next.tone === "todo" && "bg-gray-900 text-white",
                           next.tone === "ai" && "bg-indigo-50 text-indigo-700",
                           next.tone === "wait" && "bg-amber-50 text-amber-800",
