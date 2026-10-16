@@ -16,10 +16,13 @@ export function PageShell({
   title,
   children,
   mainClassName,
+  aside,
 }: {
   title?: string;
   children: ReactNode;
   mainClassName?: string;
+  /** Full-height panel on the right, next to the header and the page (Nova). */
+  aside?: ReactNode;
 }) {
   const [hidden, setHidden] = useState(false);
 
@@ -61,6 +64,7 @@ export function PageShell({
         />
         <main className={cn("flex-1 overflow-y-auto bg-gray-50/30 p-4 md:p-6", mainClassName)}>{children}</main>
       </div>
+      {aside}
     </div>
   );
 }

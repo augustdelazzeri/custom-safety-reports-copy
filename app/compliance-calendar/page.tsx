@@ -133,18 +133,36 @@ export default function ComplianceCalendarPage() {
   const pendingCount = PROPOSALS.filter((p) => listed.includes(p.id) && !isDone(p)).length;
 
   return (
-    <PageShell title="Compliance Calendar" mainClassName="flex flex-col gap-3 overflow-hidden p-4">
+    <PageShell
+      title="Compliance Calendar"
+      mainClassName="flex flex-col gap-3 overflow-hidden p-4"
+      aside={
+        novaOpen ? (
+          <NovaPanel
+            userName="Kaue"
+            listed={listed}
+            isDone={isDone}
+            dayOf={dayOf}
+            hrefOf={hrefOf}
+            focusId={focusId}
+            maximized={maximized}
+            onApprove={approve}
+            onList={onList}
+            onMove={onMove}
+            onOpenPlan={setOpenJobId}
+            onClose={() => setNovaOpen(false)}
+            onToggleMax={() => setMaximized((m) => !m)}
+            className={maximized ? "w-[600px]" : "w-[400px]"}
+          />
+        ) : null
+      }
+    >
       <div className="flex flex-wrap items-center justify-between gap-2">
         <OptionSwitcher caseLabel="Use case 2" options={CASE_B_OPTIONS} />
         <TapCompare today="build each task by hand" todayDetail="then a WO in the CMMS for each" here="ask Nova, approve" />
       </div>
 
-      <div
-        className={cn(
-          "grid min-h-0 flex-1 gap-3",
-          !novaOpen ? "grid-cols-1" : maximized ? "grid-cols-[minmax(0,1fr)_580px]" : "grid-cols-[minmax(0,1fr)_400px]",
-        )}
-      >
+      <div className="grid min-h-0 flex-1 grid-cols-1 gap-3">
         {/* Calendar, same structure as the Compliance Calendar in production */}
         <div className="flex min-h-0 flex-col rounded-xl border border-gray-200 bg-white">
           <div className="flex flex-wrap items-center justify-between gap-3 border-b border-gray-100 px-4 py-3">
@@ -262,22 +280,6 @@ export default function ComplianceCalendarPage() {
           </div>
         </div>
 
-        {novaOpen ? (
-          <NovaPanel
-            userName="Kaue"
-            isDone={isDone}
-            dayOf={dayOf}
-            hrefOf={hrefOf}
-            focusId={focusId}
-            maximized={maximized}
-            onApprove={approve}
-            onList={onList}
-            onMove={onMove}
-            onOpenPlan={setOpenJobId}
-            onClose={() => setNovaOpen(false)}
-            onToggleMax={() => setMaximized((m) => !m)}
-          />
-        ) : null}
       </div>
 
       {!novaOpen ? (

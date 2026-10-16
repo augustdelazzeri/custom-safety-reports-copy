@@ -218,7 +218,15 @@ export const PROPOSALS: Proposal[] = [
   },
 ];
 
-export const INITIAL_IDS = PROPOSALS.slice(0, 15).map((p) => p.id);
+/** Nova never dumps the whole list: three at a time, each batch mixing kinds. */
+export const BATCHES: string[][] = [
+  ["n-fl03-clean", "n-doc-sop45", "n-capa-close"],
+  ["n-pm-batt", "n-learn", "n-assign"],
+  ["n-hp04", "n-ev-close", "n-wo-close"],
+  ["n-fl03-insp", "n-cv12", "n-ac2"],
+  ["n-pm-eyewash", "n-doc-loto17", "n-learn-update"],
+];
+export const INITIAL_IDS = BATCHES[0];
 export const proposal = (id: string) => PROPOSALS.find((p) => p.id === id);
 
 export type KV = { label: string; value: string };
@@ -232,15 +240,28 @@ export interface NovaReply {
 }
 
 export const NOVA_CHIPS = [
-  "Plan Press 7 every last Friday of the month",
+  "What else this week?",
   "What's overdue?",
+  "Plan Press 7 every last Friday of the month",
   "Who is free next week?",
-  "Who needs training this month?",
 ];
 
-/** Keyword routing for the scripted Nova. */
-export function interpretNova(text: string): NovaReply {
+/** Keyword routing for the scripted Nova. `listed` is what the calendar already shows. */
+export function interpretNova(text: string, listed: string[] = []): NovaReply {
   const t = text.toLowerCase();
+
+  if (t.includes("else") || t.includes("more") || t.includes("next 3") || t.includes("anything")) {
+    const next = BATCHES.find((b) => b.some((id) => !listed.includes(id)));
+    if (!next) {
+      return { text: "That is everything for the next two weeks.", followups: ["What's overdue?", "Who is free next week?"] };
+    }
+    const left = BATCHES.slice(BATCHES.indexOf(next) + 1).flat().length;
+    return {
+      text: left ? `Three more. I have ${left} after these.` : "The last three for the next two weeks.",
+      proposals: next,
+      followups: left ? ["What else this week?", "What's overdue?"] : ["What's overdue?"],
+    };
+  }
 
   if ((t.includes("move") || t.includes("reschedul")) && t.includes("21")) {
     return {
