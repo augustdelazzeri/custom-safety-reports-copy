@@ -8,6 +8,7 @@ import { AccessPointProvider } from "../contexts/AccessPointContext";
 import { Guard1275Provider } from "../contexts/Guard1275Context";
 import { ExecutionProvider } from "../contexts/ExecutionContext";
 import { AiFirstProvider } from "../contexts/AiFirstContext";
+import { ThreeCasesProvider } from "../contexts/ThreeCasesContext";
 
 export function Providers({ children }: { children: ReactNode }) {
   return (
@@ -17,7 +18,9 @@ export function Providers({ children }: { children: ReactNode }) {
           <CAPAProvider>
             <Guard1275Provider>
               <ExecutionProvider>
-                <AiFirstProvider>{children}</AiFirstProvider>
+                <AiFirstProvider>
+                  <ThreeCasesProvider>{children}</ThreeCasesProvider>
+                </AiFirstProvider>
               </ExecutionProvider>
             </Guard1275Provider>
           </CAPAProvider>

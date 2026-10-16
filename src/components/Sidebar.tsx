@@ -30,7 +30,12 @@ import {
   Settings,
   Sparkles, 
   ShieldCheck,
-  ChevronDown
+  ChevronDown,
+  Inbox,
+  Wrench,
+  PlayCircle,
+  Rocket,
+  FileCheck,
 } from 'lucide-react';
 
 export default function Sidebar() {
@@ -49,13 +54,26 @@ export default function Sidebar() {
 
   const isSectionOpen = (id: string) => !collapsedSections.includes(id);
 
-  const baseNavItems = [
-    { id: "safety-management", label: "SAFETY MANAGEMENT", items: [
-      { label: "Dashboard", icon: <LayoutDashboard className="size-5" />, href: "/" },
-      { label: "Access Points", icon: <QrCode className="size-5" />, href: "/access-points" },
-      { label: "Safety Events", icon: <AlertTriangle className="size-5" />, href: "/events" },
+  // Same order as the Safety sidebar in production (Oct 2026), plus the new Safety Execution page.
+  // The old /ai-first flows are still reachable by URL, just not in the menu.
+  const baseNavItems: { id: string; label: string; items: { label: string; icon: React.ReactNode; href: string; badge?: string }[] }[] = [
+    { id: "top", label: "", items: [
+      { label: "Demo: 3 use cases", icon: <Sparkles className="size-5" />, href: "/demo" },
+      { label: "Inbox", icon: <Inbox className="size-5" />, href: "/inbox" },
+    ]},
+    { id: "core", label: "CORE", items: [
+      { label: "Events", icon: <AlertTriangle className="size-5" />, href: "/events" },
       { label: "CAPAs", icon: <ClipboardCheck className="size-5" />, href: "/capas" },
-      { label: "AI-first prototypes", icon: <Sparkles className="size-5" />, href: "/ai-first" },
+      { label: "Safety Work Orders", icon: <Wrench className="size-5" />, href: "/safety-work-orders" },
+      { label: "Safety Execution", icon: <PlayCircle className="size-5" />, href: "/safety-execution", badge: "New" },
+    ]},
+    { id: "analytics", label: "ANALYTICS", items: [
+      { label: "Dashboard", icon: <LayoutDashboard className="size-5" />, href: "/" },
+      { label: "Setup Center", icon: <Rocket className="size-5" />, href: "/setup-center" },
+    ]},
+    { id: "access", label: "ACCESS & COMPLIANCE", items: [
+      { label: "Access Points", icon: <QrCode className="size-5" />, href: "/access-points" },
+      { label: "Compliance Calendar", icon: <CalendarDays className="size-5" />, href: "#" },
     ]},
     { id: "osha", label: "OSHA", items: [
       { label: "OSHA Log (Form 300)", icon: <FileBarChart className="size-5" />, href: "/osha/logs" },
@@ -66,12 +84,9 @@ export default function Sidebar() {
       { label: "Job Hazard Analyses", icon: <HardHat className="size-5" />, href: "/jhas" },
       { label: "Standard Operating Procedures", icon: <ClipboardList className="size-5" />, href: "/sops" },
       { label: "Lockout/Tagout", icon: <Lock className="size-5" />, href: "/lotos" },
-      { label: "Permit to Work", icon: <FileBarChart className="size-5" />, href: "/ptws" },
+      { label: "Permit to Work", icon: <FileCheck className="size-5" />, href: "/ptws" },
       { label: "Audits & Inspections", icon: <Clipboard className="size-5" />, href: "/audits" },
       { label: "SDS Library", icon: <FlaskConical className="size-5" />, href: "/sds" },
-    ]},
-    { id: "safety-actions", label: "SAFETY ACTIONS", items: [
-      { label: "Safety Work Orders", icon: <ClipboardCheck className="size-5" />, href: "/safety-work-orders" },
     ]},
   ];
 
@@ -108,18 +123,21 @@ export default function Sidebar() {
       <div className="flex-1 overflow-y-auto py-4">
         {navItems.map((section) => (
           <div key={section.id} className="mb-2">
-            <button 
+            {section.label ? (
+            <button
               onClick={() => toggleSection(section.id)}
               className="w-full flex items-center justify-between px-6 py-2 text-[10px] font-bold text-gray-400 uppercase tracking-[0.1em] hover:text-gray-600 transition-colors"
             >
               {section.label}
               {isSectionOpen(section.id) ? <ChevronUp className="size-3" /> : <ChevronDown className="size-3" />}
             </button>
-            
+            ) : null}
+
             {isSectionOpen(section.id) && (
               <nav className="px-3 space-y-0.5 mt-1">
                 {section.items.map((item) => {
-                  const isActive = pathname === item.href || (item.href === "/" && pathname === "/");
+                  const isActive =
+                    pathname === item.href || (item.href !== "/" && item.href !== "#" && pathname.startsWith(`${item.href}/`));
                   return (
                     <Link
                       key={item.label}
@@ -134,6 +152,11 @@ export default function Sidebar() {
                         {item.icon}
                       </span>
                       <span>{item.label}</span>
+                      {item.badge ? (
+                        <span className="ml-auto rounded-full bg-indigo-50 px-2 py-0.5 text-[10px] font-semibold text-indigo-700">
+                          {item.badge}
+                        </span>
+                      ) : null}
                     </Link>
                   );
                 })}
