@@ -1,5 +1,6 @@
 "use client";
 
+import { AssetWorkOrders, useCreatedRecords } from "@/components/three-cases/asset-records";
 import { DocGrid, UnlinkedBanner } from "@/components/three-cases/doc-grid";
 import { ExecutionPlan } from "@/components/three-cases/execution-plan";
 import { CASE_B_OPTIONS, OptionSwitcher } from "@/components/three-cases/option-switcher";
@@ -17,8 +18,8 @@ import {
   person,
 } from "@/lib/three-cases/data";
 import { cn } from "@/lib/utils";
-import { ArrowUp, Building2, ChevronRight, Loader2, MapPin, Mic, Package, Sparkles, Wrench } from "lucide-react";
-import { useMemo, useState } from "react";
+import { ArrowUp, Building2, ChevronRight, Loader2, MapPin, Mic, Package, PanelLeftClose, PanelLeftOpen, Sparkles } from "lucide-react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 const TONE: Record<string, string> = {
   due: "text-amber-700",
@@ -34,8 +35,19 @@ export default function SafetyExecutionPage() {
   const [thinking, setThinking] = useState(false);
   const [aiReply, setAiReply] = useState<string | null>(null);
   const [aiTrail, setAiTrail] = useState<string[]>([]);
+  const [navHidden, setNavHidden] = useState(false);
 
   const selected = assetId ? getAsset(assetId) : undefined;
+  const created = useCreatedRecords(selected?.id);
+  // When a plan creates records, bring the asset back into view so the new permit and work order show.
+  const assetCard = useRef<HTMLDivElement>(null);
+  const createdCount = useRef(created.executions.length);
+  useEffect(() => {
+    if (created.executions.length > createdCount.current) {
+      setTimeout(() => assetCard.current?.scrollIntoView({ behavior: "smooth", block: "start" }), 600);
+    }
+    createdCount.current = created.executions.length;
+  }, [created.executions.length]);
   const selectedJob = jobId ? getJob(jobId) : undefined;
   const visibleAssets = useMemo(
     () => ASSETS.filter((a) => locationId === "all" || a.locationId === locationId),
@@ -144,9 +156,38 @@ export default function SafetyExecutionPage() {
       </div>
 
       {/* Location, asset, workspace */}
-      <div className="grid min-h-0 flex-1 grid-cols-[180px_230px_minmax(0,1fr)] gap-3">
-        <div className="flex min-h-0 flex-col rounded-xl border border-gray-200 bg-white">
-          <div className="border-b border-gray-100 px-3 py-2 text-[11px] font-semibold uppercase tracking-wide text-gray-400">Locations</div>
+      <div
+        className={cn(
+          "grid min-h-0 flex-1 gap-3",
+          navHidden ? "grid-cols-[40px_minmax(0,1fr)]" : "grid-cols-[180px_230px_minmax(0,1fr)]",
+        )}
+      >
+        {navHidden ? (
+          <button
+            onClick={() => setNavHidden(false)}
+            className="flex min-h-0 flex-col items-center gap-3 rounded-xl border border-gray-200 bg-white py-2 text-gray-500 hover:text-gray-800"
+            aria-label="Show locations and assets"
+            title="Show locations and assets"
+          >
+            <PanelLeftOpen className="size-4" />
+            <span className="text-[11px] font-medium text-gray-600 [writing-mode:vertical-rl]">
+              {locationId === "all" ? "All locations" : locationName(locationId)}
+              {selected ? ` · ${selected.name}` : ""}
+            </span>
+          </button>
+        ) : null}
+        <div className={cn("min-h-0 flex-col rounded-xl border border-gray-200 bg-white", navHidden ? "hidden" : "flex")}>
+          <div className="flex items-center justify-between border-b border-gray-100 px-3 py-2 text-[11px] font-semibold uppercase tracking-wide text-gray-400">
+            Locations
+            <button
+              onClick={() => setNavHidden(true)}
+              className="rounded p-0.5 text-gray-400 hover:bg-gray-100 hover:text-gray-700"
+              aria-label="Hide locations and assets"
+              title="Hide locations and assets"
+            >
+              <PanelLeftClose className="size-3.5" />
+            </button>
+          </div>
           <div className="flex-1 space-y-0.5 overflow-y-auto p-1.5">
             {[{ id: "all", name: "All locations" }, ...LOCATIONS.filter((l) => l.parentId)].map((l) => {
               const count = l.id === "all" ? ASSETS.length : ASSETS.filter((a) => a.locationId === l.id).length;
@@ -170,7 +211,7 @@ export default function SafetyExecutionPage() {
           </div>
         </div>
 
-        <div className="flex min-h-0 flex-col rounded-xl border border-gray-200 bg-white">
+        <div className={cn("min-h-0 flex-col rounded-xl border border-gray-200 bg-white", navHidden ? "hidden" : "flex")}>
           <div className="border-b border-gray-100 px-3 py-2 text-[11px] font-semibold uppercase tracking-wide text-gray-400">Assets</div>
           <div className="flex-1 overflow-y-auto p-1.5">
             {locationId === "all" ? (
@@ -194,7 +235,7 @@ export default function SafetyExecutionPage() {
           </div>
         </div>
 
-        <div className="flex min-h-0 flex-col gap-3">
+        <div className="flex min-h-0 flex-col gap-3 overflow-y-auto">
           {!selected ? (
             <div className="flex flex-1 flex-col items-center justify-center gap-2 rounded-xl border border-dashed border-gray-300 bg-white text-center">
               <Package className="size-8 text-gray-300" />
@@ -205,7 +246,7 @@ export default function SafetyExecutionPage() {
             </div>
           ) : (
             <>
-              <div className="rounded-xl border border-gray-200 bg-white p-3">
+              <div ref={assetCard} className="scroll-mt-1 rounded-xl border border-gray-200 bg-white p-3">
                 <div className="mb-2 flex flex-wrap items-baseline justify-between gap-2">
                   <div className="min-w-0">
                     <div className="flex items-center gap-2">
@@ -216,19 +257,13 @@ export default function SafetyExecutionPage() {
                       {locationName(selected.locationId)} · {selected.category} · Owner {person(selected.ownerId).name}
                     </p>
                   </div>
-                  <div className="flex flex-wrap gap-1.5 text-[11px] text-gray-600">
-                    {selected.lastWorkOrders.map((wo) => (
-                      <span key={wo.ref} className="inline-flex items-center gap-1 rounded bg-gray-100 px-1.5 py-0.5">
-                        <Wrench className="size-3 text-gray-400" /> {wo.ref} {wo.title} · {wo.date}
-                      </span>
-                    ))}
-                  </div>
                 </div>
                 <UnlinkedBanner asset={selected} />
-                <DocGrid asset={selected} highlight={selectedJob?.basedOn ?? []} compact={Boolean(selectedJob)} />
+                <DocGrid asset={selected} highlight={selectedJob?.basedOn ?? []} compact={Boolean(selectedJob)} created={created.docs} />
+                <AssetWorkOrders asset={selected} compact={Boolean(selectedJob)} />
               </div>
 
-              <div className="min-h-0 flex-1">
+              <div className={selectedJob ? "shrink-0" : "min-h-0 flex-1"}>
                 {selectedJob ? (
                   <ExecutionPlan job={selectedJob} onBack={() => setJobId(null)} />
                 ) : (

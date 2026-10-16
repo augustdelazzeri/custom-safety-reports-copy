@@ -3,10 +3,15 @@
 import Header from "@/components/Header";
 import Sidebar from "@/components/Sidebar";
 import { cn } from "@/lib/utils";
-import { Sparkles } from "lucide-react";
-import type { ReactNode } from "react";
+import { PanelLeft, Sparkles } from "lucide-react";
+import { useEffect, useState, type ReactNode } from "react";
 
-/** Same frame as the Safety pages: fixed sidebar, header, scrollable main. */
+const SIDEBAR_KEY = "ehs-prototype-sidebar-hidden";
+
+/**
+ * Same frame as the Safety pages: sidebar, header, scrollable main. The sidebar hides with the
+ * button before the title, as in the product, and the choice is remembered in this browser.
+ */
 export function PageShell({
   title,
   children,
@@ -16,11 +21,44 @@ export function PageShell({
   children: ReactNode;
   mainClassName?: string;
 }) {
+  const [hidden, setHidden] = useState(false);
+
+  useEffect(() => {
+    try {
+      setHidden(window.localStorage.getItem(SIDEBAR_KEY) === "1");
+    } catch {
+      // Blocked storage: keep the sidebar open.
+    }
+  }, []);
+
+  const toggle = () => {
+    setHidden((h) => {
+      try {
+        window.localStorage.setItem(SIDEBAR_KEY, h ? "0" : "1");
+      } catch {
+        // Ignore: the toggle still works for this visit.
+      }
+      return !h;
+    });
+  };
+
   return (
     <div className="flex h-screen overflow-hidden bg-background">
-      <Sidebar />
-      <div className="ml-64 flex min-w-0 flex-1 flex-col overflow-hidden">
-        <Header title={title} />
+      {hidden ? null : <Sidebar />}
+      <div className={cn("flex min-w-0 flex-1 flex-col overflow-hidden", hidden ? "ml-0" : "ml-64")}>
+        <Header
+          title={title}
+          leading={
+            <button
+              onClick={toggle}
+              className="flex size-8 items-center justify-center rounded-md bg-gray-100 text-gray-600 hover:bg-gray-200"
+              aria-label={hidden ? "Show sidebar" : "Hide sidebar"}
+              title={hidden ? "Show sidebar" : "Hide sidebar"}
+            >
+              <PanelLeft className="size-4" />
+            </button>
+          }
+        />
         <main className={cn("flex-1 overflow-y-auto bg-gray-50/30 p-4 md:p-6", mainClassName)}>{children}</main>
       </div>
     </div>

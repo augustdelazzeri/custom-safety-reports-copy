@@ -11,9 +11,11 @@ import { useProfile } from "../contexts/ProfileContext";
 
 interface HeaderProps {
   title?: string;
+  /** Optional control before the title, such as the sidebar toggle. */
+  leading?: React.ReactNode;
 }
 
-export default function Header({ title }: HeaderProps) {
+export default function Header({ title, leading }: HeaderProps) {
   const router = useRouter();
   const { currentProfile, switchProfile, profileName } = useProfile();
   const [showProfileMenu, setShowProfileMenu] = useState(false);
@@ -25,10 +27,13 @@ export default function Header({ title }: HeaderProps) {
 
   return (
     <header className="bg-white border-b border-gray-200 h-16 flex items-center justify-between px-6">
-      {title && (
-        <h1 className="text-xl font-semibold text-gray-900">{title}</h1>
+      {(leading || title) && (
+        <div className="flex items-center gap-3">
+          {leading}
+          {title && <h1 className="text-xl font-semibold text-gray-900">{title}</h1>}
+        </div>
       )}
-      <div className={`flex items-center gap-4 ${!title ? "ml-auto" : ""}`}>
+      <div className={`flex items-center gap-4 ${!title && !leading ? "ml-auto" : ""}`}>
         {/* Profile Switcher */}
         <div className="relative">
           <button

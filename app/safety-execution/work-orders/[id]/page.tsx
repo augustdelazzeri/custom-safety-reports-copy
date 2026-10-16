@@ -225,7 +225,10 @@ export default function ExecutionWorkOrderPage({ params }: { params: Promise<{ i
                   <li className="flex items-center gap-3 rounded-lg border border-gray-200 px-3 py-2">
                     <FileCheck className="size-4 text-gray-500" />
                     <div className="min-w-0 flex-1">
-                      <div className="text-[11px] text-gray-500">{permitApproved ? "Permit approved" : "Permit, waiting for approval"}</div>
+                      <div className="text-[11px] text-gray-500">
+                        {permitItem.ref ? <span className="font-mono">{permitItem.ref} · </span> : null}
+                        {permitApproved ? "Permit approved" : "Permit, waiting for approval"}
+                      </div>
                       <div className="truncate text-sm text-gray-800">{permitItem.title.replace("Permit to Work: ", "")}</div>
                     </div>
                   </li>

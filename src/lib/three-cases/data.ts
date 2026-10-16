@@ -52,8 +52,11 @@ export const ASSETS: Asset[] = [
     aiHint: "Pre-use inspection due today",
     aiHintTone: "due",
     lastWorkOrders: [
-      { ref: "WO-1032", title: "Replace mast chain", date: "Sep 28" },
-      { ref: "WO-0997", title: "Hydraulic leak at tilt cylinder", date: "Aug 14" },
+      { ref: "WO-1047", title: "Horn and rear light failed pre-use check", date: "Oct 9", assigneeId: "carlos" },
+      { ref: "WO-1032", title: "Replace mast chain", date: "Sep 28", assigneeId: "carlos" },
+      { ref: "WO-1021", title: "Replace operator seat belt", date: "Sep 18", assigneeId: "jo" },
+      { ref: "WO-0997", title: "Hydraulic leak at tilt cylinder", date: "Aug 14", assigneeId: "carlos" },
+      { ref: "WO-0961", title: "Annual inspection, OSHA 1910.178", date: "Jul 2", assigneeId: "jo" },
     ],
     docs: [
       { id: "d-fl-jha", type: "jha", ref: "JHA-0012", title: "Forklift operation", status: "approved", covers: 2 },
@@ -243,6 +246,15 @@ export const DOC_MATCHES = ASSETS.flatMap((a) => a.docs.filter((d) => d.match).m
 /** A document counts as on file for the asset only once it is linked. */
 export const isLinked = (doc: SafetyDoc, linkedDocIds: string[]) => !doc.match || linkedDocIds.includes(doc.id);
 
+/** The prototype's "today". Work order dates are "Mon D" labels in 2026. */
+export const TODAY = new Date(2026, 9, 16);
+const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+export const daysAgo = (label: string) => {
+  const [mon, day] = label.split(" ");
+  const d = new Date(2026, MONTHS.indexOf(mon), Number(day));
+  return Math.round((TODAY.getTime() - d.getTime()) / 86_400_000);
+};
+
 /** Assets the AI puts on top, in this order. */
 export const SUGGESTED_ASSET_IDS = ["fl03", "hp07", "cv12", "ac2"];
 
@@ -273,6 +285,7 @@ export const JOBS: ExecutionJob[] = [
         id: "p1",
         kind: "ptw",
         title: "Permit to Work: chemical cleaning, Forklift 3",
+        ref: "PTW-0044",
         detail: "Needs 2 approvals before the work starts",
         meta: ["Approvers: Maria Lopez, Dan Brooks", "Valid tomorrow 07:00 to 11:00"],
         why: "SOP-0031 step 4 requires a permit when degreaser is used near the battery compartment.",
@@ -419,6 +432,7 @@ export const JOBS: ExecutionJob[] = [
         id: "p1",
         kind: "ptw",
         title: "Permit to Work: work inside the press guard area",
+        ref: "PTW-0045",
         detail: "Issued from PTW-0006, needs 2 approvals",
         meta: ["Approvers: Maria Lopez, Dan Brooks", "Valid tomorrow 07:00 to 10:00"],
         isNew: true,
@@ -543,6 +557,7 @@ export const JOBS: ExecutionJob[] = [
         id: "p1",
         kind: "sop",
         title: "New SOP: Hydraulic Press 7 cleaning",
+        ref: "SOP-0061",
         detail: "Draft written from JHA-0021 and the asset manual, sent to Maria Lopez for approval",
         meta: ["6 steps", "Draft until approved"],
         isNew: true,
@@ -551,6 +566,7 @@ export const JOBS: ExecutionJob[] = [
         id: "p2",
         kind: "loto",
         title: "New LOTO: Hydraulic Press 7 energy isolation",
+        ref: "LOTO-0031",
         detail: "Electrical 480 V, hydraulic accumulator, gravity (ram block)",
         meta: ["Approvers: Maria Lopez, Dan Brooks", "Draft until approved"],
         why: "OSHA 1910.147 requires a written energy control procedure for servicing this machine.",
@@ -560,6 +576,7 @@ export const JOBS: ExecutionJob[] = [
         id: "p3",
         kind: "ptw",
         title: "Permit template: Press 7 cleaning",
+        ref: "PTW-0046",
         detail: "A new permit is issued from this template for every occurrence",
         meta: ["Approvers: Maria Lopez, Dan Brooks"],
         isNew: true,

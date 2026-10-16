@@ -124,7 +124,11 @@ export function ExecutionPlan({ job, onBack, dense = false }: { job: ExecutionJo
               <div className="min-w-0 flex-1">
                 <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5">
                   <span className="text-[10px] font-semibold uppercase tracking-wide text-gray-400">{KIND_LABEL[item.kind]}</span>
-                  {item.isNew ? <span className="text-[10px] font-medium text-indigo-600">will be created</span> : null}
+                  {item.isNew ? (
+                    <span className={cn("text-[10px] font-medium", created ? "text-emerald-700" : "text-indigo-600")}>
+                      {created ? `created${item.ref ? ` · ${item.ref}` : ""}` : "will be created"}
+                    </span>
+                  ) : null}
                 </div>
                 <div className="text-sm font-medium text-gray-900">{item.title}</div>
                 <div className="text-xs text-gray-600">{item.detail}</div>
@@ -163,7 +167,8 @@ export function ExecutionPlan({ job, onBack, dense = false }: { job: ExecutionJo
         {phase === "done" && executionId ? (
           <>
             <span className="flex items-center gap-1.5 text-sm font-medium text-emerald-700">
-              <Check className="size-4" /> Created. {job.plan.some((p) => p.kind === "ptw") ? "Permit sent for approval." : ""}
+              <Check className="size-4" /> Created {[...job.plan.filter((p) => p.ref).map((p) => p.ref), job.woRef].join(", ")}
+              <span className="font-normal text-gray-500">· shown on the asset above</span>
             </span>
             <Button asChild size="sm">
               <Link href={`/safety-execution/work-orders/${executionId}`}>

@@ -54,7 +54,8 @@ export interface Asset {
   /** Short line the AI shows when it suggests this asset. */
   aiHint?: string;
   aiHintTone?: "due" | "gap" | "event";
-  lastWorkOrders: { ref: string; title: string; date: string }[];
+  /** Work orders already in the CMMS for this asset, newest first. `date` is "Mon D" in 2026. */
+  lastWorkOrders: { ref: string; title: string; date: string; assigneeId?: string }[];
 }
 
 export type PlanItemKind = "ptw" | "wo" | "pm" | "sop" | "loto" | "notify" | "attach" | "note";
@@ -68,6 +69,8 @@ export interface PlanItem {
   /** Why the AI added this item, with the source it read. */
   why?: string;
   isNew: boolean;
+  /** Ref of the document this item creates (permit, SOP, LOTO), so the asset's grid can show it afterwards. */
+  ref?: string;
 }
 
 export interface ExecutionJob {
