@@ -101,7 +101,7 @@ export default function SafetyExecutionPage() {
     <PageShell title="Safety Execution" mainClassName="flex flex-col gap-3 overflow-hidden p-4">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <OptionSwitcher caseLabel="Use case 2" options={CASE_B_OPTIONS} />
-        <TapCompare today="~25 clicks, 4 screens" todayDetail="open each document, then the CMMS, then link back" here="3 clicks" />
+        <TapCompare today="37 to 123 clicks" todayDetail="measured on staging: 37 for the forklift, 123 for the press; open each document, then the CMMS, then attach" here="3 clicks" />
       </div>
 
       <div className={cn("grid min-h-0 flex-1 gap-3", navHidden ? "grid-cols-[40px_minmax(0,1fr)]" : "grid-cols-[230px_minmax(0,1fr)]")}>

@@ -36,7 +36,7 @@ export default function InboxPage() {
     >
       <div className="flex flex-wrap items-center justify-between gap-2">
         <OptionSwitcher caseLabel="Use case 3" options={CASE_C_OPTIONS} />
-        <TapCompare today="~20 clicks, 4 screens" todayDetail="event, new CAPA form, CAPA, work order modal, OSHA form" here="2 clicks" />
+        <TapCompare today="28 clicks" todayDetail="measured on staging: event 6, CAPA 7, work order 4, OSHA form 11" here="2 clicks" />
       </div>
 
       <div className="grid min-h-0 flex-1 grid-cols-[minmax(0,1fr)_minmax(0,1.2fr)] gap-3">

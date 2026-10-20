@@ -73,9 +73,9 @@ export function MeterBadge() {
     <div data-no-count className="flex items-center gap-2 text-xs">
       <span
         className="rounded-lg border border-dashed border-gray-300 bg-white px-2.5 py-1.5 text-gray-600"
-        title="Estimate for Safety today: create JHA, SOP, permit, checklist and work order, then attach them. To be counted."
+        title="Measured on staging on Oct 20, 2026, with the minimum the forms accept. Forklift cleaning (permit and work order): 37 clicks. Press hose (SOP, LOTO, permit and work order): 123 clicks."
       >
-        <span className="font-semibold text-gray-900">Safety today:</span> ~30 clicks
+        <span className="font-semibold text-gray-900">Safety today:</span> 37 clicks (forklift) · 123 (press)
       </span>
       <span
         className={cn(
