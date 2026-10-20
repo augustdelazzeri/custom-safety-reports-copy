@@ -18,7 +18,8 @@ export interface CreatedDoc {
   href: string;
 }
 
-const TITLE_PREFIX = /^(Permit to Work|Permit template|New SOP|New LOTO):\s*/;
+const TITLE_PREFIX = /^(Permit to Work|Permit template|New SOP|New LOTO|New JHA|New inspection):\s*/;
+const CREATES_DOC = new Set(["ptw", "sop", "loto", "jha", "audit"]);
 
 /** Everything the plans approved on this page created for the asset, newest first. */
 export function useCreatedRecords(assetId: string | undefined) {
@@ -28,7 +29,7 @@ export function useCreatedRecords(assetId: string | undefined) {
   const docs: CreatedDoc[] = mine.flatMap((e) => {
     const j = getJob(e.jobId);
     return (j?.plan ?? [])
-      .filter((p) => p.ref && (p.kind === "ptw" || p.kind === "sop" || p.kind === "loto"))
+      .filter((p) => p.ref && CREATES_DOC.has(p.kind))
       .map((p) => ({
         type: p.kind as DocType,
         ref: p.ref as string,

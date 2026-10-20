@@ -61,7 +61,7 @@ export default function ExecutionWorkOrderPage({ params }: { params: Promise<{ i
   const docIds = job?.basedOn ?? [];
   const attached: SafetyDoc[] = (a?.docs ?? []).filter((d) => docIds.includes(d.id));
   const permitItem = job?.plan.find((p) => p.kind === "ptw");
-  const newDocs = job?.plan.filter((p) => p.kind === "sop" || p.kind === "loto") ?? [];
+  const newDocs = job?.plan.filter((p) => p.isNew && (p.kind === "sop" || p.kind === "loto" || p.kind === "jha" || p.kind === "audit")) ?? [];
   const approvers = ["maria", "dan"];
   const permitApproved = execution.permitStatus === "approved";
 
@@ -216,7 +216,7 @@ export default function ExecutionWorkOrderPage({ params }: { params: Promise<{ i
                     <FileCheck className="size-4 text-indigo-600" />
                     <div className="min-w-0 flex-1">
                       <div className="text-[11px] font-medium text-indigo-700">New draft, waiting for approval</div>
-                      <div className="truncate text-sm text-gray-800">{p.title.replace(/^New (SOP|LOTO): /, "")}</div>
+                      <div className="truncate text-sm text-gray-800">{p.title.replace(/^New (SOP|LOTO|JHA|inspection): /, "")}</div>
                     </div>
                     <button className="text-xs font-medium text-indigo-700 hover:underline">Edit</button>
                   </li>

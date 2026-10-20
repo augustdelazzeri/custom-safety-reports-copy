@@ -8,11 +8,14 @@ import Link from "next/link";
 import { useState } from "react";
 
 const TRY: Record<string, string> = {
+  "/safety-execution/command-bar": "Type “fl” and pick Forklift 3, then Clean. Enter creates the permit and the work order.",
+  "/safety-execution/task-first": "Pick Inspect, type “FL-” to tick every forklift, approve. Or add your own job type.",
+  "/safety-execution/new-work-order": "Pick Hydraulic Press 4 as the asset: the documents for the job show up under it.",
   "/safety-execution": "Type “Every last Friday of the month, clean Hydraulic Press 7”, or pick Forklift 3 and choose Clean.",
   "/compliance-calendar": "Approve Nova's 3 proposals, then ask “What else this week?”.",
   "/safety-execution/readiness": "Review the 5 AI matches first, then select Press 7 and Stretch wrapper 2 and draft what is missing.",
   "/safety-execution/mobile": "Scan, run the pre-use inspection, or tap Something else to ask Nova.",
-  "/inbox": "Run the flow on the Press 4 injury, then follow CAPA-0033 in Waiting. Open Nova for the usual flows.",
+  "/inbox": "Run the flow on the Press 4 injury, then open the back strain event to follow CAPA-0033. Open Nova for the usual flows.",
   "/events/ev-2041": "Same flow, on the event page. Use the arrows to move between events.",
   "/events/board": "Drag a card from Open to In review, or switch to On the card and decide there.",
 };
@@ -58,15 +61,23 @@ export default function DemoPage() {
           <div className="flex items-center gap-2">
             <PlayCircle className="size-5 text-indigo-600" />
             <h2 className="text-lg font-semibold text-gray-900">2 · Guided work from the asset</h2>
-            <span className="rounded-full bg-indigo-50 px-2 py-0.5 text-xs font-medium text-indigo-700">4 options</span>
+            <span className="rounded-full bg-indigo-50 px-2 py-0.5 text-xs font-medium text-indigo-700">{CASE_B_OPTIONS.filter((o) => !o.tested).length} options</span>
           </div>
           <p className="mt-2 text-sm text-gray-600">
             Today Safety is organized by document. This starts from the asset: see its JHA, SOP, LOTO, permit, inspections and SDS, pick what to do, and the AI
             creates the permit with its approvers and the work order with every document attached.
           </p>
           <div className="mt-4 grid grid-cols-1 gap-3 md:grid-cols-2">
-            {CASE_B_OPTIONS.map((o) => (
+            {CASE_B_OPTIONS.filter((o) => !o.tested).map((o) => (
               <OptionCard key={o.href} href={o.href} label={o.label} hint={o.hint} />
+            ))}
+          </div>
+          <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-gray-500">
+            <span className="font-medium text-gray-600">Other options tested:</span>
+            {CASE_B_OPTIONS.filter((o) => o.tested).map((o) => (
+              <Link key={o.href} href={o.href} title={o.hint} className="hover:text-indigo-700 hover:underline">
+                {o.label}
+              </Link>
             ))}
           </div>
         </section>
@@ -101,7 +112,7 @@ function OptionCard({ href, label, hint }: { href: string; label: string; hint: 
         <ArrowRight className="size-4 text-gray-400 transition group-hover:translate-x-0.5 group-hover:text-indigo-600" />
       </div>
       <span className="text-xs text-gray-600">{hint}</span>
-      <span className="mt-1 text-[11px] text-indigo-700">Try: {TRY[href]}</span>
+      {TRY[href] ? <span className="mt-1 text-[11px] text-indigo-700">Try: {TRY[href]}</span> : null}
     </Link>
   );
 }

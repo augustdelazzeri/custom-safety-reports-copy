@@ -27,6 +27,8 @@ export interface SafetyDoc {
   match?: { reason: string; confidence: "high" | "medium" };
   /** How many assets the same document covers, when it is written for a whole area. */
   covers?: number;
+  /** Set when the document is on file but its periodic review is overdue: why, in one line. */
+  reviewOverdue?: string;
 }
 
 export interface SafetyLocation {
@@ -58,7 +60,7 @@ export interface Asset {
   lastWorkOrders: { ref: string; title: string; date: string; assigneeId?: string }[];
 }
 
-export type PlanItemKind = "ptw" | "wo" | "pm" | "sop" | "loto" | "notify" | "attach" | "note";
+export type PlanItemKind = "ptw" | "wo" | "pm" | "sop" | "loto" | "jha" | "audit" | "notify" | "attach" | "note";
 
 export interface PlanItem {
   id: string;

@@ -65,7 +65,7 @@ export default function Sidebar() {
       { label: "Events", icon: <AlertTriangle className="size-5" />, href: "/events" },
       { label: "CAPAs", icon: <ClipboardCheck className="size-5" />, href: "/capas" },
       { label: "Safety Work Orders", icon: <Wrench className="size-5" />, href: "/safety-work-orders" },
-      { label: "Safety Execution", icon: <PlayCircle className="size-5" />, href: "/safety-execution", badge: "New" },
+      { label: "Safety Execution", icon: <PlayCircle className="size-5" />, href: "/safety-execution/command-bar", badge: "New" },
     ]},
     { id: "analytics", label: "ANALYTICS", items: [
       { label: "Dashboard", icon: <LayoutDashboard className="size-5" />, href: "/" },
@@ -136,8 +136,9 @@ export default function Sidebar() {
             {isSectionOpen(section.id) && (
               <nav className="px-3 space-y-0.5 mt-1">
                 {section.items.map((item) => {
-                  const isActive =
-                    pathname === item.href || (item.href !== "/" && item.href !== "#" && pathname.startsWith(`${item.href}/`));
+                  // Safety Execution opens on its first featured option but stays active on every option.
+                  const base = item.href.startsWith("/safety-execution") ? "/safety-execution" : item.href;
+                  const isActive = pathname === base || (base !== "/" && base !== "#" && pathname.startsWith(`${base}/`));
                   return (
                     <Link
                       key={item.label}

@@ -50,7 +50,7 @@ function MobileInner() {
   const fromWo = executions.find((e) => e.id === params.get("wo"));
   const initialAsset = params.get("asset") ?? (fromWo ? getJob(fromWo.jobId)?.assetId : undefined) ?? "fl03";
   const [assetId, setAssetId] = useState(initialAsset);
-  // Opens on the camera: the entry is the Safety Access Point QR stuck on the machine.
+  // Opens on the camera: Scan in Safety reads the QR the CMMS already prints for the asset.
   const [screen, setScreen] = useState<Screen>(fromWo ? "precheck" : "scan");
   const [tab, setTab] = useState<Tab>("work");
   const [jobId, setJobId] = useState<string | null>(fromWo?.jobId ?? null);
@@ -106,7 +106,7 @@ function MobileInner() {
       {/* Asset header, visible once the QR is scanned */}
       {screen !== "scan" && screen !== "nova" ? (
         <>
-          <div className="truncate bg-gray-100 px-4 py-1 text-center font-mono text-[10px] text-gray-500">app.upkeep.com/ehs/public/qr/ap-{a.code.toLowerCase()}</div>
+          <div className="truncate bg-gray-100 px-4 py-1 text-center font-mono text-[10px] text-gray-500">app.upkeep.com/ehs/assets/{a.code.toLowerCase()}</div>
           <div className="flex items-center gap-2 border-b border-gray-100 px-4 py-3">
             {screen !== "home" ? (
               <button onClick={() => reset(screen === "run" ? "precheck" : "home")} className="-ml-1 rounded p-1 text-gray-500" aria-label="Back">
@@ -119,7 +119,7 @@ function MobileInner() {
               <div className="truncate text-sm font-semibold text-gray-900">
                 {a.code} · {a.name}
               </div>
-              <div className="text-[11px] text-gray-500">{locationName(a.locationId)} · Access Point QR, scanned just now</div>
+              <div className="text-[11px] text-gray-500">{locationName(a.locationId)} · Asset QR, scanned just now</div>
             </div>
             <span className="flex size-7 items-center justify-center rounded-full bg-gray-100 text-[10px] font-semibold text-gray-700">CR</span>
           </div>
@@ -130,24 +130,23 @@ function MobileInner() {
       <div className={cn("flex-1 overflow-y-auto bg-gray-50/60", screen === "nova" && "hidden")}>
         {screen === "scan" ? (
           <div className="flex h-full flex-col items-center justify-center gap-5 bg-gray-900 p-6 text-center">
-            <p className="text-sm text-gray-300">Point the camera at the QR on the machine</p>
+            <p className="text-sm text-gray-300">Point the camera at the asset&apos;s QR</p>
             <div className="relative rounded-2xl border-2 border-white/80 p-3">
               <div className="w-48 rounded-xl bg-white p-3 text-left shadow-lg">
-                <div className="flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-wide text-indigo-700">
-                  <ShieldCheck className="size-3" /> UpKeep Safety
+                <div className="flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-wide text-gray-500">
+                  <Wrench className="size-3" /> UpKeep asset
                 </div>
                 <QrCode className="mx-auto my-2 size-24 text-gray-900" />
-                <div className="text-xs font-semibold text-gray-900">
-                  {a.code} · {a.name}
-                </div>
-                <div className="text-[10px] text-gray-500">{locationName(a.locationId)} · Report a hazard or start work</div>
+                <div className="text-xs font-semibold text-gray-900">{a.name}</div>
+                <div className="font-mono text-[10px] text-gray-500">{a.code}</div>
               </div>
             </div>
             <button onClick={() => setScreen("home")} className="rounded-full bg-white px-5 py-2 text-sm font-semibold text-gray-900">
               Scan
             </button>
             <p className="text-[11px] leading-relaxed text-gray-400">
-              The Access Point label Safety already prints, linked to this asset. Today it opens Report and Documents without login.
+              Safety opens the camera in the phone&apos;s browser, no app to install. It reads the QR the CMMS already prints for the asset and finds
+              the asset by its barcode.
             </p>
           </div>
         ) : null}
@@ -179,7 +178,7 @@ function MobileInner() {
         {screen === "home" && tab === "report" ? (
           <div className="space-y-3 p-4">
             <p className="text-lg font-semibold text-gray-900">What happened?</p>
-            <p className="text-xs text-gray-500">The public event flow of this Access Point, as it works today. No login needed.</p>
+            <p className="text-xs text-gray-500">Today&apos;s event flow, with this asset already filled in.</p>
             <div className="flex min-h-24 items-start rounded-2xl border border-gray-200 bg-white p-3 text-sm text-gray-400">Speak or type, the AI fills the form</div>
             <div className="grid grid-cols-2 gap-2">
               <button className="flex items-center justify-center gap-2 rounded-xl border border-gray-200 bg-white py-2.5 text-sm font-medium text-gray-800">
@@ -194,7 +193,7 @@ function MobileInner() {
 
         {screen === "home" && tab === "docs" ? (
           <div className="space-y-2 p-4">
-            <p className="text-xs text-gray-500">Documents linked to this Access Point, as today. Read only, no login needed.</p>
+            <p className="text-xs text-gray-500">Every Safety document of this asset: linked, or found by the AI by its title.</p>
             {a.docs.map((d) => (
               <div key={d.id} className="rounded-xl border border-gray-200 bg-white px-3 py-2">
                 <div className="font-mono text-[10px] text-gray-500">{d.ref}</div>
@@ -606,12 +605,13 @@ function MobilePage() {
         <aside className="hidden w-72 shrink-0 space-y-3 pt-6 lg:block">
           <h2 className="text-lg font-semibold text-gray-900">At the asset</h2>
           <p className="text-sm text-gray-600">
-            The technician scans the Safety Access Point QR on the machine. Access Points already link assets and documents, and today the
-            public page offers Report and Documents without login. New: a signed-in person also gets Work, where the AI offers only the jobs
-            the asset&apos;s documents allow and shows what is missing before starting: permit, hazards, PPE.
+            The technician taps Scan in Safety, on the phone&apos;s browser, and points the camera at the asset&apos;s QR. Safety opens the asset
+            with its documents. Work offers only the jobs those documents allow and shows what is missing before starting: permit, hazards, PPE.
           </p>
           <p className="text-xs text-gray-500">
-            The CMMS asset label only encodes the serial number, so it opens the asset inside the UpKeep app, not a link.
+            The QR is the one the CMMS already prints (Generate QR Code on the asset). It holds the asset&apos;s barcode, so Safety finds the asset by
+            it. Today only the UpKeep mobile app reads it. Fallback: a Safety Access Point linked to the asset; the field exists, but in the 5 most
+            active clients 0 of 147 Access Points link an asset.
           </p>
           <ul className="space-y-1.5 text-sm text-gray-600">
             <li>· &quot;Something else&quot; opens Nova with this asset as context: history, procedures, a new work order</li>
