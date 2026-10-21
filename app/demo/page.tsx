@@ -3,6 +3,7 @@
 import { CASE_B_OPTIONS, CASE_C_OPTIONS } from "@/components/three-cases/option-switcher";
 import { PageShell } from "@/components/three-cases/shell";
 import { useThreeCases } from "@/contexts/ThreeCasesContext";
+import { resetRealStore } from "@/lib/three-cases/real-jobs";
 import { ArrowRight, Check, Megaphone, PlayCircle, RotateCcw, Workflow } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
@@ -10,6 +11,7 @@ import { useState } from "react";
 const TRY: Record<string, string> = {
   "/safety-execution/command-bar": "Type “fl” and pick Forklift 3, then Clean. Enter creates the permit and the work order.",
   "/safety-execution/task-first": "Pick Inspect, type “FL-” to tick every forklift, approve. Or add your own job type.",
+  "/safety-execution/v1": "Open Clean, tick Haas VF3 and Kaeser dryer. Create the draft documents, or a PM, or a work order with the documents attached.",
   "/safety-execution/new-work-order": "Pick Hydraulic Press 4 as the asset: the documents for the job show up under it.",
   "/safety-execution": "Type “Every last Friday of the month, clean Hydraulic Press 7”, or pick Forklift 3 and choose Clean.",
   "/compliance-calendar": "Approve Nova's 3 proposals, then ask “What else this week?”.",
@@ -37,6 +39,7 @@ export default function DemoPage() {
           <button
             onClick={() => {
               reset();
+              resetRealStore();
               setDidReset(true);
             }}
             className="inline-flex items-center gap-1.5 rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-sm text-gray-700 hover:bg-gray-50"
@@ -73,7 +76,7 @@ export default function DemoPage() {
             ))}
           </div>
           <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-gray-500">
-            <span className="font-medium text-gray-600">Other options tested:</span>
+            <span className="font-medium text-gray-600">Other options:</span>
             {CASE_B_OPTIONS.filter((o) => o.tested).map((o) => (
               <Link key={o.href} href={o.href} title={o.hint} className="hover:text-indigo-700 hover:underline">
                 {o.label}

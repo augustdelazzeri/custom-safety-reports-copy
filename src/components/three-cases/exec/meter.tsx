@@ -14,6 +14,8 @@ interface Meter {
 }
 
 const MeterContext = createContext<Meter | null>(null);
+/** `finish` alone, with a stable identity: a page that only ends the count must not re-render on every click. */
+const FinishContext = createContext<(() => void) | null>(null);
 
 /** Elements whose click counts as a step: anything the person has to aim at. */
 const COUNTED = "button, a, input, select, textarea, label, [role=option], [role=menuitem], [data-count]";
@@ -42,6 +44,7 @@ export function FlowMeter({ children, className }: { children: ReactNode; classN
 
   return (
     <MeterContext.Provider value={value}>
+      <FinishContext.Provider value={finish}>
       <div
         className={className}
         onClickCapture={(e) => {
@@ -56,12 +59,22 @@ export function FlowMeter({ children, className }: { children: ReactNode; classN
       >
         {children}
       </div>
+      </FinishContext.Provider>
     </MeterContext.Provider>
   );
 }
 
 export function useMeter() {
   return useContext(MeterContext);
+}
+
+/**
+ * Ends the count without subscribing to it. The counter updates in the capture phase of a click; a
+ * component that reads `useMeter()` re-renders there, before its own onChange runs, and a controlled
+ * checkbox snaps back to its old value. Pages with checkboxes use this instead.
+ */
+export function useMeterFinish() {
+  return useContext(FinishContext);
 }
 
 /** Live click count; turns green with the final number once the work order exists. */

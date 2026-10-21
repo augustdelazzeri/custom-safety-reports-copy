@@ -17,12 +17,15 @@ export interface OptionLink {
   group?: string;
 }
 
+const F = "/safety-execution/task-first";
+
 export const CASE_B_OPTIONS: OptionLink[] = [
-  { href: "/safety-execution/command-bar", label: "A · Command bar", hint: "One field: asset, then task, then Enter" },
-  { href: "/compliance-calendar", label: "B · Agenda", hint: "The calendar prepares the work by itself" },
-  { href: "/safety-execution/mobile", label: "D · At the asset", hint: "Scan the asset's QR, see its documents, do the job" },
-  { href: "/safety-execution/new-work-order", label: "E · New work order", hint: "Today's CMMS form: pick the asset, the documents come with it" },
-  { href: "/safety-execution/task-first", label: "F · Task first", hint: "Pick the job, then one or more assets" },
+  { href: F, label: "F · Task first", hint: "As presented: pick the job, then one or more assets" },
+  { href: "/safety-execution/v1", label: "V1 · Real data", hint: "Pick the job and the assets; start the missing documents as drafts; create a PM or a work order with the documents attached" },
+  { href: "/safety-execution/command-bar", label: "A · Command bar", hint: "One field: asset, then task, then Enter", tested: true, group: "Other ideas" },
+  { href: "/compliance-calendar", label: "B · Agenda", hint: "The calendar prepares the work by itself", tested: true, group: "Other ideas" },
+  { href: "/safety-execution/mobile", label: "D · At the asset", hint: "Scan the asset's QR, see its documents, do the job", tested: true, group: "Other ideas" },
+  { href: "/safety-execution/new-work-order", label: "E · New work order", hint: "Today's CMMS form: pick the asset, the documents come with it", tested: true, group: "Other ideas" },
   { href: "/safety-execution/readiness", label: "C · Readiness board", hint: "Every asset of a location at a glance", tested: true, group: "Set aside" },
   { href: "/safety-execution", label: "A · Ask or pick", hint: "First version: chat, location and asset, document grid", tested: true, group: "Earlier versions of A" },
   { href: "/safety-execution/a2", label: "A · Sentence", hint: "Fill the blanks of one sentence", tested: true, group: "Earlier versions of A" },
@@ -49,9 +52,9 @@ export function OptionSwitcher({ caseLabel, options }: { caseLabel: string; opti
   const featured = options.filter((o) => !o.tested);
   const tested = options.filter((o) => o.tested);
   const activeTested = active?.tested ? active : undefined;
-
   return (
-    <div className="flex flex-wrap items-center gap-2 rounded-lg border border-gray-200 bg-white px-2 py-1.5">
+    <div className="rounded-lg border border-gray-200 bg-white px-2 py-1.5">
+    <div className="flex flex-wrap items-center gap-2">
       <span className="px-1 text-[11px] font-semibold uppercase tracking-wide text-gray-400">{caseLabel}</span>
       {featured.map((o) => (
         <Link
@@ -75,7 +78,7 @@ export function OptionSwitcher({ caseLabel, options }: { caseLabel: string; opti
                 activeTested ? "bg-indigo-600 text-white" : "text-gray-500 hover:bg-gray-100",
               )}
             >
-              {activeTested ? activeTested.label : `Other options tested (${tested.length})`}
+              {activeTested ? activeTested.label : `Other options (${tested.length})`}
               <ChevronDown className="size-3.5" />
             </button>
           </PopoverTrigger>
@@ -99,6 +102,7 @@ export function OptionSwitcher({ caseLabel, options }: { caseLabel: string; opti
           </PopoverContent>
         </Popover>
       ) : null}
+    </div>
     </div>
   );
 }

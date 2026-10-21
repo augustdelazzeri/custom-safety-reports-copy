@@ -144,6 +144,9 @@ export default function TaskFirstPage() {
   const allShownPicked = shown.length > 0 && shown.every((r) => picked.includes(r.task.job.id));
 
   return (
+    // NOTE: option F is frozen on purpose. It is exactly what was presented on Oct 20; do not change its flow.
+    // Edge-case work (document-to-work-order link, unapproved documents, document statuses) happens in new
+    // versions next to it, starting with V1 (app/safety-execution/v1). To redesign the UI, branch from here.
     <VariantPage note="F · Task first. Pick the job, tick the assets, one approval. Add your own job type: the AI reads which documents it needs.">
       <div className="grid h-full min-h-0 grid-cols-[230px_minmax(0,1fr)] gap-3">
         <nav className="flex min-h-0 flex-col gap-0.5 overflow-y-auto rounded-xl border border-gray-200 bg-white p-2">

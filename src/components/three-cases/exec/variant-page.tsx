@@ -7,9 +7,9 @@ import { PageShell } from "../shell";
 import { FlowMeter, MeterBadge } from "./meter";
 
 /** Frame shared by the Safety Execution options: option switcher, click meter, then the option. */
-export function VariantPage({ children, mainClassName, note }: { children: ReactNode; mainClassName?: string; note?: string }) {
+export function VariantPage({ children, mainClassName, note, title = "Safety Execution" }: { children: ReactNode; mainClassName?: string; note?: string; title?: string }) {
   return (
-    <PageShell title="Safety Execution" mainClassName="flex flex-col overflow-hidden p-0">
+    <PageShell title={title} mainClassName="flex flex-col overflow-hidden p-0">
       <FlowMeter className="flex min-h-0 flex-1 flex-col gap-3 p-4">
         <div data-no-count className="flex flex-wrap items-center justify-between gap-2">
           <OptionSwitcher caseLabel="Use case 2" options={CASE_B_OPTIONS} />
