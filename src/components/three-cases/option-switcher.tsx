@@ -21,7 +21,10 @@ const F = "/safety-execution/task-first";
 
 export const CASE_B_OPTIONS: OptionLink[] = [
   { href: F, label: "F · Task first", hint: "As presented: pick the job, then one or more assets" },
-  { href: "/safety-execution/v1", label: "V1 · Real data", hint: "Pick the job and the assets; start the missing documents as drafts; create a PM or a work order with the documents attached" },
+  { href: "/safety-execution/v1", label: "V1 · Real data", hint: "Pick the job and the assets; start the missing documents as drafts; create a PM or a work order with the documents attached", tested: true, group: "Earlier versions of V" },
+  { href: "/safety-execution/v2", label: "V2 · Document links", hint: "V1 with each document's ID as a link (drafts too)", tested: true, group: "Earlier versions of V" },
+  { href: "/safety-execution/v3", label: "V3 · Gray", hint: "V2 with gray instead of yellow for what needs action", tested: true, group: "Earlier versions of V" },
+  { href: "/safety-execution/v4", label: "V4 · Status colors", hint: "V2 with the color of each document as its status, a legend at the bottom, a work order badge and quick actions on each row" },
   { href: "/safety-execution/command-bar", label: "A · Command bar", hint: "One field: asset, then task, then Enter", tested: true, group: "Other ideas" },
   { href: "/compliance-calendar", label: "B · Agenda", hint: "The calendar prepares the work by itself", tested: true, group: "Other ideas" },
   { href: "/safety-execution/mobile", label: "D · At the asset", hint: "Scan the asset's QR, see its documents, do the job", tested: true, group: "Other ideas" },

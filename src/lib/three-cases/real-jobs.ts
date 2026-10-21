@@ -8,18 +8,21 @@
 import { useCallback, useEffect, useState } from "react";
 import { person } from "./data";
 
-export type Kind = "checklist" | "jha" | "sop" | "loto" | "sds";
-export type Permit = "hotwork" | "entry" | "energized";
+/** The six document types, in the order of the EHS sidebar. */
+export type Kind = "jha" | "sop" | "loto" | "ptw" | "audit" | "sds";
 export type Flag = "risk" | "chemical" | "moving" | "fluid" | "hot" | "energized" | "height" | "confined";
 export type DocState = "valid" | "expiring" | "expired" | "awaiting" | "draft" | "missing";
 export type Level = "required" | "recommended";
 export type GroupId = "routine" | "change" | "permit";
 export type Priority = "none" | "low" | "medium" | "high";
-export type Unit = "day" | "week" | "month";
+export type Unit = "day" | "week" | "month" | "year";
 
-export const KINDS: Kind[] = ["checklist", "jha", "sop", "loto", "sds"];
-export const KIND_LABEL: Record<Kind, string> = { checklist: "Checklist", jha: "JHA", sop: "SOP", loto: "LOTO", sds: "SDS" };
-export const PERMIT_LABEL: Record<Permit, string> = { hotwork: "Hot work permit", entry: "Entry permit", energized: "Energized work permit" };
+export const KINDS: Kind[] = ["jha", "sop", "loto", "ptw", "audit", "sds"];
+export const KIND_LABEL: Record<Kind, string> = { jha: "JHA", sop: "SOP", loto: "LOTO", ptw: "Permit to Work", audit: "Audit / Inspection", sds: "SDS" };
+/** Short names for the chips in the list. */
+export const KIND_SHORT: Record<Kind, string> = { jha: "JHA", sop: "SOP", loto: "LOTO", ptw: "Permit", audit: "Audit", sds: "SDS" };
+/** An SDS comes from the manufacturer's PDF, so a draft cannot be started from the asset (see the notes). */
+export const DRAFTABLE: Kind[] = ["jha", "sop", "loto", "ptw", "audit"];
 export const GROUPS: { id: GroupId; label: string }[] = [
   { id: "routine", label: "Routines" },
   { id: "change", label: "Replace and repair" },
@@ -38,6 +41,26 @@ const TASKS: Record<string, string[]> = {
 };
 export const tasksFor = (famId: string) => TASKS[famId] ?? ["Review the JHA and the SOP", "Do the work", "Test and log the result"];
 
+const DOC_ITEMS: Partial<Record<Kind, string[]>> = {
+  sop: ["Read the SOP before starting", "Do each step in order", "Record anything that differs from the SOP", "Sign off the last step"],
+  loto: ["Notify the people affected", "Shut down and isolate every energy source", "Apply the lock and tag", "Verify zero energy", "Remove the locks when done"],
+};
+/** The company's own checklist templates, in the CMMS. */
+const LIBRARY: ChecklistOpt[] = [
+  { id: "lib-walk", name: "Weekly walk-around", items: TASKS.inspect },
+  { id: "lib-pre", name: "Pre-use inspection", items: ["Check tires, forks and mast", "Check horn, lights and alarm", "Check brakes and steering", "Check fluid levels", "Report any defect"] },
+  { id: "lib-lube", name: "Lubrication round", items: TASKS.lube },
+  { id: "lib-clean", name: "Clean and sanitize", items: TASKS.clean },
+];
+export const libraryChecklists = () => LIBRARY;
+/** The checklists the chosen assets already have through their documents, then the job's usual one. */
+export function checklistOptions(docs: Doc[], famId: string): ChecklistOpt[] {
+  const fromDocs = docs
+    .filter((d) => d.type === "audit" || d.type === "sop" || d.type === "loto")
+    .map((d): ChecklistOpt => ({ id: `doc-${d.ref}`, name: d.title, items: d.type === "audit" ? tasksFor(famId) : (DOC_ITEMS[d.type] ?? []), from: d.ref }));
+  return fromDocs;
+}
+
 export const PRIORITY_LABEL: Record<Priority, string> = { none: "None", low: "Low", medium: "Medium", high: "High" };
 
 export interface Every {
@@ -45,6 +68,33 @@ export interface Every {
   unit: Unit;
 }
 export const everyText = (e: Every) => `Every ${e.n === 1 ? e.unit : `${e.n} ${e.unit}s`}`;
+
+/** How a PM repeats in the CMMS: a fixed schedule or counting from the last completion, when its work orders are created, and the periods it pauses. Calendar schedules only; meter schedules do not apply here. */
+export type Basis = "fixed" | "completion";
+export const WEEKDAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
+export const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+export interface MonthDay {
+  m: number;
+  d: number;
+}
+export interface Schedule {
+  basis: Basis;
+  /** Time of day the work order is due. */
+  time: string;
+  create: { mode: "before"; n: number; unit: "hours" | "days" | "weeks" } | { mode: "weekday"; day: string; time: string };
+  inactive: { from: MonthDay; to: MonthDay }[];
+}
+export const DEFAULT_SCHEDULE: Schedule = { basis: "fixed", time: "08:00", create: { mode: "before", n: 1, unit: "days" }, inactive: [] };
+export const fmtMonthDay = (x: MonthDay) => `${MONTHS[x.m - 1]} ${x.d}`;
+
+/** A checklist is a template of the CMMS: a work order or PM takes one. Documents (SOP, LOTO, Audit) can have one linked. */
+export interface ChecklistOpt {
+  id: string;
+  name: string;
+  items: string[];
+  /** The document it is linked to, if any. */
+  from?: string;
+}
 
 export interface Need {
   type: Kind;
@@ -60,7 +110,6 @@ export interface Family {
   /** What the research says about how it is scheduled. */
   rhythm: string;
   needs: Need[];
-  permits: { type: Permit; when?: Flag }[];
   /** How often a PM for this job repeats unless the person changes it. */
   every: Every;
   custom?: boolean;
@@ -69,16 +118,16 @@ export interface Family {
 // The package per job is a product proposal from file 08, section 4: not legal advice. Which of it
 // applies to an asset also depends on the asset (moving parts, chemicals, hot surfaces…).
 export const FAMILIES: Family[] = [
-  { id: "inspect", label: "Inspect", group: "routine", hint: "Walk-arounds, pre-use and periodic inspections", rhythm: "89% recurring (PM)", every: { n: 1, unit: "week" }, needs: [{ type: "checklist", level: "required" }, { type: "jha", level: "required", when: "risk" }, { type: "sop", level: "required", when: "risk" }], permits: [] },
-  { id: "clean", label: "Clean", group: "routine", hint: "Cleaning and sanitizing", rhythm: "79% recurring (PM)", every: { n: 1, unit: "week" }, needs: [{ type: "jha", level: "required" }, { type: "sop", level: "recommended" }, { type: "sds", level: "required", when: "chemical" }, { type: "loto", level: "required", when: "moving" }], permits: [] },
-  { id: "lube", label: "Lubricate / service", group: "routine", hint: "Oil, filters, grease, scheduled service", rhythm: "84% recurring (PM)", every: { n: 1, unit: "month" }, needs: [{ type: "loto", level: "required" }, { type: "jha", level: "recommended" }, { type: "sop", level: "recommended" }, { type: "sds", level: "required", when: "chemical" }], permits: [] },
-  { id: "replace", label: "Replace / install", group: "change", hint: "Swap a part, belt, battery or tool", rhythm: "Mostly one-off (5 to 13% PM)", every: { n: 1, unit: "month" }, needs: [{ type: "loto", level: "required" }, { type: "jha", level: "required" }, { type: "sop", level: "recommended" }, { type: "sds", level: "required", when: "fluid" }], permits: [{ type: "hotwork", when: "hot" }] },
-  { id: "repair", label: "Repair / troubleshoot", group: "change", hint: "Find a fault and fix it", rhythm: "Mostly one-off (5 to 13% PM)", every: { n: 1, unit: "month" }, needs: [{ type: "loto", level: "required" }, { type: "jha", level: "required" }, { type: "sop", level: "recommended" }], permits: [{ type: "energized", when: "energized" }] },
-  { id: "adjust", label: "Adjust / calibrate / test", group: "change", hint: "Valve lash, alignment, calibration, tests", rhythm: "Mixed", every: { n: 3, unit: "month" }, needs: [{ type: "sop", level: "required" }, { type: "jha", level: "recommended" }, { type: "loto", level: "required", when: "moving" }], permits: [] },
-  { id: "weld", label: "Weld / cut / grind", group: "permit", hint: "Hot work", rhythm: "One-off", every: { n: 1, unit: "month" }, needs: [{ type: "jha", level: "required" }, { type: "sop", level: "recommended" }, { type: "loto", level: "required", when: "moving" }, { type: "sds", level: "required", when: "chemical" }], permits: [{ type: "hotwork" }] },
-  { id: "confined", label: "Confined space", group: "permit", hint: "Entering tanks, boilers and vessels", rhythm: "One-off", every: { n: 1, unit: "month" }, needs: [{ type: "jha", level: "required" }, { type: "loto", level: "required" }, { type: "sop", level: "recommended" }], permits: [{ type: "entry" }, { type: "hotwork", when: "hot" }] },
-  { id: "height", label: "Work at height", group: "permit", hint: "Roofs, ladders, lifts", rhythm: "One-off", every: { n: 1, unit: "month" }, needs: [{ type: "jha", level: "required" }, { type: "sop", level: "recommended" }], permits: [] },
-  { id: "electrical", label: "Electrical", group: "permit", hint: "Energized or electrical work", rhythm: "One-off", every: { n: 1, unit: "month" }, needs: [{ type: "loto", level: "required" }, { type: "jha", level: "required" }, { type: "sop", level: "recommended" }], permits: [{ type: "energized", when: "energized" }] },
+  { id: "inspect", label: "Inspect", group: "routine", hint: "Walk-arounds, pre-use and periodic inspections", rhythm: "89% recurring (PM)", every: { n: 1, unit: "week" }, needs: [{ type: "jha", level: "required", when: "risk" }, { type: "sop", level: "required", when: "risk" }, { type: "audit", level: "required" }] },
+  { id: "clean", label: "Clean", group: "routine", hint: "Cleaning and sanitizing", rhythm: "79% recurring (PM)", every: { n: 1, unit: "week" }, needs: [{ type: "jha", level: "required" }, { type: "sop", level: "recommended" }, { type: "sds", level: "required", when: "chemical" }, { type: "loto", level: "required", when: "moving" }] },
+  { id: "lube", label: "Lubricate / service", group: "routine", hint: "Oil, filters, grease, scheduled service", rhythm: "84% recurring (PM)", every: { n: 1, unit: "month" }, needs: [{ type: "loto", level: "required" }, { type: "jha", level: "recommended" }, { type: "sop", level: "recommended" }, { type: "sds", level: "required", when: "chemical" }] },
+  { id: "replace", label: "Replace / install", group: "change", hint: "Swap a part, belt, battery or tool", rhythm: "Mostly one-off (5 to 13% PM)", every: { n: 1, unit: "month" }, needs: [{ type: "loto", level: "required" }, { type: "jha", level: "required" }, { type: "sop", level: "recommended" }, { type: "ptw", level: "required", when: "hot" }, { type: "sds", level: "required", when: "fluid" }] },
+  { id: "repair", label: "Repair / troubleshoot", group: "change", hint: "Find a fault and fix it", rhythm: "Mostly one-off (5 to 13% PM)", every: { n: 1, unit: "month" }, needs: [{ type: "loto", level: "required" }, { type: "jha", level: "required" }, { type: "sop", level: "recommended" }, { type: "ptw", level: "required", when: "energized" }] },
+  { id: "adjust", label: "Adjust / calibrate / test", group: "change", hint: "Valve lash, alignment, calibration, tests", rhythm: "Mixed", every: { n: 3, unit: "month" }, needs: [{ type: "sop", level: "required" }, { type: "jha", level: "recommended" }, { type: "loto", level: "required", when: "moving" }] },
+  { id: "weld", label: "Weld / cut / grind", group: "permit", hint: "Hot work", rhythm: "One-off", every: { n: 1, unit: "month" }, needs: [{ type: "jha", level: "required" }, { type: "sop", level: "recommended" }, { type: "loto", level: "required", when: "moving" }, { type: "ptw", level: "required" }, { type: "sds", level: "required", when: "chemical" }] },
+  { id: "confined", label: "Confined space", group: "permit", hint: "Entering tanks, boilers and vessels", rhythm: "One-off", every: { n: 1, unit: "month" }, needs: [{ type: "jha", level: "required" }, { type: "loto", level: "required" }, { type: "ptw", level: "required" }, { type: "sop", level: "recommended" }] },
+  { id: "height", label: "Work at height", group: "permit", hint: "Roofs, ladders, lifts", rhythm: "One-off", every: { n: 1, unit: "month" }, needs: [{ type: "jha", level: "required" }, { type: "sop", level: "recommended" }] },
+  { id: "electrical", label: "Electrical", group: "permit", hint: "Energized or electrical work", rhythm: "One-off", every: { n: 1, unit: "month" }, needs: [{ type: "loto", level: "required" }, { type: "jha", level: "required" }, { type: "ptw", level: "required", when: "energized" }, { type: "sop", level: "recommended" }] },
 ];
 
 export interface RAsset {
@@ -129,17 +178,17 @@ const SEEDS: Seed[] = [
   s("ac1", "loto", "valid", "LOTO-0012", "LOTO: Air Compressor 1", { approvers: ["maria", "dan"] }),
   s("ac1", "sop", "awaiting", "SOP-0071", "Air Compressor 1: drain and service", { days: 6 }),
   s("ac1", "jha", "valid", "JHA-0040", "JHA: Compressed air systems"),
-  s("ac1", "checklist", "valid", "CHK-0018", "Compressor weekly walk-around"),
-  s("dry1", "checklist", "valid", "CHK-0019", "Dryer weekly check"),
+  s("ac1", "audit", "valid", "AUD-0018", "Compressor weekly walk-around"),
+  s("dry1", "audit", "valid", "AUD-0019", "Dryer weekly check"),
   s("dry1", "jha", "valid", "JHA-0041", "JHA: Dryer cleaning"),
   s("cnc3", "sop", "valid", "SOP-0058", "Haas VF3 Operation"),
   s("cnc3", "jha", "expired", "JHA-0019", "JHA: CNC machining", { days: 20 }),
-  s("cnc3", "checklist", "valid", "CHK-0024", "CNC daily start-up check"),
-  s("fl3", "checklist", "valid", "CHK-0030", "Forklift pre-use inspection"),
+  s("cnc3", "audit", "valid", "AUD-0024", "CNC daily start-up check"),
+  s("fl3", "audit", "valid", "AUD-0030", "Forklift pre-use inspection"),
   s("fl3", "jha", "valid", "JHA-0022", "JHA: Forklift operation"),
   s("fl3", "sop", "valid", "SOP-0044", "Forklift battery change"),
   s("fl3", "loto", "awaiting", "LOTO-0046", "LOTO: Forklift FL-03", { approvers: ["maria", "dan"], days: 4, ownerId: "carlos" }),
-  s("fl4", "checklist", "valid", "CHK-0030", "Forklift pre-use inspection"),
+  s("fl4", "audit", "valid", "AUD-0030", "Forklift pre-use inspection"),
   s("fl4", "jha", "valid", "JHA-0022", "JHA: Forklift operation"),
   s("eng2", "loto", "valid", "LOTO-0009", "LOTO: Wartsila 50SG", { approvers: ["maria", "dan"] }),
   s("eng2", "jha", "valid", "JHA-0031", "JHA: Valve lash adjustment"),
@@ -150,14 +199,18 @@ const SEEDS: Seed[] = [
   s("blr1", "loto", "valid", "LOTO-0020", "LOTO: Boiler 1", { approvers: ["maria", "dan"] }),
   s("blr1", "jha", "valid", "JHA-0016", "JHA: Boiler inspection"),
   s("blr1", "sop", "valid", "SOP-0020", "Boiler 1: annual inspection"),
-  s("blr1", "checklist", "valid", "CHK-0012", "Boiler daily round"),
+  s("blr1", "audit", "valid", "AUD-0012", "Boiler daily round"),
   s("mcc2", "loto", "valid", "LOTO-0031", "LOTO: MCC-2", { approvers: ["maria", "dan"] }),
-  s("mcc2", "checklist", "awaiting", "CHK-0066", "MCC-2 thermography round", { days: 2 }),
+  s("mcc2", "audit", "awaiting", "AUD-0066", "MCC-2 thermography round", { days: 2 }),
   s("wb1", "jha", "valid", "JHA-0008", "JHA: Hot work in the maintenance shop"),
   s("wb1", "sop", "valid", "SOP-0010", "Welding bay procedure"),
   s("wb1", "sds", "valid", "SDS-0100", "Shielding gas SDS"),
   s("p101", "sds", "expired", "SDS-0102", "SDS: Pump seal flush", { days: 60 }),
   s("bs1", "sop", "valid", "SOP-0033", "Belt saw 1 Operation"),
+  s("wb1", "ptw", "valid", "PTW-0007", "Hot work permit: Welding bay 1"),
+  s("blr1", "ptw", "valid", "PTW-0012", "Confined space entry: Boiler 1"),
+  s("eng2", "ptw", "expiring", "PTW-0015", "Hot work permit: Wartsila 50SG", { days: 9 }),
+  s("mcc2", "ptw", "valid", "PTW-0019", "Energized work permit: MCC-2"),
 ];
 
 /** The person using the prototype. */
@@ -192,6 +245,8 @@ export interface Rec {
   every?: Every;
   /** Document types the person left attached. Each asset brings the ones it has. */
   attach: Kind[];
+  schedule?: Schedule;
+  checklist?: string;
 }
 
 interface Store {
@@ -203,7 +258,7 @@ interface Store {
   nextPm: number;
 }
 const BLANK: Store = { docs: {}, recs: [], custom: [], nextWo: 1201, nextPm: 210 };
-const KEY = "ehs-real-jobs-v3";
+const KEY = "ehs-real-jobs-v4";
 
 const key = (assetId: string, type: Kind) => `${assetId}|${type}`;
 
@@ -221,16 +276,17 @@ export interface NeedState {
   doc?: Doc;
 }
 export interface PmInfo {
+  ref: string;
   every: Every;
   next: string;
-  /** When the last work order of this PM was done, if there is one. */
+  /** When the last work order of this PM was done, and its number, if there is one. */
   last?: string;
+  lastRef?: string;
 }
 export interface RowStatus {
   asset: RAsset;
   fam: Family;
   needs: NeedState[];
-  permits: Permit[];
   /** Required documents that are not valid: what the person has to act on. */
   action: NeedState[];
   /** What a draft can still be started for: missing, expired or about to expire (not already in approval or draft). */
@@ -276,24 +332,26 @@ const PM_SEEDS: { assetId: string; famId: string; every: Every; last: number; ne
 
 export function pmOf(store: Pick<Store, "recs">, assetId: string, famId: string): PmInfo | undefined {
   const made = store.recs.find((r) => r.kind === "pm" && r.famId === famId && r.assetIds.includes(assetId) && r.every);
-  if (made?.every) return { every: made.every, next: made.date };
-  const seed = PM_SEEDS.find((x) => x.assetId === assetId && x.famId === famId);
-  return seed ? { every: seed.every, next: plusDays(seed.next), last: plusDays(-seed.last) } : undefined;
+  if (made?.every) return { ref: made.ref, every: made.every, next: made.date };
+  const i = PM_SEEDS.findIndex((x) => x.assetId === assetId && x.famId === famId);
+  const seed = PM_SEEDS[i];
+  return seed ? { ref: `PM-${String(100 + i).padStart(4, "0")}`, every: seed.every, next: plusDays(seed.next), last: plusDays(-seed.last), lastRef: `WO-${1100 + i * 7}` } : undefined;
 }
 
 export function rowStatus(store: Store, fam: Family, asset: RAsset): RowStatus {
-  const needs = needsOf(fam, asset).map((n): NeedState => {
+  // A job the person added has no package of its own: the documents are the ones the asset already has.
+  const base: Need[] = fam.custom ? KINDS.filter((t) => docOf(store, asset.id, t)).map((t) => ({ type: t, level: "required" as Level })) : needsOf(fam, asset);
+  const needs = base.map((n): NeedState => {
     const doc = docOf(store, asset.id, n.type);
     return { type: n.type, level: n.level, state: doc?.state ?? "missing", doc };
   });
   needs.sort((a, b) => (a.level === b.level ? KINDS.indexOf(a.type) - KINDS.indexOf(b.type) : a.level === "required" ? -1 : 1));
   const action = needs.filter((n) => n.level === "required" && n.state !== "valid");
-  const permits = fam.permits.filter((p) => !p.when || asset.flags.includes(p.when)).map((p) => p.type);
-  const draftable = action.filter((n) => n.state === "missing" || n.state === "expired" || n.state === "expiring");
+  const draftable = action.filter((n) => DRAFTABLE.includes(n.type) && (n.state === "missing" || n.state === "expired" || n.state === "expiring"));
   const pm = pmOf(store, asset.id, fam.id);
   const woDates = store.recs.filter((r) => r.kind === "wo" && r.famId === fam.id && r.assetIds.includes(asset.id)).map((r) => ({ date: r.date, ref: r.ref }));
   const next = [...(pm ? [{ date: pm.next, ref: undefined as string | undefined }] : []), ...woDates].sort((a, b) => a.date.localeCompare(b.date))[0];
-  return { asset, fam, needs, permits, action, draftable, ready: action.length === 0, pm, next };
+  return { asset, fam, needs, action, draftable, ready: action.length === 0, pm, next };
 }
 
 /** Every asset shows under every job; the ones that have had this job before come first. */
@@ -324,7 +382,7 @@ export const STATE_WORD: Record<DocState, string> = { valid: "Valid", missing: "
 
 const nextRef = (store: Store, type: Kind) => {
   const taken = new Set([...SEEDS.map((x) => x.ref), ...Object.values(store.docs).map((d) => d.ref)]);
-  const prefix = { checklist: "CHK", jha: "JHA", sop: "SOP", loto: "LOTO", sds: "SDS" }[type];
+  const prefix = { jha: "JHA", sop: "SOP", loto: "LOTO", ptw: "PTW", audit: "AUD", sds: "SDS" }[type];
   for (let n = 60; ; n++) {
     const ref = `${prefix}-${String(n).padStart(4, "0")}`;
     if (!taken.has(ref)) return ref;
@@ -346,6 +404,8 @@ export interface RecInput {
   date: string;
   every?: Every;
   attach: Kind[];
+  schedule?: Schedule;
+  checklist?: string;
 }
 
 /** PMs, work orders and drafts the person made, kept in this browser. */
@@ -374,7 +434,7 @@ export function useRealStore() {
     for (const it of items) {
       const a = getAsset(it.assetId);
       if (!a) continue;
-      const doc: Doc = { type: it.type, state: "draft", ref: nextRef(cur, it.type), title: `${KIND_LABEL[it.type]}: ${a.name}`, ownerId: ME, approvers: [] };
+      const doc: Doc = { type: it.type, state: "draft", ref: nextRef(cur, it.type), title: `${KIND_SHORT[it.type]}: ${a.name}`, ownerId: ME, approvers: [] };
       cur = { ...cur, docs: { ...cur.docs, [key(it.assetId, it.type)]: doc } };
       made.push({ assetId: it.assetId, doc });
     }
@@ -403,14 +463,16 @@ export function useRealStore() {
       date: input.date,
       every: input.every,
       attach: input.attach,
+      schedule: input.schedule,
+      checklist: input.checklist,
     }));
     setSt((x) => ({ ...x, recs: [...made, ...x.recs], nextWo: wo, nextPm: pm }));
     return made;
   };
 
-  const addFamily = (label: string, needs: Need[]) => {
+  const addFamily = (label: string) => {
     const id = `c${Date.now()}`;
-    setSt((x) => ({ ...x, custom: [...x.custom, { id, label, group: "routine", hint: "Added by you", rhythm: "Your rule", every: { n: 1, unit: "month" }, needs, permits: [], custom: true }] }));
+    setSt((x) => ({ ...x, custom: [...x.custom, { id, label, group: "routine", hint: "Added by you", rhythm: "Your rule", every: { n: 1, unit: "month" }, needs: [], custom: true }] }));
     return id;
   };
   const removeFamily = (famId: string) => setSt((x) => ({ ...x, custom: x.custom.filter((f) => f.id !== famId) }));
