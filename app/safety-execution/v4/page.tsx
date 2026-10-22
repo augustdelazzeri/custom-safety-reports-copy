@@ -1,13 +1,6 @@
-"use client";
+import { redirect } from "next/navigation";
 
-import { Bench } from "@/components/three-cases/exec/workbench";
-import { VariantPage } from "@/components/three-cases/exec/variant-page";
-
-/** V4 · V3 where the color of each document is its status (no words), with a legend; approved in green. */
+/** V4 became F1 · Long-term vision. The old address still works. */
 export default function V4Page() {
-  return (
-    <VariantPage title="Safety Work Orders" note="V4 · The color of each document is its status. Hover a row for New work order / New PM: two clicks with everything filled in.">
-      <Bench links calm status hue="green" />
-    </VariantPage>
-  );
+  redirect("/safety-execution/f1");
 }

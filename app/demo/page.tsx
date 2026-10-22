@@ -3,6 +3,7 @@
 import { CASE_B_OPTIONS, CASE_C_OPTIONS } from "@/components/three-cases/option-switcher";
 import { PageShell } from "@/components/three-cases/shell";
 import { useThreeCases } from "@/contexts/ThreeCasesContext";
+import { resetMvpStore } from "@/lib/three-cases/mvp-rules";
 import { resetRealStore } from "@/lib/three-cases/real-jobs";
 import { ArrowRight, Check, Megaphone, PlayCircle, RotateCcw, Workflow } from "lucide-react";
 import Link from "next/link";
@@ -10,11 +11,12 @@ import { useState } from "react";
 
 const TRY: Record<string, string> = {
   "/safety-execution/command-bar": "Type “fl” and pick Forklift 3, then Clean. Enter creates the permit and the work order.",
-  "/safety-execution/task-first": "Pick Inspect, type “FL-” to tick every forklift, approve. Or add your own job type.",
+  "/safety-execution/task-first": "Pick Inspect, type “FL-” to tick every forklift, approve. Or add your own job type. This is the one shown to Ryan.",
+  "/safety-execution/f1": "Long-term vision, not complete. Look at the colors of the documents. Tick Haas VF3, then Create PM and look at the Checklist card.",
+  "/safety-execution/f2": "The MVP: F1 without what is out of the first deliverable. Pick Clean, hover Forklift FL-03 and click New work order, then Create. Open a chip arrow to swap a document.",
   "/safety-execution/v1": "Open Clean, tick Haas VF3 and Kaeser dryer. Create the draft documents, or a PM, or a work order with the documents attached.",
   "/safety-execution/v2": "Same as V1. Click a document ID in Required documents: it would open the document inside Safety.",
   "/safety-execution/v3": "Same as V2, with gray instead of yellow. Compare how loud the list is.",
-  "/safety-execution/v4": "Look at the colors of the documents and the legend at the bottom. Tick Haas VF3, then Create PM and look at the Checklist card.",
   "/safety-execution/new-work-order": "Pick Hydraulic Press 4 as the asset: the documents for the job show up under it.",
   "/safety-execution": "Type “Every last Friday of the month, clean Hydraulic Press 7”, or pick Forklift 3 and choose Clean.",
   "/compliance-calendar": "Approve Nova's 3 proposals, then ask “What else this week?”.",
@@ -43,6 +45,7 @@ export default function DemoPage() {
             onClick={() => {
               reset();
               resetRealStore();
+              resetMvpStore();
               setDidReset(true);
             }}
             className="inline-flex items-center gap-1.5 rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-sm text-gray-700 hover:bg-gray-50"
