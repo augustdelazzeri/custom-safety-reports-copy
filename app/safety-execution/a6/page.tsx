@@ -117,18 +117,18 @@ export default function ChatReceiptPage() {
   return (
     <VariantPage note="A · Chat + receipt (earlier version). Quick replies make it clickable; typing the whole job works too. The right side is what will exist.">
       <div className="grid h-full min-h-0 grid-cols-[minmax(0,1fr)_400px] gap-3">
-        <div className="flex min-h-0 flex-col rounded-xl border border-gray-200 bg-white">
+        <div className="flex min-h-0 flex-col rounded-xl border border-border bg-card">
           <div className="flex-1 space-y-3 overflow-y-auto p-4">
             {msgs.map((m) => (
               <div key={m.id} className={cn("flex", m.from === "me" ? "justify-end" : "justify-start")}>
                 <div className={cn("max-w-[85%]", m.from === "me" ? "" : "flex gap-2")}>
                   {m.from === "ai" ? (
-                    <span className="mt-0.5 flex size-6 shrink-0 items-center justify-center rounded-full bg-indigo-100 text-indigo-700">
+                    <span className="mt-0.5 flex size-6 shrink-0 items-center justify-center rounded-full bg-indigo-100 text-badge-accent-foreground">
                       <Sparkles className="size-3.5" />
                     </span>
                   ) : null}
                   <div>
-                    <div className={cn("rounded-2xl px-3 py-2 text-sm", m.from === "me" ? "bg-indigo-600 text-white" : "bg-gray-100 text-gray-800")}>{m.text}</div>
+                    <div className={cn("rounded-2xl px-3 py-2 text-sm", m.from === "me" ? "bg-primary text-white" : "bg-muted text-foreground")}>{m.text}</div>
                     {m.options ? (
                       <div className="mt-2 flex flex-wrap gap-1.5">
                         {m.options.map((o) => {
@@ -140,7 +140,7 @@ export default function ChatReceiptPage() {
                               <button
                                 key={o.id}
                                 onClick={() => chooseAsset(o.id)}
-                                className="inline-flex items-center gap-1.5 rounded-full border border-gray-200 bg-white px-2.5 py-1 text-xs text-gray-800 hover:border-indigo-300"
+                                className="inline-flex items-center gap-1.5 rounded-full border border-border bg-card px-2.5 py-1 text-xs text-foreground hover:border-primary/40"
                                 title={x.aiHint}
                               >
                                 <span className="flex gap-0.5">
@@ -158,7 +158,7 @@ export default function ChatReceiptPage() {
                             <button
                               key={o.id}
                               onClick={() => chooseTask(o.id)}
-                              className="inline-flex items-center gap-1.5 rounded-full border border-gray-200 bg-white px-2.5 py-1 text-xs text-gray-800 hover:border-indigo-300"
+                              className="inline-flex items-center gap-1.5 rounded-full border border-border bg-card px-2.5 py-1 text-xs text-foreground hover:border-primary/40"
                               title={t.headline}
                             >
                               <Dot level={t.level} className="size-1.5" />
@@ -175,7 +175,7 @@ export default function ChatReceiptPage() {
             <div ref={endRef} />
           </div>
           <form
-            className="m-3 flex items-center gap-2 rounded-xl border border-gray-200 px-3 py-1.5 focus-within:border-indigo-300"
+            className="m-3 flex items-center gap-2 rounded-xl border border-border px-3 py-1.5 focus-within:border-primary/40"
             onSubmit={(e) => {
               e.preventDefault();
               submit();
@@ -185,24 +185,24 @@ export default function ChatReceiptPage() {
               value={text}
               onChange={(e) => setText(e.target.value)}
               placeholder={a ? `Something on ${a.name}…` : "Clean Forklift 3 tomorrow morning"}
-              className="min-w-0 flex-1 bg-transparent py-1 text-sm outline-none placeholder:text-gray-400"
+              className="min-w-0 flex-1 bg-transparent py-1 text-sm outline-none placeholder:text-text-placeholder"
             />
-            <button type="submit" disabled={!text.trim()} className="flex size-7 items-center justify-center rounded-md bg-indigo-600 text-white disabled:opacity-40" aria-label="Send">
+            <button type="submit" disabled={!text.trim()} className="flex size-7 items-center justify-center rounded-md bg-primary text-white disabled:opacity-40" aria-label="Send">
               <ArrowUp className="size-4" />
             </button>
           </form>
         </div>
 
-        <div className="flex min-h-0 flex-col rounded-xl border border-gray-200 bg-white">
-          <div className="border-b border-gray-100 px-4 py-3">
-            <div className="text-[11px] font-semibold uppercase tracking-wide text-gray-400">What will exist</div>
+        <div className="flex min-h-0 flex-col rounded-xl border border-border bg-card">
+          <div className="border-b border-border px-4 py-3">
+            <div className="text-xs font-semibold uppercase tracking-wide text-text-placeholder">What will exist</div>
             <dl className="mt-2 grid grid-cols-[56px_minmax(0,1fr)] gap-y-1 text-sm">
-              <dt className="text-gray-400">Asset</dt>
-              <dd className={cn("truncate", a ? "text-gray-900" : "text-gray-300")}>{a ? `${a.code} · ${a.name}` : "—"}</dd>
-              <dt className="text-gray-400">Job</dt>
-              <dd className={cn("truncate", task ? "text-gray-900" : "text-gray-300")}>{task ? task.job.title : "—"}</dd>
-              <dt className="text-gray-400">When</dt>
-              <dd className={cn("truncate", task ? "text-gray-900" : "text-gray-300")}>{task ? `${task.job.when} · ${person(task.job.assigneeId).name}` : "—"}</dd>
+              <dt className="text-text-placeholder">Asset</dt>
+              <dd className={cn("truncate", a ? "text-foreground" : "text-text-placeholder")}>{a ? `${a.code} · ${a.name}` : "—"}</dd>
+              <dt className="text-text-placeholder">Job</dt>
+              <dd className={cn("truncate", task ? "text-foreground" : "text-text-placeholder")}>{task ? task.job.title : "—"}</dd>
+              <dt className="text-text-placeholder">When</dt>
+              <dd className={cn("truncate", task ? "text-foreground" : "text-text-placeholder")}>{task ? `${task.job.when} · ${person(task.job.assigneeId).name}` : "—"}</dd>
             </dl>
           </div>
           <div className="min-h-0 flex-1 overflow-y-auto px-4 py-3">
@@ -213,12 +213,12 @@ export default function ChatReceiptPage() {
                 <ReceiptLines task={task} />
               )
             ) : (
-              <p className="text-xs text-gray-400">Documents and work order appear here as you answer.</p>
+              <p className="text-xs text-text-placeholder">Documents and work order appear here as you answer.</p>
             )}
           </div>
           {task && approval.phase !== "done" ? (
-            <div className="flex items-center justify-between gap-2 border-t border-gray-100 px-4 py-3">
-              <span className="text-[11px] text-gray-500">Nothing is created until you approve</span>
+            <div className="flex items-center justify-between gap-2 border-t border-border px-4 py-3">
+              <span className="text-xs text-muted-foreground">Nothing is created until you approve</span>
               <ApproveButton task={task} approval={approval} />
             </div>
           ) : null}

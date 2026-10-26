@@ -120,10 +120,10 @@ export function Created({ task, approval, onAnother, className }: { task: TaskSt
   if (approval.phase !== "done" || !approval.exId) return null;
   return (
     <div className={cn("flex flex-col gap-2", className)}>
-      <div className="flex items-center gap-2 text-sm font-medium text-emerald-700">
+      <div className="flex items-center gap-2 text-sm font-medium text-badge-success-foreground">
         <Check className="size-4" /> Created {approval.created?.refs.join(", ")}
       </div>
-      <p className="text-xs text-gray-600">
+      <p className="text-xs text-muted-foreground">
         {j.recurring
           ? `${j.woRef} is in the CMMS. Each work order carries the documents and that day's permit.`
           : approval.created?.holds.length
@@ -147,11 +147,11 @@ export function Created({ task, approval, onAnother, className }: { task: TaskSt
 
 function Row({ icon, refText, title, right, tone = "plain" }: { icon: ReactNode; refText?: string; title: string; right?: ReactNode; tone?: "plain" | "new" | "warn" }) {
   return (
-    <li className={cn("flex items-center gap-2 rounded-md px-2 py-1.5 text-xs", tone === "new" && "bg-indigo-50/70", tone === "warn" && "bg-amber-50")}>
-      <span className={cn("shrink-0", tone === "new" ? "text-indigo-600" : tone === "warn" ? "text-amber-600" : "text-gray-400")}>{icon}</span>
-      {refText ? <span className="shrink-0 font-mono text-[11px] text-gray-500">{refText}</span> : null}
-      <span className="min-w-0 flex-1 truncate text-gray-800">{title}</span>
-      {right ? <span className="shrink-0 text-[11px] text-gray-500">{right}</span> : null}
+    <li className={cn("flex items-center gap-2 rounded-md px-2 py-1.5 text-xs", tone === "new" && "bg-badge-accent/60", tone === "warn" && "bg-badge-warning")}>
+      <span className={cn("shrink-0", tone === "new" ? "text-badge-accent-foreground" : tone === "warn" ? "text-badge-warning-foreground" : "text-text-placeholder")}>{icon}</span>
+      {refText ? <span className="shrink-0 font-mono text-xs text-muted-foreground">{refText}</span> : null}
+      <span className="min-w-0 flex-1 truncate text-foreground">{title}</span>
+      {right ? <span className="shrink-0 text-xs text-muted-foreground">{right}</span> : null}
     </li>
   );
 }
@@ -181,7 +181,7 @@ export function ReceiptLines({ task }: { task: TaskStatus }) {
 
       {onFile.length || skipped.length ? (
         <section>
-          <h4 className="mb-1 text-[11px] font-semibold uppercase tracking-wide text-gray-400">On file</h4>
+          <h4 className="mb-1 text-xs font-semibold uppercase tracking-wide text-text-placeholder">On file</h4>
           <ul className="space-y-0.5">
             {onFile.map((n) => (
               <Row
@@ -189,12 +189,12 @@ export function ReceiptLines({ task }: { task: TaskStatus }) {
                 icon={needIcon(n)}
                 refText={n.ref}
                 title={n.title ?? n.label}
-                right={n.found ? <span className="text-sky-700">AI found · links on approve</span> : n.created ? "drafted earlier" : <Check className="size-3.5 text-emerald-600" />}
+                right={n.found ? <span className="text-badge-accent-foreground">AI found · links on approve</span> : n.created ? "drafted earlier" : <Check className="size-3.5 text-badge-success-foreground" />}
               />
             ))}
             {skipped.map((n) => (
-              <li key={n.type} className="px-2 py-1 text-[11px] text-gray-500" title={n.why}>
-                <span className="font-medium text-gray-600">No {n.label} needed.</span> {n.note}
+              <li key={n.type} className="px-2 py-1 text-xs text-muted-foreground" title={n.why}>
+                <span className="font-medium text-muted-foreground">No {n.label} needed.</span> {n.note}
               </li>
             ))}
           </ul>
@@ -203,7 +203,7 @@ export function ReceiptLines({ task }: { task: TaskStatus }) {
 
       {review.length ? (
         <section>
-          <h4 className="mb-1 text-[11px] font-semibold uppercase tracking-wide text-amber-700">Review first</h4>
+          <h4 className="mb-1 text-xs font-semibold uppercase tracking-wide text-amber-700">Review first</h4>
           <ul className="space-y-0.5">
             {review.map((n) => (
               <Row key={n.type} tone="warn" icon={needIcon(n)} refText={n.ref} title={n.note ?? "Needs review"} right="sent to the owner" />
@@ -214,7 +214,7 @@ export function ReceiptLines({ task }: { task: TaskStatus }) {
 
       {drafts.length ? (
         <section>
-          <h4 className="mb-1 text-[11px] font-semibold uppercase tracking-wide text-indigo-700">AI drafts, you approve later</h4>
+          <h4 className="mb-1 text-xs font-semibold uppercase tracking-wide text-badge-accent-foreground">AI drafts, you approve later</h4>
           <ul className="space-y-0.5">
             {drafts.map((n) => (
               <Row key={n.type} tone="new" icon={needIcon(n)} refText={n.ref} title={n.title ?? `New ${n.label}`} right="draft" />
@@ -224,7 +224,7 @@ export function ReceiptLines({ task }: { task: TaskStatus }) {
       ) : null}
 
       <section>
-        <h4 className="mb-1 text-[11px] font-semibold uppercase tracking-wide text-indigo-700">For this job</h4>
+        <h4 className="mb-1 text-xs font-semibold uppercase tracking-wide text-badge-accent-foreground">For this job</h4>
         <ul className="space-y-0.5">
           {task.runs.map((r) =>
             r.kind === "ptw" ? (
@@ -268,13 +268,13 @@ export function Receipt({
   const who = person(j.assigneeId);
 
   return (
-    <div className={cn("flex min-h-0 flex-col", !bare && "rounded-xl border border-gray-200 bg-white shadow-sm", className)}>
+    <div className={cn("flex min-h-0 flex-col", !bare && "rounded-xl border border-border bg-card shadow-sm", className)}>
       {showHeader ? (
-        <div className="flex items-start gap-2 border-b border-gray-100 px-4 py-3">
+        <div className="flex items-start gap-2 border-b border-border px-4 py-3">
           <Dot level={task.level} className="mt-1.5" />
           <div className="min-w-0">
-            <div className="text-sm font-semibold text-gray-900">{j.title}</div>
-            <div className="text-xs text-gray-500">
+            <div className="text-sm font-semibold text-foreground">{j.title}</div>
+            <div className="text-xs text-muted-foreground">
               {a?.code} · {j.when} · {who.name}
             </div>
           </div>
@@ -288,8 +288,8 @@ export function Receipt({
           <div className="min-h-0 flex-1 overflow-y-auto px-4 py-3">
             <ReceiptLines task={task} />
           </div>
-          <div className="flex items-center justify-between gap-3 border-t border-gray-100 px-4 py-3">
-            <span className="text-[11px] text-gray-500">
+          <div className="flex items-center justify-between gap-3 border-t border-border px-4 py-3">
+            <span className="text-xs text-muted-foreground">
               {task.last ? `Created before as ${task.last.woRef}. ` : ""}Nothing is created until you approve
             </span>
             <ApproveButton task={task} approval={approval} />

@@ -30,15 +30,15 @@ const WEEKDAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 const MAX_CHIPS = 3;
 
 const DASHED: Record<string, string> = {
-  indigo: "border-indigo-300 bg-indigo-50 text-indigo-800",
-  amber: "border-amber-300 bg-amber-50 text-amber-900",
-  sky: "border-sky-300 bg-sky-50 text-sky-900",
+  indigo: "border-primary/40 bg-badge-accent text-indigo-800",
+  amber: "border-amber-300 bg-badge-warning text-amber-900",
+  sky: "border-sky-300 bg-badge-accent text-sky-900",
   teal: "border-teal-300 bg-teal-50 text-teal-900",
-  emerald: "border-emerald-300 bg-emerald-50 text-emerald-900",
+  emerald: "border-emerald-300 bg-badge-success text-emerald-900",
   violet: "border-violet-300 bg-violet-50 text-violet-900",
 };
 const SOLID: Record<string, string> = {
-  indigo: "bg-indigo-600 text-white",
+  indigo: "bg-primary text-white",
   amber: "bg-amber-500 text-white",
   sky: "bg-sky-600 text-white",
   teal: "bg-teal-600 text-white",
@@ -135,7 +135,13 @@ export default function ComplianceCalendarPage() {
   return (
     <PageShell
       title="Compliance Calendar"
-      mainClassName="flex flex-col gap-3 overflow-hidden p-4"
+      mainClassName="flex flex-col gap-3 overflow-hidden p-6"
+      prototypeBar={
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <OptionSwitcher caseLabel="Use case 2" options={CASE_B_OPTIONS} />
+          <TapCompare today="build each task by hand" todayDetail="then a WO in the CMMS for each" here="ask Nova, approve" />
+        </div>
+      }
       aside={
         novaOpen ? (
           <NovaPanel
@@ -157,28 +163,23 @@ export default function ComplianceCalendarPage() {
         ) : null
       }
     >
-      <div className="flex flex-wrap items-center justify-between gap-2">
-        <OptionSwitcher caseLabel="Use case 2" options={CASE_B_OPTIONS} />
-        <TapCompare today="build each task by hand" todayDetail="then a WO in the CMMS for each" here="ask Nova, approve" />
-      </div>
-
       <div className="grid min-h-0 flex-1 grid-cols-1 gap-3">
         {/* Calendar, same structure as the Compliance Calendar in production */}
-        <div className="flex min-h-0 flex-col rounded-xl border border-gray-200 bg-white">
-          <div className="flex flex-wrap items-center justify-between gap-3 border-b border-gray-100 px-4 py-3">
+        <div className="flex min-h-0 flex-col rounded-xl border border-border bg-card">
+          <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border px-4 py-3">
             <div className="flex items-center gap-2">
-              <button className="rounded-md border border-gray-200 p-1.5 text-gray-500" aria-label="Previous month">
+              <button className="rounded-md border border-border p-1.5 text-muted-foreground" aria-label="Previous month">
                 <ChevronLeft className="size-4" />
               </button>
-              <p className="min-w-32 text-center text-lg font-semibold text-gray-900">October 2026</p>
-              <button className="rounded-md border border-gray-200 p-1.5 text-gray-500" aria-label="Next month">
+              <p className="min-w-32 text-center text-lg font-semibold text-foreground">October 2026</p>
+              <button className="rounded-md border border-border p-1.5 text-muted-foreground" aria-label="Next month">
                 <ChevronRight className="size-4" />
               </button>
             </div>
             <div className="flex items-center gap-2">
-              <div className="flex rounded-md border border-gray-200 p-0.5 text-xs">
+              <div className="flex rounded-md border border-border p-0.5 text-xs">
                 {["Month", "Week", "List"].map((v) => (
-                  <span key={v} className={cn("rounded px-2.5 py-1", v === "Month" ? "bg-gray-900 text-white" : "text-gray-600")}>
+                  <span key={v} className={cn("rounded px-2.5 py-1", v === "Month" ? "bg-foreground text-white" : "text-muted-foreground")}>
                     {v}
                   </span>
                 ))}
@@ -192,15 +193,15 @@ export default function ComplianceCalendarPage() {
             </div>
           </div>
 
-          <div className="flex flex-wrap items-center gap-x-3 gap-y-1 border-b border-gray-100 px-4 py-1.5 text-[11px] text-gray-500">
+          <div className="flex flex-wrap items-center gap-x-3 gap-y-1 border-b border-border px-4 py-1.5 text-xs text-muted-foreground">
             <span className="inline-flex items-center gap-1">
-              <span className="inline-block h-3 w-5 rounded border border-dashed border-indigo-300 bg-indigo-50" /> Proposed by Nova
+              <span className="inline-block h-3 w-5 rounded border border-dashed border-primary/40 bg-badge-accent" /> Proposed by Nova
             </span>
             <span className="inline-flex items-center gap-1">
-              <span className="inline-block h-3 w-5 rounded bg-indigo-600" /> Approved
+              <span className="inline-block h-3 w-5 rounded bg-primary" /> Approved
             </span>
             <span className="inline-flex items-center gap-1">
-              <span className="inline-block h-3 w-5 rounded bg-gray-100" /> Your tasks
+              <span className="inline-block h-3 w-5 rounded bg-muted" /> Your tasks
             </span>
             <span className="h-3 w-px bg-gray-200" />
             {(["wo", "pm", "doc", "training", "event", "assign"] as const).map((k) => {
@@ -213,7 +214,7 @@ export default function ComplianceCalendarPage() {
             })}
           </div>
 
-          <div className="grid grid-cols-7 border-b border-gray-100 text-[11px] font-semibold uppercase tracking-wide text-gray-400">
+          <div className="grid grid-cols-7 border-b border-border text-xs font-semibold uppercase tracking-wide text-text-placeholder">
             {WEEKDAYS.map((d) => (
               <div key={d} className="px-2 py-1.5">
                 {d}
@@ -233,23 +234,23 @@ export default function ComplianceCalendarPage() {
                 <div
                   key={d.iso}
                   className={cn(
-                    "relative min-w-0 border-b border-r border-gray-100 p-1",
+                    "relative min-w-0 border-b border-r border-border p-1",
                     !expanded && "overflow-hidden",
                     i % 7 === 6 && "border-r-0",
                     i >= 28 && "border-b-0",
-                    !d.inMonth && "bg-gray-50/70 text-gray-400",
+                    !d.inMonth && "bg-gray-50/70 text-text-placeholder",
                     isToday && "bg-indigo-50/40",
                   )}
                 >
-                  <div className={cn(expanded && "absolute inset-x-0 top-0 z-20 min-h-full rounded-md border border-gray-200 bg-white p-1 shadow-lg")}>
+                  <div className={cn(expanded && "absolute inset-x-0 top-0 z-20 min-h-full rounded-md border border-border bg-card p-1 shadow-lg")}>
                     <div className="mb-1 flex items-center justify-between">
                       {isToday ? (
-                        <span className="inline-flex size-6 items-center justify-center rounded-full bg-indigo-600 text-sm font-medium text-white">{d.day}</span>
+                        <span className="inline-flex size-6 items-center justify-center rounded-full bg-primary text-sm font-medium text-white">{d.day}</span>
                       ) : (
                         <span className="inline-block size-6 text-sm font-medium">{d.day}</span>
                       )}
                       {expanded ? (
-                        <button onClick={() => setExpandedDay(null)} className="rounded p-0.5 text-gray-400 hover:bg-gray-100" aria-label="Close day">
+                        <button onClick={() => setExpandedDay(null)} className="rounded p-0.5 text-text-placeholder hover:bg-muted" aria-label="Close day">
                           <X className="size-3.5" />
                         </button>
                       ) : null}
@@ -259,7 +260,7 @@ export default function ComplianceCalendarPage() {
                         e.kind === "task" ? (
                           <div
                             key={e.key}
-                            className={cn("truncate rounded px-1.5 py-0.5 text-[11px]", e.done ? "bg-gray-100 text-gray-400 line-through" : "bg-gray-100 text-gray-700")}
+                            className={cn("truncate rounded px-1.5 py-0.5 text-xs", e.done ? "bg-muted text-text-placeholder line-through" : "bg-muted text-foreground")}
                           >
                             {e.title}
                           </div>
@@ -268,7 +269,7 @@ export default function ComplianceCalendarPage() {
                         ),
                       )}
                       {!expanded && more > 0 ? (
-                        <button onClick={() => setExpandedDay(d.iso)} className="w-full rounded px-1.5 text-left text-[11px] font-medium text-gray-500 hover:bg-gray-100">
+                        <button onClick={() => setExpandedDay(d.iso)} className="w-full rounded px-1.5 text-left text-xs font-medium text-muted-foreground hover:bg-muted">
                           +{more} more
                         </button>
                       ) : null}
@@ -285,19 +286,19 @@ export default function ComplianceCalendarPage() {
       {!novaOpen ? (
         <button
           onClick={() => setNovaOpen(true)}
-          className="fixed bottom-6 right-6 z-40 flex items-center gap-2 rounded-full border border-gray-200 bg-white px-4 py-2.5 text-sm font-medium text-gray-900 shadow-lg hover:bg-gray-50"
+          className="fixed bottom-6 right-6 z-40 flex items-center gap-2 rounded-full border border-border bg-card px-4 py-2.5 text-sm font-medium text-foreground shadow-lg hover:bg-surface-subtle"
         >
           <NovaBall /> Ask Nova
-          {pendingCount ? <span className="rounded-full bg-[#3e63dd] px-1.5 text-[11px] font-semibold text-white">{pendingCount}</span> : null}
+          {pendingCount ? <span className="rounded-full bg-primary px-1.5 text-xs font-semibold text-white">{pendingCount}</span> : null}
         </button>
       ) : null}
 
       {openJob ? (
         <div className="fixed inset-0 z-50 flex justify-end bg-black/20" onClick={() => setOpenJobId(null)}>
-          <div className="flex h-full w-[620px] max-w-full flex-col gap-2 bg-gray-50 p-4 shadow-2xl" onClick={(e) => e.stopPropagation()}>
+          <div className="flex h-full w-[620px] max-w-full flex-col gap-2 bg-surface-subtle p-4 shadow-2xl" onClick={(e) => e.stopPropagation()}>
             <div className="flex items-center justify-between">
-              <span className="text-sm text-gray-500">{getAsset(openJob.assetId)?.name}</span>
-              <button onClick={() => setOpenJobId(null)} className="rounded p-1 text-gray-500 hover:bg-gray-200" aria-label="Close">
+              <span className="text-sm text-muted-foreground">{getAsset(openJob.assetId)?.name}</span>
+              <button onClick={() => setOpenJobId(null)} className="rounded p-1 text-muted-foreground hover:bg-gray-200" aria-label="Close">
                 <X className="size-5" />
               </button>
             </div>
@@ -319,7 +320,7 @@ function NovaChip({ p, done, repeat, focused, onClick }: { p: Proposal; done: bo
       onClick={onClick}
       title={`${KIND_META[p.kind].label}: ${p.title}\n${p.why}`}
       className={cn(
-        "flex w-full items-center gap-1 truncate rounded px-1.5 py-0.5 text-left text-[11px] font-medium",
+        "flex w-full items-center gap-1 truncate rounded px-1.5 py-0.5 text-left text-xs font-medium",
         done ? SOLID[tone] : cn("border border-dashed", DASHED[tone]),
         repeat && "opacity-70",
         focused && "ring-2 ring-indigo-400 ring-offset-1",

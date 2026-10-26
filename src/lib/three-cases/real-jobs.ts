@@ -256,15 +256,18 @@ interface Store {
   custom: Family[];
   nextWo: number;
   nextPm: number;
+  /** The empty account: no seeded documents or PMs, only what the person makes. */
+  empty?: boolean;
 }
 const BLANK: Store = { docs: {}, recs: [], custom: [], nextWo: 1201, nextPm: 210 };
 const KEY = "ehs-real-jobs-v4";
 
 const key = (assetId: string, type: Kind) => `${assetId}|${type}`;
 
-export function docOf(store: Pick<Store, "docs">, assetId: string, type: Kind): Doc | undefined {
+export function docOf(store: Pick<Store, "docs" | "empty">, assetId: string, type: Kind): Doc | undefined {
   const own = store.docs[key(assetId, type)];
   if (own) return own;
+  if (store.empty) return undefined;
   const seed = SEEDS.find((x) => x.assetId === assetId && x.type === type);
   return seed ? { type: seed.type, state: seed.state, ref: seed.ref, title: seed.title, ownerId: seed.ownerId, approvers: seed.approvers, days: seed.days } : undefined;
 }
@@ -330,9 +333,10 @@ const PM_SEEDS: { assetId: string; famId: string; every: Every; last: number; ne
   { assetId: "p101", famId: "lube", every: { n: 1, unit: "month" }, last: 22, next: 8 },
 ];
 
-export function pmOf(store: Pick<Store, "recs">, assetId: string, famId: string): PmInfo | undefined {
+export function pmOf(store: Pick<Store, "recs" | "empty">, assetId: string, famId: string): PmInfo | undefined {
   const made = store.recs.find((r) => r.kind === "pm" && r.famId === famId && r.assetIds.includes(assetId) && r.every);
   if (made?.every) return { ref: made.ref, every: made.every, next: made.date };
+  if (store.empty) return undefined;
   const i = PM_SEEDS.findIndex((x) => x.assetId === assetId && x.famId === famId);
   const seed = PM_SEEDS[i];
   return seed ? { ref: `PM-${String(100 + i).padStart(4, "0")}`, every: seed.every, next: plusDays(seed.next), last: plusDays(-seed.last), lastRef: `WO-${1100 + i * 7}` } : undefined;
@@ -408,24 +412,27 @@ export interface RecInput {
   checklist?: string;
 }
 
-/** PMs, work orders and drafts the person made, kept in this browser. */
-export function useRealStore() {
-  const [st, setSt] = useState<Store>(BLANK);
+/** PMs, work orders and drafts the person made, kept in this browser. `empty` keeps the empty account's apart. */
+export function useRealStore(empty = false) {
+  const blank: Store = empty ? { ...BLANK, empty: true } : BLANK;
+  const storeKey = empty ? `${KEY}-empty` : KEY;
+  const [st, setSt] = useState<Store>(blank);
   const [hydrated, setHydrated] = useState(false);
 
   useEffect(() => {
     try {
-      const raw = window.localStorage.getItem(KEY);
-      if (raw) setSt({ ...BLANK, ...JSON.parse(raw) });
+      const raw = window.localStorage.getItem(storeKey);
+      if (raw) setSt({ ...blank, ...JSON.parse(raw), empty });
     } catch {}
     setHydrated(true);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- the page remounts the store when the mode changes
   }, []);
   useEffect(() => {
     if (!hydrated) return;
     try {
-      window.localStorage.setItem(KEY, JSON.stringify(st));
+      window.localStorage.setItem(storeKey, JSON.stringify(st));
     } catch {}
-  }, [st, hydrated]);
+  }, [st, hydrated, storeKey]);
 
   /** Starts a draft for each missing document, named after the asset. The person finishes it on the document page. */
   const createDrafts = (items: { assetId: string; type: Kind }[]) => {
@@ -476,7 +483,8 @@ export function useRealStore() {
     return id;
   };
   const removeFamily = (famId: string) => setSt((x) => ({ ...x, custom: x.custom.filter((f) => f.id !== famId) }));
-  const reset = useCallback(() => setSt(BLANK), []);
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- `blank` only changes with `empty`, which remounts the page
+  const reset = useCallback(() => setSt(blank), [empty]);
 
   return { ...st, hydrated, createDrafts, createRecs, addFamily, removeFamily, reset };
 }
@@ -485,5 +493,6 @@ export type RealStore = ReturnType<typeof useRealStore>;
 export function resetRealStore() {
   try {
     window.localStorage.removeItem(KEY);
+    window.localStorage.removeItem(`${KEY}-empty`);
   } catch {}
 }

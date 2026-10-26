@@ -117,11 +117,11 @@ export function InboxNova({ onClose, className }: { onClose: () => void; classNa
           <UserBubble key={m.id}>{m.text}</UserBubble>
         ) : (
           <div key={m.id} className="space-y-3">
-            <p className="text-[15px] leading-7 text-gray-900">{m.text}</p>
+            <p className="text-[15px] leading-7 text-foreground">{m.text}</p>
             {m.intro ? (
               <>
                 <HandledList />
-                <p className="text-[15px] leading-7 text-gray-900">
+                <p className="text-[15px] leading-7 text-foreground">
                   Two events fit the usual flow. EVT-2041 is OSHA recordable, so it stays with you.
                 </p>
                 <UsualFlows
@@ -140,16 +140,16 @@ export function InboxNova({ onClose, className }: { onClose: () => void; classNa
                   const f = flows[id];
                   if (!ev || !f) return null;
                   return (
-                    <li key={id} className="rounded-lg border border-gray-200 bg-white px-3 py-2 text-xs text-gray-700">
-                      <div className="font-medium text-gray-900">{ev.ref} · In review</div>
+                    <li key={id} className="rounded-lg border border-border bg-card px-3 py-2 text-xs text-foreground">
+                      <div className="font-medium text-foreground">{ev.ref} · In review</div>
                       <div className="mt-0.5 flex flex-wrap gap-x-2">
                         {f.capaRef ? (
-                          <Link href={recordHref(f.capaRef)} className="font-mono text-indigo-700 hover:underline">
+                          <Link href={recordHref(f.capaRef)} className="font-mono text-badge-accent-foreground hover:underline">
                             {f.capaRef}
                           </Link>
                         ) : null}
                         {f.wos.map((w) => (
-                          <Link key={w.ref} href={recordHref(w.ref)} className="font-mono text-indigo-700 hover:underline">
+                          <Link key={w.ref} href={recordHref(w.ref)} className="font-mono text-badge-accent-foreground hover:underline">
                             {w.ref}
                           </Link>
                         ))}
@@ -171,21 +171,21 @@ export function InboxNova({ onClose, className }: { onClose: () => void; classNa
 function HandledList() {
   const [undone, setUndone] = useState<string[]>([]);
   return (
-    <div className="overflow-hidden rounded-xl border border-gray-200 bg-white">
-      <div className="border-b border-gray-200 bg-gray-50 px-3 py-1.5 text-xs font-semibold text-gray-800">Done by Nova</div>
+    <div className="overflow-hidden rounded-xl border border-border bg-card">
+      <div className="border-b border-border bg-surface-subtle px-3 py-1.5 text-xs font-semibold text-foreground">Done by Nova</div>
       <ul>
         {HANDLED.map((h) => {
           const off = undone.includes(h.id);
           return (
-            <li key={h.id} className="flex items-start gap-2.5 border-b border-gray-100 px-3 py-2 last:border-b-0">
-              {off ? <Undo2 className="mt-0.5 size-4 shrink-0 text-gray-400" /> : <CheckCircle2 className="mt-0.5 size-4 shrink-0 text-emerald-600" />}
+            <li key={h.id} className="flex items-start gap-2.5 border-b border-border px-3 py-2 last:border-b-0">
+              {off ? <Undo2 className="mt-0.5 size-4 shrink-0 text-text-placeholder" /> : <CheckCircle2 className="mt-0.5 size-4 shrink-0 text-badge-success-foreground" />}
               <div className="min-w-0 flex-1">
-                <div className={cn("text-sm font-medium", off ? "text-gray-400 line-through" : "text-gray-900")}>{h.title}</div>
-                <div className="truncate text-xs text-gray-500">{off ? "Undone" : h.detail}</div>
+                <div className={cn("text-sm font-medium", off ? "text-text-placeholder line-through" : "text-foreground")}>{h.title}</div>
+                <div className="truncate text-xs text-muted-foreground">{off ? "Undone" : h.detail}</div>
               </div>
               <button
                 onClick={() => setUndone((u) => (off ? u.filter((x) => x !== h.id) : [...u, h.id]))}
-                className="shrink-0 text-xs font-medium text-indigo-700 hover:underline"
+                className="shrink-0 text-xs font-medium text-badge-accent-foreground hover:underline"
               >
                 {off ? "Redo" : "Undo"}
               </button>
@@ -223,8 +223,8 @@ function UsualFlows({ run, onRan }: { run: (eventId: string, optionIds: string[]
   }, [running, step, queue, run, onRan]);
 
   return (
-    <div className="overflow-hidden rounded-xl border border-gray-200 bg-white">
-      <div className="border-b border-gray-200 bg-gray-50 px-3 py-1.5 text-xs font-semibold text-gray-800">Proposed by Nova</div>
+    <div className="overflow-hidden rounded-xl border border-border bg-card">
+      <div className="border-b border-border bg-surface-subtle px-3 py-1.5 text-xs font-semibold text-foreground">Proposed by Nova</div>
       <ul>
         {USUAL.map((u) => {
           const ev = getEvent(u.eventId)!;
@@ -232,14 +232,14 @@ function UsualFlows({ run, onRan }: { run: (eventId: string, optionIds: string[]
           const decided = Boolean(f?.decided) || f?.status === "closed";
           const idx = queue.indexOf(u.eventId);
           return (
-            <li key={u.eventId} className="flex items-start gap-2.5 border-b border-gray-100 px-3 py-2 last:border-b-0">
+            <li key={u.eventId} className="flex items-start gap-2.5 border-b border-border px-3 py-2 last:border-b-0">
               <span className="mt-0.5 flex size-4 shrink-0 items-center justify-center">
                 {decided ? (
-                  <CheckCircle2 className="size-4 text-emerald-600" />
+                  <CheckCircle2 className="size-4 text-badge-success-foreground" />
                 ) : running && idx === step ? (
-                  <Loader2 className="size-4 animate-spin text-blue-500" />
+                  <Loader2 className="size-4 animate-spin text-badge-accent-foreground" />
                 ) : running && idx > step ? (
-                  <Clock className="size-3.5 text-gray-400" />
+                  <Clock className="size-3.5 text-text-placeholder" />
                 ) : (
                   <input
                     type="checkbox"
@@ -251,23 +251,23 @@ function UsualFlows({ run, onRan }: { run: (eventId: string, optionIds: string[]
                 )}
               </span>
               <div className="min-w-0 flex-1">
-                <div className={cn("truncate text-sm font-medium", decided ? "text-gray-500" : "text-gray-900")}>{ev.title}</div>
-                <div className="truncate text-xs text-gray-500">{decided ? `Decided · ${f?.capaRef ?? "closed"}` : u.summary}</div>
+                <div className={cn("truncate text-sm font-medium", decided ? "text-muted-foreground" : "text-foreground")}>{ev.title}</div>
+                <div className="truncate text-xs text-muted-foreground">{decided ? `Decided · ${f?.capaRef ?? "closed"}` : u.summary}</div>
               </div>
             </li>
           );
         })}
       </ul>
       {pending.length > 0 || running ? (
-        <div className="flex items-center justify-between gap-3 border-t border-gray-200 px-3 py-2">
-          <span className="text-xs text-gray-500">{running ? `Running ${step} of ${queue.length}` : `${pending.length} selected`}</span>
+        <div className="flex items-center justify-between gap-3 border-t border-border px-3 py-2">
+          <span className="text-xs text-muted-foreground">{running ? `Running ${step} of ${queue.length}` : `${pending.length} selected`}</span>
           <button
             disabled={running}
             onClick={() => {
               setQueue(pending.map((p) => p.eventId));
               setStep(0);
             }}
-            className="rounded-full bg-[#3e63dd] px-4 py-1.5 text-sm font-medium text-white hover:bg-[#3557c5] disabled:opacity-50"
+            className="rounded-full bg-primary px-4 py-1.5 text-sm font-medium text-white hover:bg-primary/90 disabled:opacity-50"
           >
             {running ? "Working…" : "Run checked"}
           </button>

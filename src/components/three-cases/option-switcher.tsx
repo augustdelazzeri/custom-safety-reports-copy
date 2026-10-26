@@ -41,12 +41,13 @@ export const CASE_B_OPTIONS: OptionLink[] = [
 
 export const CASE_C_OPTIONS: OptionLink[] = [
   { href: "/inbox", label: "A · Inbox + Nova", hint: "Events triaged by AI next to what is already in the Inbox; Nova runs the usual flow" },
+  { href: "/inbox/a1", label: "A1 · Source lists", hint: "A with the lists the work comes from on the left: events, CAPAs, work orders and documents, open only, the one due first on top" },
   { href: "/events/ev-2041", label: "B · Inside the event", hint: "The next steps live on the event" },
-  { href: "/events/board", label: "C · Board", hint: "Open, In review, Closed; drag or decide on the card" },
+  { href: "/events/board", label: "C · Board", hint: "Open, In review, Closed; drag or decide on the card", tested: true, group: "Set aside (Oct 26)" },
 ];
 
 /** Small switcher so the reviewer can compare the prototype options of one use case. */
-export function OptionSwitcher({ caseLabel, options }: { caseLabel: string; options: OptionLink[] }) {
+export function OptionSwitcher({ caseLabel, options, legacy = false }: { caseLabel: string; options: OptionLink[]; /** Option F's frame, as shown on Oct 20. */ legacy?: boolean }) {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
   const isEventDetail = /^\/events\/ev-/.test(pathname);
@@ -56,19 +57,19 @@ export function OptionSwitcher({ caseLabel, options }: { caseLabel: string; opti
   const featured = options.filter((o) => !o.tested);
   const tested = options.filter((o) => o.tested);
   const activeTested = active?.tested ? active : undefined;
+  // Option F keeps the look it had on Oct 20; everywhere else the switcher takes Safety's tokens.
+  const on = legacy ? "bg-indigo-600 text-white" : "bg-primary text-primary-foreground";
+  const off = legacy ? "text-gray-600 hover:bg-gray-100" : "text-muted-foreground hover:bg-muted hover:text-foreground";
   return (
-    <div className="rounded-lg border border-gray-200 bg-white px-2 py-1.5">
-    <div className="flex flex-wrap items-center gap-2">
-      <span className="px-1 text-[11px] font-semibold uppercase tracking-wide text-gray-400">{caseLabel}</span>
+    <div className={legacy ? "rounded-lg border border-gray-200 bg-white px-2 py-1.5" : "w-fit max-w-full rounded-lg border border-sidebar-border bg-card p-1"}>
+    <div className={cn("flex flex-wrap items-center", legacy ? "gap-2" : "gap-1")}>
+      <span className={legacy ? "px-1 text-[11px] font-semibold uppercase tracking-wide text-gray-400" : "px-2 text-xs font-medium tracking-wide text-muted-foreground uppercase"}>{caseLabel}</span>
       {featured.map((o) => (
         <Link
           key={o.href}
           href={o.href}
           title={o.hint}
-          className={cn(
-            "rounded-md px-2.5 py-1 text-xs font-medium transition-colors",
-            active?.href === o.href ? "bg-indigo-600 text-white" : "text-gray-600 hover:bg-gray-100",
-          )}
+          className={cn("rounded-md px-2.5 py-1 text-xs font-medium transition-colors", active?.href === o.href ? on : off)}
         >
           {o.label}
         </Link>
@@ -78,8 +79,9 @@ export function OptionSwitcher({ caseLabel, options }: { caseLabel: string; opti
           <PopoverTrigger asChild>
             <button
               className={cn(
-                "inline-flex items-center gap-1 rounded-md border-l border-gray-200 px-2.5 py-1 text-xs font-medium transition-colors",
-                activeTested ? "bg-indigo-600 text-white" : "text-gray-500 hover:bg-gray-100",
+                "inline-flex items-center gap-1 rounded-md px-2.5 py-1 text-xs font-medium transition-colors",
+                legacy && "border-l border-gray-200",
+                activeTested ? on : legacy ? "text-gray-500 hover:bg-gray-100" : off,
               )}
             >
               {activeTested ? activeTested.label : `Other options (${tested.length})`}

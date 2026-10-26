@@ -16,7 +16,7 @@ const MODE_KEY = "ehs-prototype-board-mode";
 const COLUMNS: { key: RecordStatus; title: string; hint: string; dot: string }[] = [
   { key: "open", title: "Open", hint: "Needs a decision", dot: "bg-sky-500" },
   { key: "in_review", title: "In review", hint: "Records created; CAPA and work orders follow their own status", dot: "bg-amber-500" },
-  { key: "closed", title: "Closed this week", hint: "The CAPA can still be open", dot: "bg-gray-400" },
+  { key: "closed", title: "Closed this week", hint: "The CAPA can still be open", dot: "bg-text-placeholder" },
 ];
 
 // Older events that give the board a realistic spread. They are read-only.
@@ -112,16 +112,21 @@ export default function EventsBoardPage() {
   };
 
   return (
-    <PageShell title="Events" mainClassName="flex flex-col gap-3 overflow-hidden p-4">
-      <div className="flex flex-wrap items-center justify-between gap-2">
-        <OptionSwitcher caseLabel="Use case 3" options={CASE_C_OPTIONS} />
-        <TapCompare today="open each event to see where it is" todayDetail="no view by status" here="decide from the board" />
-      </div>
+    <PageShell
+      title="Board"
+      mainClassName="flex flex-col gap-3 overflow-hidden p-6"
+      prototypeBar={
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <OptionSwitcher caseLabel="Use case 3" options={CASE_C_OPTIONS} />
+          <TapCompare today="open each event to see where it is" todayDetail="no view by status" here="decide from the board" />
+        </div>
+      }
+    >
 
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <div className="flex items-center gap-2 text-xs text-gray-500">
+        <div className="flex items-center gap-2 text-xs text-muted-foreground">
           <span>Decide in</span>
-          <div className="flex rounded-md border border-gray-200 bg-white p-0.5">
+          <div className="flex rounded-md border border-border bg-card p-0.5">
             {(
               [
                 ["card", "On the card", SquareCheck],
@@ -131,7 +136,7 @@ export default function EventsBoardPage() {
               <button
                 key={m}
                 onClick={() => pickMode(m)}
-                className={cn("flex items-center gap-1 rounded px-2.5 py-1 font-medium", mode === m ? "bg-gray-900 text-white" : "text-gray-600 hover:bg-gray-100")}
+                className={cn("flex items-center gap-1 rounded px-2.5 py-1 font-medium", mode === m ? "bg-foreground text-white" : "text-muted-foreground hover:bg-muted")}
               >
                 <Icon className="size-3.5" /> {label}
               </button>
@@ -140,7 +145,7 @@ export default function EventsBoardPage() {
           <span className="hidden md:inline">· Drag a card to change its status</span>
         </div>
         {toast ? (
-          <span className="flex items-center gap-1.5 rounded-md bg-emerald-50 px-2.5 py-1 text-xs text-emerald-800">
+          <span className="flex items-center gap-1.5 rounded-md bg-badge-success px-2.5 py-1 text-xs text-emerald-800">
             <Check className="size-3.5" /> {toast}
           </span>
         ) : null}
@@ -167,15 +172,15 @@ export default function EventsBoardPage() {
               }}
               className={cn(
                 "flex min-h-0 flex-col rounded-2xl bg-gray-100/70 p-2 transition",
-                over === col.key && dragId && "bg-indigo-50 ring-2 ring-indigo-300",
+                over === col.key && dragId && "bg-badge-accent ring-2 ring-primary/40",
               )}
             >
               <div className="flex items-center gap-2 px-2 pt-1">
                 <span className={cn("size-2 rounded-full", col.dot)} />
-                <span className="text-sm font-semibold text-gray-900">{col.title}</span>
-                <span className="rounded-full bg-white px-1.5 text-xs font-medium text-gray-600">{live.length + past.length}</span>
+                <span className="text-sm font-semibold text-foreground">{col.title}</span>
+                <span className="rounded-full bg-card px-1.5 text-xs font-medium text-muted-foreground">{live.length + past.length}</span>
               </div>
-              <p className="px-2 pb-2 text-[11px] text-gray-500">{col.hint}</p>
+              <p className="px-2 pb-2 text-xs text-muted-foreground">{col.hint}</p>
               <div className="flex-1 space-y-2 overflow-y-auto">
                 {live.map((e) => (
                   <BoardCard
@@ -207,15 +212,15 @@ export default function EventsBoardPage() {
                   />
                 ))}
                 {past.map((h) => (
-                  <div key={h.id} className="relative overflow-hidden rounded-xl border border-gray-200 bg-white/80 p-3 pl-4">
+                  <div key={h.id} className="relative overflow-hidden rounded-xl border border-border bg-white/80 p-3 pl-4">
                     <span className={cn("absolute inset-y-0 left-0 w-1 opacity-60", SEVERITY_BAR[h.severity])} />
-                    <div className="text-sm font-medium leading-snug text-gray-700">{h.title}</div>
-                    <div className="mt-0.5 truncate text-[11px] text-gray-500">{h.meta}</div>
-                    <div className="mt-1.5 text-[11px] text-gray-500">{h.note}</div>
+                    <div className="text-sm font-medium leading-snug text-foreground">{h.title}</div>
+                    <div className="mt-0.5 truncate text-xs text-muted-foreground">{h.meta}</div>
+                    <div className="mt-1.5 text-xs text-muted-foreground">{h.note}</div>
                   </div>
                 ))}
                 {live.length + past.length === 0 ? (
-                  <div className="rounded-xl border border-dashed border-gray-300 p-4 text-center text-xs text-gray-400">Drop a card here</div>
+                  <div className="rounded-xl border border-dashed border-border p-4 text-center text-xs text-text-placeholder">Drop a card here</div>
                 ) : null}
               </div>
             </div>
@@ -225,9 +230,9 @@ export default function EventsBoardPage() {
 
       {open ? (
         <div className="fixed inset-0 z-50 flex justify-end bg-black/20" onClick={() => setOpen(null)}>
-          <div className="h-full w-[560px] max-w-full overflow-y-auto bg-white p-5 shadow-2xl" onClick={(e) => e.stopPropagation()}>
+          <div className="h-full w-[560px] max-w-full overflow-y-auto bg-card p-5 shadow-2xl" onClick={(e) => e.stopPropagation()}>
             <div className="mb-2 flex justify-end">
-              <button onClick={() => setOpen(null)} className="rounded p-1 text-gray-500 hover:bg-gray-100" aria-label="Close">
+              <button onClick={() => setOpen(null)} className="rounded p-1 text-muted-foreground hover:bg-muted" aria-label="Close">
                 <X className="size-5" />
               </button>
             </div>
@@ -286,29 +291,29 @@ function BoardCard({
       onClick={onCard ? undefined : onOpen}
       data-card={e.id}
       className={cn(
-        "group relative overflow-hidden rounded-xl border border-gray-200 bg-white p-3 pl-4 shadow-sm transition",
+        "group relative overflow-hidden rounded-xl border border-border bg-card p-3 pl-4 shadow-sm transition",
         !onCard && "cursor-pointer hover:-translate-y-0.5 hover:shadow-md",
         dragging && "opacity-40",
       )}
     >
       <span className={cn("absolute inset-y-0 left-0 w-1", SEVERITY_BAR[e.severity])} />
-      <GripVertical className="absolute right-1.5 top-2.5 size-3.5 text-gray-300 opacity-0 transition group-hover:opacity-100" />
+      <GripVertical className="absolute right-1.5 top-2.5 size-3.5 text-text-placeholder opacity-0 transition group-hover:opacity-100" />
 
       <button onClick={onCard ? onExpand : undefined} className="block w-full pr-3 text-left">
-        <div className="text-sm font-medium leading-snug text-gray-900">{e.title}</div>
-        <div className="mt-0.5 truncate text-[11px] text-gray-500">
+        <div className="text-sm font-medium leading-snug text-foreground">{e.title}</div>
+        <div className="mt-0.5 truncate text-xs text-muted-foreground">
           {e.type} · {a ? a.code : locationName(e.locationId)} · {e.reportedAt}
-          {e.oshaRecordable ? <span className="ml-1 font-semibold text-rose-600">· OSHA</span> : null}
+          {e.oshaRecordable ? <span className="ml-1 font-semibold text-badge-error-foreground">· OSHA</span> : null}
         </div>
       </button>
-      {expanded ? <p className="mt-1.5 rounded-md bg-gray-50 px-2 py-1.5 text-xs leading-relaxed text-gray-700">{e.description}</p> : null}
+      {expanded ? <p className="mt-1.5 rounded-md bg-surface-subtle px-2 py-1.5 text-xs leading-relaxed text-foreground">{e.description}</p> : null}
 
       {/* Decide on the card */}
       {onCard && f.status === "open" ? (
         <div className="mt-2 space-y-1">
           {e.options.map((o) => (
-            <label key={o.id} title={o.why} className="flex cursor-pointer items-center gap-2 text-xs text-gray-700">
-              <input type="checkbox" checked={selected.includes(o.id)} onChange={() => onToggle(o.id)} className="size-3.5 shrink-0 accent-indigo-600" />
+            <label key={o.id} title={o.why} className="flex cursor-pointer items-center gap-2 text-xs text-foreground">
+              <input type="checkbox" checked={selected.includes(o.id)} onChange={() => onToggle(o.id)} className="size-3.5 shrink-0 accent-[var(--indigo-9)]" />
               <span className="truncate">{o.title}</span>
             </label>
           ))}
@@ -317,12 +322,12 @@ function BoardCard({
               <button
                 onClick={onRun}
                 disabled={running || selected.length === 0}
-                className="inline-flex items-center gap-1 rounded-md bg-indigo-600 px-2.5 py-1 text-xs font-semibold text-white disabled:opacity-40"
+                className="inline-flex items-center gap-1 rounded-md bg-primary px-2.5 py-1 text-xs font-semibold text-white disabled:opacity-40"
               >
                 {running ? <Loader2 className="size-3 animate-spin" /> : <Play className="size-3" />} Run
               </button>
             ) : null}
-            <button onClick={onClose} className="rounded-md border border-gray-200 px-2.5 py-1 text-xs font-medium text-gray-700 hover:bg-gray-50">
+            <button onClick={onClose} className="rounded-md border border-border px-2.5 py-1 text-xs font-medium text-foreground hover:bg-surface-subtle">
               {e.options.length ? "Close" : "Close, nothing needed"}
             </button>
           </div>
@@ -331,9 +336,9 @@ function BoardCard({
 
       {/* Records, each with its own status */}
       {f.capaRef ? (
-        <div className="mt-2 flex flex-wrap items-center gap-1.5 text-[11px] text-gray-600">
+        <div className="mt-2 flex flex-wrap items-center gap-1.5 text-xs text-muted-foreground">
           <span className="font-mono">{f.capaRef}</span>
-          {f.capaStatus ? <StatusPill status={f.capaStatus} className="px-1.5 text-[10px]" /> : null}
+          {f.capaStatus ? <StatusPill status={f.capaStatus} className="px-1.5 text-xs" /> : null}
           {f.wos.length ? (
             <span className="inline-flex items-center gap-1">
               · {done}/{f.wos.length} WOs
@@ -341,21 +346,21 @@ function BoardCard({
             </span>
           ) : null}
           {f.capaStatus === "in_review" ? (
-            <span className="inline-flex items-center gap-0.5 font-medium text-indigo-700">
+            <span className="inline-flex items-center gap-0.5 font-medium text-badge-accent-foreground">
               <Bell className="size-3" /> back with {person(e.capaDefaults?.ownerId ?? "dan").name.split(" ")[0]}
             </span>
           ) : null}
         </div>
       ) : f.status === "closed" ? (
-        <div className="mt-1.5 text-[11px] text-gray-500">{f.closedNote}</div>
+        <div className="mt-1.5 text-xs text-muted-foreground">{f.closedNote}</div>
       ) : null}
 
       {onCard && f.status === "in_review" ? (
         <div className="mt-2 flex gap-1.5">
-          <button onClick={onClose} className="inline-flex items-center gap-1 rounded-md border border-gray-200 px-2.5 py-1 text-xs font-medium text-gray-700 hover:bg-gray-50">
+          <button onClick={onClose} className="inline-flex items-center gap-1 rounded-md border border-border px-2.5 py-1 text-xs font-medium text-foreground hover:bg-surface-subtle">
             <Check className="size-3" /> Close event
           </button>
-          <button onClick={onOpen} className="rounded-md px-2 py-1 text-xs font-medium text-indigo-700 hover:bg-indigo-50">
+          <button onClick={onOpen} className="rounded-md px-2 py-1 text-xs font-medium text-badge-accent-foreground hover:bg-badge-accent">
             Details
           </button>
         </div>

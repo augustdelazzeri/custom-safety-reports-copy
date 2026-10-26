@@ -14,7 +14,7 @@ import { useState, type ReactNode } from "react";
 // Labels, sections and order copied from the CMMS web-app (WorkOrdersV2/AddEditWorkOrder, en-US
 // locale, Oct 2026). Only the "Safety for this job" block under the asset is new.
 
-const input = "h-10 w-full rounded-md border border-[#DFE3E8] bg-white px-3 text-sm text-[#212B36] outline-none placeholder:text-[#919EAB] focus:border-[#0C6FF9]";
+const input = "h-10 w-full rounded-md border border-[#DFE3E8] bg-card px-3 text-sm text-[#212B36] outline-none placeholder:text-[#919EAB] focus:border-[#0C6FF9]";
 
 function Label({ children, required, ai }: { children: ReactNode; required?: boolean; ai?: boolean }) {
   return (
@@ -24,7 +24,7 @@ function Label({ children, required, ai }: { children: ReactNode; required?: boo
         {required ? <span className="ml-0.5 text-[#E5484D]">*</span> : null}
       </span>
       {ai ? (
-        <span title="Filled from the Safety job" className="inline-flex items-center gap-0.5 rounded bg-indigo-50 px-1 text-[10px] font-medium text-indigo-700">
+        <span title="Filled from the Safety job" className="inline-flex items-center gap-0.5 rounded bg-badge-accent px-1 text-xs font-medium text-badge-accent-foreground">
           <Sparkles className="size-2.5" /> AI
         </span>
       ) : null}
@@ -93,7 +93,7 @@ function AssetField({ value, onPick }: { value?: Asset; onPick: (a: Asset | unde
         )}
       </div>
       {open ? (
-        <ul role="listbox" className="absolute z-20 mt-1 max-h-72 w-full overflow-y-auto rounded-md border border-[#DFE3E8] bg-white py-1 shadow-lg">
+        <ul role="listbox" className="absolute z-20 mt-1 max-h-72 w-full overflow-y-auto rounded-md border border-[#DFE3E8] bg-card py-1 shadow-lg">
           {list.map((a) => (
             <li
               key={a.id}
@@ -128,10 +128,10 @@ function needLine(n: Need, assetName: string): { text: string; tone: "ok" | "fou
 }
 
 const TONE = {
-  ok: "text-emerald-700",
-  found: "text-sky-700",
+  ok: "text-badge-success-foreground",
+  found: "text-badge-accent-foreground",
   stale: "text-amber-700",
-  new: "text-indigo-700",
+  new: "text-badge-accent-foreground",
   skip: "text-[#919EAB]",
 };
 
@@ -155,8 +155,8 @@ function SafetyBlock({ a, tasks, task, source, onTask }: { a: Asset; tasks: Task
     <div className="rounded-lg border border-indigo-100 bg-[#FAFAFF]">
       <div className="flex flex-wrap items-center justify-between gap-2 border-b border-indigo-100 px-4 py-2.5">
         <div className="flex items-center gap-2 text-sm font-semibold text-[#212B36]">
-          <ShieldCheck className="size-4 text-indigo-600" /> Safety for this job
-          <span className="rounded bg-indigo-50 px-1.5 py-0.5 text-[10px] font-medium text-indigo-700">UpKeep Safety</span>
+          <ShieldCheck className="size-4 text-badge-accent-foreground" /> Safety for this job
+          <span className="rounded bg-badge-accent px-1.5 py-0.5 text-xs font-medium text-badge-accent-foreground">UpKeep Safety</span>
         </div>
         <span className="text-xs text-[#637381]">{source === "ai" ? "The AI picked the job from the asset. Change it below" : source === "title" ? "Matched to the title" : "Picked by you"}</span>
       </div>
@@ -170,7 +170,7 @@ function SafetyBlock({ a, tasks, task, source, onTask }: { a: Asset; tasks: Task
               title={t.headline}
               className={cn(
                 "inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs",
-                task?.job.id === t.job.id ? "border-[#0C6FF9] bg-[#E2F2FF] text-[#0954BD]" : "border-[#DFE3E8] bg-white text-[#212B36] hover:border-[#0C6FF9]",
+                task?.job.id === t.job.id ? "border-[#0C6FF9] bg-[#E2F2FF] text-[#0954BD]" : "border-[#DFE3E8] bg-card text-[#212B36] hover:border-[#0C6FF9]",
               )}
             >
               <Dot level={t.level} className="size-1.5" />
@@ -181,7 +181,7 @@ function SafetyBlock({ a, tasks, task, source, onTask }: { a: Asset; tasks: Task
 
         {task ? (
           <>
-            <ul className="divide-y divide-[#EEF0F3] rounded-md border border-[#EEF0F3] bg-white">
+            <ul className="divide-y divide-[#EEF0F3] rounded-md border border-[#EEF0F3] bg-card">
               {task.needs.map((n) => {
                 const Icon = DOC_ICON[n.type];
                 const line = needLine(n, a.name);
@@ -203,11 +203,11 @@ function SafetyBlock({ a, tasks, task, source, onTask }: { a: Asset; tasks: Task
                 .filter((r) => r.kind === "ptw")
                 .map((r) => (
                   <li key={r.kind} className="grid grid-cols-[16px_92px_minmax(0,1fr)] items-start gap-2 px-3 py-2 text-sm" title={r.why}>
-                    <FileCheck className="mt-0.5 size-4 text-indigo-700" />
+                    <FileCheck className="mt-0.5 size-4 text-badge-accent-foreground" />
                     <span className="font-mono text-xs leading-5 text-[#454F5B]">{r.ref ?? "PTW"}</span>
                     <span className="min-w-0">
                       <span className="block truncate text-[#212B36]">{task.job.recurring ? "Permit template, one permit per work order" : "Permit to Work for this job"}</span>
-                      <span className="flex items-center gap-1 text-xs text-indigo-700">
+                      <span className="flex items-center gap-1 text-xs text-badge-accent-foreground">
                         <Plus className="size-3" /> Created with the work order. {r.why ?? "Two approvals"}
                       </span>
                     </span>
@@ -239,10 +239,10 @@ function ListBehind() {
       </div>
       <div className="mb-3 flex gap-2">
         {[80, 96, 72, 110].map((w) => (
-          <div key={w} className="h-8 rounded-md border border-[#DFE3E8] bg-white" style={{ width: w }} />
+          <div key={w} className="h-8 rounded-md border border-[#DFE3E8] bg-card" style={{ width: w }} />
         ))}
       </div>
-      <div className="rounded-lg border border-[#DFE3E8] bg-white">
+      <div className="rounded-lg border border-[#DFE3E8] bg-card">
         {Array.from({ length: 12 }).map((_, i) => (
           <div key={i} className="flex items-center gap-4 border-b border-[#F2F2F2] px-4 py-3">
             <div className="h-3 w-16 rounded bg-[#DFE3E8]" />
@@ -302,7 +302,7 @@ export default function NewWorkOrderPage() {
     <VariantPage note="E · New work order. Today's CMMS form, field for field. Picking the asset brings the job's safety documents under it, and the AI fills the rest from that job.">
       <div className="relative h-full min-h-0">
         <ListBehind />
-        <div className="absolute inset-x-4 inset-y-3 mx-auto flex max-w-[1148px] flex-col overflow-hidden rounded-lg bg-white shadow-2xl">
+        <div className="absolute inset-x-4 inset-y-3 mx-auto flex max-w-[1148px] flex-col overflow-hidden rounded-lg bg-card shadow-2xl">
           <div className="flex h-[74px] shrink-0 items-center justify-between px-6">
             <h2 className="text-xl font-semibold text-[#212B36]">New Work Order</h2>
             <X className="size-6 text-[#454F5B]" />
@@ -310,7 +310,7 @@ export default function NewWorkOrderPage() {
           <div className="flex shrink-0 gap-6 border-b border-[#DFE3E8] px-6 text-sm">
             <span className="border-b-2 border-[#0C6FF9] pb-2.5 font-medium text-[#0C6FF9]">Create</span>
             <span className="flex items-center gap-1 pb-2.5 text-[#637381]">
-              Templates <span className="rounded bg-[#E2F2FF] px-1.5 text-[11px] font-medium text-[#0954BD]">New</span>
+              Templates <span className="rounded bg-[#E2F2FF] px-1.5 text-xs font-medium text-[#0954BD]">New</span>
             </span>
           </div>
 
@@ -322,7 +322,7 @@ export default function NewWorkOrderPage() {
             </div>
           ) : plainDone ? (
             <div className="flex flex-1 flex-col items-center justify-center gap-3 p-10 text-sm text-[#454F5B]">
-              <span className="flex items-center gap-1.5 font-medium text-emerald-700">
+              <span className="flex items-center gap-1.5 font-medium text-badge-success-foreground">
                 <Check className="size-4" /> Work order created, no Safety documents attached
               </span>
               <button type="button" onClick={reset} className="rounded-md border border-[#DFE3E8] px-3 py-1.5 text-sm">
@@ -402,7 +402,7 @@ export default function NewWorkOrderPage() {
                       <div className="flex items-center justify-between border-b border-[#F2F2F2] px-3 py-2 text-sm font-medium text-[#212B36]">
                         <span className="flex items-center gap-1.5">
                           Checklist from {task?.needs.find((n) => n.type === "sop")?.ref ?? "the job"}
-                          <span className="inline-flex items-center gap-0.5 rounded bg-indigo-50 px-1 text-[10px] font-medium text-indigo-700">
+                          <span className="inline-flex items-center gap-0.5 rounded bg-badge-accent px-1 text-xs font-medium text-badge-accent-foreground">
                             <Sparkles className="size-2.5" /> AI
                           </span>
                         </span>
@@ -441,7 +441,7 @@ export default function NewWorkOrderPage() {
                       ) : (
                         <span>Drag and drop or click to upload</span>
                       )}
-                      {holdsDocs.length ? <span className="text-xs text-indigo-700">+ {holdsDocs.join(", ")} once approved</span> : null}
+                      {holdsDocs.length ? <span className="text-xs text-badge-accent-foreground">+ {holdsDocs.join(", ")} once approved</span> : null}
                     </div>
                   </div>
                   <StaticSelect label="Purchase Orders" />
@@ -451,7 +451,7 @@ export default function NewWorkOrderPage() {
                       <div className="text-sm text-[#637381]">Require technicians to upload a signature image in order to complete this work order.</div>
                     </div>
                     <span className="h-5 w-9 rounded-full bg-[#DFE3E8] p-0.5">
-                      <span className="block size-4 rounded-full bg-white shadow" />
+                      <span className="block size-4 rounded-full bg-card shadow" />
                     </span>
                   </div>
                 </Section>

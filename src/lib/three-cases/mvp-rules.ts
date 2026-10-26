@@ -303,11 +303,17 @@ interface Settings {
   phase: Phase;
   /** Show every type, not only the ones the OSHA table suggests for the job. */
   all: boolean;
+  /** The account has no Safety documents yet (the empty state). */
+  empty?: boolean;
 }
+
+/** The documents the account has: all of them, or none in the empty state. */
+export const docPool = (empty?: boolean): MvpDoc[] => (empty ? [] : DOCS);
 
 export function resolveRow(st: MvpStore, job: MvpJob, a: MvpAsset, s: Settings): Row {
   const info = classOf(a, s.phase >= 2);
   const def = defaultsFor(job, a, info);
+  const pool = docPool(s.empty);
   const slots: Slot[] = [];
   for (const type of MVP_KINDS) {
     const base = def[type];
@@ -315,7 +321,7 @@ export function resolveRow(st: MvpStore, job: MvpJob, a: MvpAsset, s: Settings):
     const moved = s.phase >= 2 ? st.levels[key] : undefined;
     if (base.level === "none" && !moved && !s.all) continue;
     const level: Level = moved ?? (base.level === "none" ? "optional" : base.level);
-    const candidates = DOCS.filter((x) => x.type === type && x.assetIds.includes(a.id));
+    const candidates = pool.filter((x) => x.type === type && x.assetIds.includes(a.id));
     let doc: MvpDoc | undefined;
     let suggested = false;
     let picked = false;
@@ -331,7 +337,7 @@ export function resolveRow(st: MvpStore, job: MvpJob, a: MvpAsset, s: Settings):
         doc = best(byTitle);
         suggested = true;
       } else {
-        const program = DOCS.filter((x) => x.type === type && x.assetIds.length === 0 && jobMatches(job, x.title));
+        const program = pool.filter((x) => x.type === type && x.assetIds.length === 0 && jobMatches(job, x.title));
         if (program.length) {
           doc = best(program);
           suggested = true;
@@ -490,23 +496,29 @@ export interface CreateWoInput {
   checklist?: string;
 }
 
-/** Work orders and corrections, kept in this browser. */
-export function useMvpStore() {
-  const [st, setSt] = useState<MvpStore>(BLANK);
+/** The empty account: no work orders made from this screen yet, kept apart from the sample plant. */
+const EMPTY: MvpStore = { wos: [], levels: {}, picks: {}, custom: [], nextWo: 1001 };
+
+/** Work orders and corrections, kept in this browser. `empty` keeps the empty account's apart. */
+export function useMvpStore(empty = false) {
+  const blank = empty ? EMPTY : BLANK;
+  const storeKey = empty ? `${KEY}-empty` : KEY;
+  const [st, setSt] = useState<MvpStore>(blank);
   const [hydrated, setHydrated] = useState(false);
   useEffect(() => {
     try {
-      const raw = window.localStorage.getItem(KEY);
-      if (raw) setSt({ ...BLANK, ...JSON.parse(raw) });
+      const raw = window.localStorage.getItem(storeKey);
+      if (raw) setSt({ ...blank, ...JSON.parse(raw) });
     } catch {}
     setHydrated(true);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- the page remounts the store when the mode changes
   }, []);
   useEffect(() => {
     if (!hydrated) return;
     try {
-      window.localStorage.setItem(KEY, JSON.stringify(st));
+      window.localStorage.setItem(storeKey, JSON.stringify(st));
     } catch {}
-  }, [st, hydrated]);
+  }, [st, hydrated, storeKey]);
 
   const jobs = [...JOBS, ...st.custom];
 
@@ -540,15 +552,16 @@ export function useMvpStore() {
     return id;
   };
   const removeJob = (id: string) => setSt((x) => ({ ...x, custom: x.custom.filter((j) => j.id !== id) }));
-  const reset = useCallback(() => setSt(BLANK), []);
+  const reset = useCallback(() => setSt(blank), [blank]);
 
-  return { ...st, hydrated, jobs, createWo, setLevel, setPick, addJob, removeJob, reset };
+  return { ...st, hydrated, empty, jobs, createWo, setLevel, setPick, addJob, removeJob, reset };
 }
 export type MvpStoreApi = ReturnType<typeof useMvpStore>;
 
 export function resetMvpStore() {
   try {
     window.localStorage.removeItem(KEY);
+    window.localStorage.removeItem(`${KEY}-empty`);
   } catch {}
 }
 

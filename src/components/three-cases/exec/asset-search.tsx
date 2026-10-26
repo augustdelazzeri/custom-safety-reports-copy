@@ -57,14 +57,14 @@ export function AssetOption({
       aria-selected={active}
       onMouseDown={(e) => e.preventDefault()}
       onClick={() => onPick(a.id)}
-      className={cn("flex w-full items-center gap-2.5 rounded-lg px-2.5 py-2 text-left", active ? "bg-indigo-50" : "hover:bg-gray-50", className)}
+      className={cn("flex w-full items-center gap-2.5 rounded-lg px-2.5 py-2 text-left", active ? "bg-badge-accent" : "hover:bg-surface-subtle", className)}
     >
       <span className="min-w-0 flex-1">
         <span className="flex items-baseline gap-1.5">
-          <span className="font-mono text-[11px] text-gray-400">{a.code}</span>
-          <span className="truncate text-sm font-medium text-gray-900">{a.name}</span>
+          <span className="font-mono text-xs text-text-placeholder">{a.code}</span>
+          <span className="truncate text-sm font-medium text-foreground">{a.name}</span>
         </span>
-        <span className={cn("block truncate text-xs", showHint && a.aiHint ? "text-indigo-700" : "text-gray-500")}>
+        <span className={cn("block truncate text-xs", showHint && a.aiHint ? "text-badge-accent-foreground" : "text-muted-foreground")}>
           {/* Location, not category: most real assets have no category, and the same name repeats across locations. */}
           {showHint && a.aiHint ? a.aiHint : summary.location}
         </span>
@@ -76,7 +76,7 @@ export function AssetOption({
 
 /** One dot per suggested task, so a forklift with 3 ready jobs and 1 gap does not look all red. */
 export function TaskDots({ summary, className }: { summary: AssetSummary; className?: string }) {
-  if (summary.tasks.length === 0) return <span className={cn("shrink-0 text-[11px] text-gray-400", className)}>no suggestions</span>;
+  if (summary.tasks.length === 0) return <span className={cn("shrink-0 text-xs text-text-placeholder", className)}>no suggestions</span>;
   return (
     <span
       className={cn("flex shrink-0 items-center gap-1", className)}
@@ -85,7 +85,7 @@ export function TaskDots({ summary, className }: { summary: AssetSummary; classN
       {summary.tasks.map((t) => (
         <Dot key={t.job.id} level={t.level} title={`${t.job.verb}: ${t.headline}`} />
       ))}
-      <span className="ml-1 text-[11px] text-gray-400">
+      <span className="ml-1 text-xs text-text-placeholder">
         {summary.ready}/{summary.tasks.length} ready
       </span>
     </span>
@@ -138,12 +138,12 @@ export function AssetSearch({
 
   const list = (
     <div role="listbox" className="space-y-0.5">
-      {flat.length === 0 ? <div className="px-3 py-3 text-sm text-gray-500">No asset matches &ldquo;{query}&rdquo;</div> : null}
+      {flat.length === 0 ? <div className="px-3 py-3 text-sm text-muted-foreground">No asset matches &ldquo;{query}&rdquo;</div> : null}
       {groups.map((g) =>
         g.items.length ? (
           <div key={g.label || "results"}>
             {g.label ? (
-              <div className={cn("flex items-center gap-1 px-2.5 pb-1 pt-2 text-[11px] font-semibold", g.label === "Recent" ? "text-gray-400" : "text-indigo-700")}>
+              <div className={cn("flex items-center gap-1 px-2.5 pb-1 pt-2 text-xs font-semibold", g.label === "Recent" ? "text-text-placeholder" : "text-badge-accent-foreground")}>
                 {g.icon} {g.label}
               </div>
             ) : null}
@@ -166,11 +166,11 @@ export function AssetSearch({
     <div className={cn("relative", className)}>
       <div
         className={cn(
-          "flex items-center gap-2 rounded-xl border border-gray-200 bg-white px-3 shadow-sm focus-within:border-indigo-300",
+          "flex items-center gap-2 rounded-xl border border-border bg-card px-3 shadow-sm focus-within:border-primary/40",
           size === "lg" ? "py-2.5" : "py-1.5",
         )}
       >
-        <Search className={cn("shrink-0 text-gray-400", size === "lg" ? "size-5" : "size-4")} />
+        <Search className={cn("shrink-0 text-text-placeholder", size === "lg" ? "size-5" : "size-4")} />
         <input
           value={query}
           autoFocus={autoFocus}
@@ -196,12 +196,12 @@ export function AssetSearch({
             }
           }}
           placeholder={placeholder}
-          className={cn("min-w-0 flex-1 bg-transparent py-1 outline-none placeholder:text-gray-400", size === "lg" ? "text-base" : "text-sm")}
+          className={cn("min-w-0 flex-1 bg-transparent py-1 outline-none placeholder:text-text-placeholder", size === "lg" ? "text-base" : "text-sm")}
         />
       </div>
       {open ? (
         mode === "dropdown" ? (
-          <div className="absolute inset-x-0 top-full z-30 mt-1 max-h-[420px] overflow-y-auto rounded-xl border border-gray-200 bg-white p-1.5 shadow-lg">{list}</div>
+          <div className="absolute inset-x-0 top-full z-30 mt-1 max-h-[420px] overflow-y-auto rounded-xl border border-border bg-card p-1.5 shadow-lg">{list}</div>
         ) : (
           <div className="mt-2">{list}</div>
         )

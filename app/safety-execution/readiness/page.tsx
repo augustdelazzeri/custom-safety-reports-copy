@@ -108,17 +108,17 @@ export default function ReadinessPage() {
         <TapCompare today="open 6 document lists" todayDetail="and cross-check by asset by hand" here="one board" />
       </div>
 
-      <div className="flex flex-wrap items-center gap-4 rounded-xl border border-gray-200 bg-white px-4 py-3">
+      <div className="flex flex-wrap items-center gap-4 rounded-xl border border-border bg-card px-4 py-3">
         <div className="relative size-14 shrink-0">
           <svg viewBox="0 0 36 36" className="size-14 -rotate-90">
             <circle cx="18" cy="18" r="15.5" fill="none" stroke="#eef0f3" strokeWidth="4" />
             <circle cx="18" cy="18" r="15.5" fill="none" stroke="#4f46e5" strokeWidth="4" strokeDasharray={`${(pct / 100) * 97.4} 97.4`} strokeLinecap="round" />
           </svg>
-          <span className="absolute inset-0 flex items-center justify-center text-sm font-semibold text-gray-900">{pct}%</span>
+          <span className="absolute inset-0 flex items-center justify-center text-sm font-semibold text-foreground">{pct}%</span>
         </div>
         <div className="min-w-0 flex-1">
-          <div className="text-base font-semibold text-gray-900">{loc === "all" ? "Springfield Plant" : locationName(loc)} is {pct}% ready</div>
-          <div className="text-xs text-gray-500">
+          <div className="text-base font-semibold text-foreground">{loc === "all" ? "Springfield Plant" : locationName(loc)} is {pct}% ready</div>
+          <div className="text-xs text-muted-foreground">
             {stats.have} of {stats.expected} expected documents on file · {stats.missing} missing · {stats.unscheduled} assets with nothing scheduled
           </div>
         </div>
@@ -130,7 +130,7 @@ export default function ReadinessPage() {
                 setLoc(l.id);
                 setSelected([]);
               }}
-              className={cn("rounded-full border px-3 py-1 text-xs font-medium", loc === l.id ? "border-indigo-300 bg-indigo-50 text-indigo-800" : "border-gray-200 text-gray-600 hover:bg-gray-50")}
+              className={cn("rounded-full border px-3 py-1 text-xs font-medium", loc === l.id ? "border-primary/40 bg-badge-accent text-indigo-800" : "border-border text-muted-foreground hover:bg-surface-subtle")}
             >
               {l.name}
             </button>
@@ -139,9 +139,9 @@ export default function ReadinessPage() {
       </div>
 
       {banner ? (
-        <div className="flex items-center gap-2 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm text-emerald-800">
+        <div className="flex items-center gap-2 rounded-lg border border-emerald-200 bg-badge-success px-3 py-2 text-sm text-emerald-800">
           <Check className="size-4" /> {banner}
-          <button className="ml-auto text-emerald-700" onClick={() => setBanner(null)} aria-label="Dismiss">
+          <button className="ml-auto text-badge-success-foreground" onClick={() => setBanner(null)} aria-label="Dismiss">
             <X className="size-4" />
           </button>
         </div>
@@ -149,23 +149,23 @@ export default function ReadinessPage() {
 
       {pendingMatches.length > 0 ? (
         <div className="flex flex-wrap items-center gap-3 rounded-xl border border-sky-200 bg-sky-50/70 px-4 py-3">
-          <div className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-white text-sky-600 shadow-sm">
+          <div className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-card text-badge-accent-foreground shadow-sm">
             <Link2 className="size-4" />
           </div>
           <div className="min-w-0 flex-1">
-            <div className="text-sm font-semibold text-gray-900">
+            <div className="text-sm font-semibold text-foreground">
               {pendingMatches.length} documents name an asset but aren&apos;t linked to it
             </div>
-            <div className="text-xs text-gray-600">
+            <div className="text-xs text-muted-foreground">
               Most documents in Safety are written for a machine and never linked to it. The AI read every title and matched them to the CMMS assets.
             </div>
           </div>
           <div className="hidden items-center gap-1.5 lg:flex">
             {pendingMatches.slice(0, 2).map((m) => (
-              <span key={m.doc.id} className="inline-flex items-center gap-1 rounded-md border border-sky-200 bg-white px-2 py-1 text-[11px] text-gray-700">
+              <span key={m.doc.id} className="inline-flex items-center gap-1 rounded-md border border-sky-200 bg-card px-2 py-1 text-xs text-foreground">
                 <span className="max-w-[150px] truncate">{m.doc.title}</span>
                 <ArrowRight className="size-3 text-sky-500" />
-                <span className="font-mono text-gray-500">{m.asset.code}</span>
+                <span className="font-mono text-muted-foreground">{m.asset.code}</span>
               </span>
             ))}
           </div>
@@ -189,8 +189,8 @@ export default function ReadinessPage() {
             <div
               key={a.id}
               className={cn(
-                "group relative flex flex-col gap-3 rounded-xl border bg-white p-4 transition",
-                isSel ? "border-indigo-400 ring-2 ring-indigo-100" : "border-gray-200 hover:border-gray-300 hover:shadow-sm",
+                "group relative flex flex-col gap-3 rounded-xl border bg-card p-4 transition",
+                isSel ? "border-indigo-400 ring-2 ring-indigo-100" : "border-border hover:border-border hover:shadow-sm",
               )}
             >
               <div className="flex items-start gap-3">
@@ -199,17 +199,17 @@ export default function ReadinessPage() {
                   type="checkbox"
                   checked={isSel}
                   onChange={() => setSelected((s) => (s.includes(a.id) ? s.filter((x) => x !== a.id) : [...s, a.id]))}
-                  className="mt-1 size-4 accent-indigo-600"
+                  className="mt-1 size-4 accent-[var(--indigo-9)]"
                   aria-label={`Select ${a.name}`}
                 />
                 <button className="min-w-0 flex-1 text-left" onClick={() => { setOpen(a.id); setOpenJob(null); }}>
                   <div className="flex items-center gap-2">
-                    <span className="font-mono text-[11px] text-gray-400">{a.code}</span>
-                    <span className="truncate text-sm font-semibold text-gray-900">{a.name}</span>
+                    <span className="font-mono text-xs text-text-placeholder">{a.code}</span>
+                    <span className="truncate text-sm font-semibold text-foreground">{a.name}</span>
                   </div>
-                  <div className="text-xs text-gray-500">{locationName(a.locationId)} · {a.category}</div>
+                  <div className="text-xs text-muted-foreground">{locationName(a.locationId)} · {a.category}</div>
                 </button>
-                <span className={cn("rounded-full px-2 py-0.5 text-[11px] font-semibold", missing.length === 0 ? "bg-emerald-50 text-emerald-700" : missing.length > 2 ? "bg-rose-50 text-rose-700" : "bg-amber-50 text-amber-800")}>
+                <span className={cn("rounded-full px-2 py-0.5 text-xs font-semibold", missing.length === 0 ? "bg-badge-success text-badge-success-foreground" : missing.length > 2 ? "bg-badge-error text-badge-error-foreground" : "bg-badge-warning text-badge-warning-foreground")}>
                   {ready}/{exp.length}
                 </span>
               </div>
@@ -228,13 +228,13 @@ export default function ReadinessPage() {
                       key={col.type}
                       title={`${col.label}: ${has.length ? has.map((d) => d.title).join(", ") : found ? `found by title, not linked: ${all.map((d) => d.title).join(", ")}` : isDraft ? "AI draft, waiting for approval" : expected ? "missing" : "not needed"}`}
                       className={cn(
-                        "flex flex-col items-center gap-0.5 rounded-lg py-1.5 text-[10px] font-medium",
-                        has.length && !inReview && "bg-indigo-50 text-indigo-700",
-                        inReview && "bg-amber-50 text-amber-700",
-                        found && "border border-dashed border-sky-400 bg-sky-50/60 text-sky-700",
-                        isDraft && !found && "border border-dashed border-indigo-300 bg-white text-indigo-600",
+                        "flex flex-col items-center gap-0.5 rounded-lg py-1.5 text-xs font-medium",
+                        has.length && !inReview && "bg-badge-accent text-badge-accent-foreground",
+                        inReview && "bg-badge-warning text-amber-700",
+                        found && "border border-dashed border-sky-400 bg-sky-50/60 text-badge-accent-foreground",
+                        isDraft && !found && "border border-dashed border-primary/40 bg-card text-badge-accent-foreground",
                         !all.length && !isDraft && expected && "border border-dashed border-rose-300 text-rose-500",
-                        !all.length && !isDraft && !expected && "text-gray-300",
+                        !all.length && !isDraft && !expected && "text-text-placeholder",
                       )}
                     >
                       <Icon className="size-4" />
@@ -245,12 +245,12 @@ export default function ReadinessPage() {
               </div>
 
               <div className="flex items-center gap-1.5 text-xs">
-                <CalendarClock className={cn("size-3.5", next?.tone === "due" ? "text-amber-600" : next?.tone === "none" ? "text-gray-300" : "text-gray-400")} />
-                <span className={cn(next?.tone === "due" ? "font-medium text-amber-700" : next?.tone === "none" ? "text-gray-400" : "text-gray-600")}>{next?.label}</span>
+                <CalendarClock className={cn("size-3.5", next?.tone === "due" ? "text-badge-warning-foreground" : next?.tone === "none" ? "text-text-placeholder" : "text-text-placeholder")} />
+                <span className={cn(next?.tone === "due" ? "font-medium text-amber-700" : next?.tone === "none" ? "text-text-placeholder" : "text-muted-foreground")}>{next?.label}</span>
               </div>
               {AI_NOTE[a.id] ? (
-                <div className="flex items-start gap-1.5 rounded-lg bg-gray-50 px-2 py-1.5 text-xs text-gray-700">
-                  <Sparkles className="mt-0.5 size-3 shrink-0 text-indigo-600" /> {AI_NOTE[a.id]}
+                <div className="flex items-start gap-1.5 rounded-lg bg-surface-subtle px-2 py-1.5 text-xs text-foreground">
+                  <Sparkles className="mt-0.5 size-3 shrink-0 text-badge-accent-foreground" /> {AI_NOTE[a.id]}
                 </div>
               ) : null}
             </div>
@@ -258,33 +258,33 @@ export default function ReadinessPage() {
         })}
       </div>
 
-      <div className="flex items-center gap-4 text-[11px] text-gray-500">
+      <div className="flex items-center gap-4 text-xs text-muted-foreground">
         <span className="flex items-center gap-1"><span className="size-3 rounded bg-indigo-100" /> On file</span>
-        <span className="flex items-center gap-1"><span className="size-3 rounded border border-dashed border-sky-400 bg-sky-50" /> Found by title, not linked</span>
+        <span className="flex items-center gap-1"><span className="size-3 rounded border border-dashed border-sky-400 bg-badge-accent" /> Found by title, not linked</span>
         <span className="flex items-center gap-1"><span className="size-3 rounded border border-dashed border-rose-300" /> Missing</span>
-        <span className="flex items-center gap-1"><span className="size-3 rounded border border-dashed border-indigo-300" /> AI draft</span>
+        <span className="flex items-center gap-1"><span className="size-3 rounded border border-dashed border-primary/40" /> AI draft</span>
         <span className="flex items-center gap-1"><span className="size-3 rounded bg-amber-100" /> In review</span>
       </div>
 
       {selected.length > 0 ? (
-        <div className="fixed bottom-6 left-1/2 z-40 ml-32 flex -translate-x-1/2 items-center gap-3 whitespace-nowrap rounded-2xl border border-gray-200 bg-white px-4 py-3 shadow-xl">
-          <span className="text-sm font-medium text-gray-900">{selected.length} selected</span>
-          <span className="text-xs text-gray-500">{selectedMissing} missing documents</span>
+        <div className="fixed bottom-6 left-1/2 z-40 ml-32 flex -translate-x-1/2 items-center gap-3 whitespace-nowrap rounded-2xl border border-border bg-card px-4 py-3 shadow-xl">
+          <span className="text-sm font-medium text-foreground">{selected.length} selected</span>
+          <span className="text-xs text-muted-foreground">{selectedMissing} missing documents</span>
           <button
             disabled={busy !== null || selectedMissing === 0}
             onClick={() => runBulk("docs")}
-            className="inline-flex items-center gap-1.5 rounded-lg bg-indigo-600 px-3 py-1.5 text-sm font-semibold text-white disabled:opacity-40"
+            className="inline-flex items-center gap-1.5 rounded-lg bg-primary px-3 py-1.5 text-sm font-semibold text-white disabled:opacity-40"
           >
             {busy === "docs" ? <Loader2 className="size-4 animate-spin" /> : <Sparkles className="size-4" />} Draft missing documents
           </button>
           <button
             disabled={busy !== null}
             onClick={() => runBulk("schedule")}
-            className="inline-flex items-center gap-1.5 rounded-lg border border-gray-200 px-3 py-1.5 text-sm font-semibold text-gray-800 disabled:opacity-40"
+            className="inline-flex items-center gap-1.5 rounded-lg border border-border px-3 py-1.5 text-sm font-semibold text-foreground disabled:opacity-40"
           >
             {busy === "schedule" ? <Loader2 className="size-4 animate-spin" /> : <CalendarClock className="size-4" />} Schedule recurring work
           </button>
-          <button onClick={() => setSelected([])} className="text-gray-400 hover:text-gray-700" aria-label="Clear selection">
+          <button onClick={() => setSelected([])} className="text-text-placeholder hover:text-foreground" aria-label="Clear selection">
             <X className="size-4" />
           </button>
         </div>
@@ -314,18 +314,18 @@ export default function ReadinessPage() {
 
       {openAsset ? (
         <div className="fixed inset-0 z-50 flex justify-end bg-black/20" onClick={() => setOpen(null)}>
-          <div className="flex h-full w-[760px] max-w-full flex-col gap-3 overflow-y-auto bg-gray-50 p-4 shadow-2xl" onClick={(e) => e.stopPropagation()}>
+          <div className="flex h-full w-[760px] max-w-full flex-col gap-3 overflow-y-auto bg-surface-subtle p-4 shadow-2xl" onClick={(e) => e.stopPropagation()}>
             <div className="flex items-start justify-between">
               <div>
-                <div className="font-mono text-xs text-gray-500">{openAsset.code}</div>
-                <h2 className="text-lg font-semibold text-gray-900">{openAsset.name}</h2>
-                <p className="text-xs text-gray-500">{locationName(openAsset.locationId)} · {openAsset.category}</p>
+                <div className="font-mono text-xs text-muted-foreground">{openAsset.code}</div>
+                <h2 className="text-lg font-semibold text-foreground">{openAsset.name}</h2>
+                <p className="text-xs text-muted-foreground">{locationName(openAsset.locationId)} · {openAsset.category}</p>
               </div>
-              <button onClick={() => setOpen(null)} className="rounded p-1 text-gray-500 hover:bg-gray-200" aria-label="Close">
+              <button onClick={() => setOpen(null)} className="rounded p-1 text-muted-foreground hover:bg-gray-200" aria-label="Close">
                 <X className="size-5" />
               </button>
             </div>
-            <div className="rounded-xl border border-gray-200 bg-white p-3">
+            <div className="rounded-xl border border-border bg-card p-3">
               <DocGrid asset={openAsset} compact />
             </div>
             {openJob && getJob(openJob) ? (
@@ -333,27 +333,27 @@ export default function ReadinessPage() {
                 <ExecutionPlan job={getJob(openJob)!} onBack={() => setOpenJob(null)} />
               </div>
             ) : (
-              <div className="rounded-xl border border-gray-200 bg-white p-3">
+              <div className="rounded-xl border border-border bg-card p-3">
                 <div className="mb-2 flex items-center gap-2">
                   <AiTag label="Suggested" />
-                  <span className="text-sm font-medium text-gray-800">What to do on {openAsset.name}</span>
+                  <span className="text-sm font-medium text-foreground">What to do on {openAsset.name}</span>
                 </div>
                 <div className="grid grid-cols-1 gap-2 md:grid-cols-2">
                   {jobsForAsset(openAsset.id).map((j) => (
-                    <button key={j.id} onClick={() => setOpenJob(j.id)} className="rounded-lg border border-gray-200 p-3 text-left hover:border-indigo-300">
-                      <div className="text-[11px] font-semibold uppercase tracking-wide text-indigo-700">{j.verb}</div>
-                      <div className="text-sm font-semibold text-gray-900">{j.title}</div>
-                      <div className="text-xs text-gray-500">{j.reason}</div>
+                    <button key={j.id} onClick={() => setOpenJob(j.id)} className="rounded-lg border border-border p-3 text-left hover:border-primary/40">
+                      <div className="text-xs font-semibold uppercase tracking-wide text-badge-accent-foreground">{j.verb}</div>
+                      <div className="text-sm font-semibold text-foreground">{j.title}</div>
+                      <div className="text-xs text-muted-foreground">{j.reason}</div>
                     </button>
                   ))}
                   {openAsset.id === "hp07" ? (
                     <button onClick={() => setOpenJob("hp07-monthly")} className="rounded-lg border border-rose-200 bg-rose-50/40 p-3 text-left">
-                      <div className="text-[11px] font-semibold uppercase tracking-wide text-rose-700">Missing documents</div>
-                      <div className="text-sm font-semibold text-gray-900">Draft what is missing and plan the monthly cleaning</div>
+                      <div className="text-xs font-semibold uppercase tracking-wide text-badge-error-foreground">Missing documents</div>
+                      <div className="text-sm font-semibold text-foreground">Draft what is missing and plan the monthly cleaning</div>
                     </button>
                   ) : null}
                   {jobsForAsset(openAsset.id).length === 0 && openAsset.id !== "hp07" ? (
-                    <p className="text-xs text-gray-500">No executable document yet. Select the card and use &quot;Draft missing documents&quot;.</p>
+                    <p className="text-xs text-muted-foreground">No executable document yet. Select the card and use &quot;Draft missing documents&quot;.</p>
                   ) : null}
                 </div>
               </div>
@@ -374,18 +374,18 @@ function MatchReview({ matches, onClose, onLink }: { matches: Match[]; onClose: 
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 p-4" onClick={onClose}>
-      <div className="flex max-h-full w-[720px] max-w-full flex-col overflow-hidden rounded-2xl bg-white shadow-2xl" onClick={(e) => e.stopPropagation()}>
-        <div className="flex items-start justify-between gap-3 border-b border-gray-100 px-5 py-4">
+      <div className="flex max-h-full w-[720px] max-w-full flex-col overflow-hidden rounded-2xl bg-card shadow-2xl" onClick={(e) => e.stopPropagation()}>
+        <div className="flex items-start justify-between gap-3 border-b border-border px-5 py-4">
           <div>
             <div className="flex items-center gap-2">
               <AiTag label="Matched by AI" />
-              <h2 className="text-base font-semibold text-gray-900">Link documents to their assets</h2>
+              <h2 className="text-base font-semibold text-foreground">Link documents to their assets</h2>
             </div>
-            <p className="mt-1 text-xs text-gray-500">
+            <p className="mt-1 text-xs text-muted-foreground">
               Read from document titles and the asset records in the CMMS. Nothing changes in the documents, only the link.
             </p>
           </div>
-          <button onClick={onClose} className="rounded p-1 text-gray-500 hover:bg-gray-100" aria-label="Close">
+          <button onClick={onClose} className="rounded p-1 text-muted-foreground hover:bg-muted" aria-label="Close">
             <X className="size-5" />
           </button>
         </div>
@@ -395,7 +395,7 @@ function MatchReview({ matches, onClose, onLink }: { matches: Match[]; onClose: 
             const Icon = DOC_ICON[m.doc.type];
             const on = !skip.includes(m.doc.id);
             return (
-              <label key={m.doc.id} className={cn("flex cursor-pointer items-start gap-3 px-5 py-3", on ? "bg-white" : "bg-gray-50/70")}>
+              <label key={m.doc.id} className={cn("flex cursor-pointer items-start gap-3 px-5 py-3", on ? "bg-card" : "bg-gray-50/70")}>
                 <input
                   type="checkbox"
                   checked={on}
@@ -404,21 +404,21 @@ function MatchReview({ matches, onClose, onLink }: { matches: Match[]; onClose: 
                 />
                 <div className="grid min-w-0 flex-1 grid-cols-[minmax(0,1fr)_auto_minmax(0,0.8fr)] items-center gap-3">
                   <div className="min-w-0">
-                    <div className="flex items-center gap-1.5 font-mono text-[11px] text-gray-500">
+                    <div className="flex items-center gap-1.5 font-mono text-xs text-muted-foreground">
                       <Icon className="size-3.5" /> {m.doc.ref}
                     </div>
-                    <div className="truncate text-sm font-medium text-gray-900">{m.doc.title}</div>
+                    <div className="truncate text-sm font-medium text-foreground">{m.doc.title}</div>
                   </div>
                   <ArrowRight className="size-4 text-sky-500" />
                   <div className="min-w-0">
-                    <div className="font-mono text-[11px] text-gray-500">{m.asset.code}</div>
-                    <div className="truncate text-sm font-medium text-gray-900">{m.asset.name}</div>
+                    <div className="font-mono text-xs text-muted-foreground">{m.asset.code}</div>
+                    <div className="truncate text-sm font-medium text-foreground">{m.asset.name}</div>
                   </div>
-                  <div className="col-span-3 flex items-center gap-2 text-xs text-gray-600">
+                  <div className="col-span-3 flex items-center gap-2 text-xs text-muted-foreground">
                     <span
                       className={cn(
-                        "rounded-full px-1.5 py-0.5 text-[10px] font-semibold",
-                        m.doc.match?.confidence === "high" ? "bg-emerald-50 text-emerald-700" : "bg-amber-50 text-amber-800",
+                        "rounded-full px-1.5 py-0.5 text-xs font-semibold",
+                        m.doc.match?.confidence === "high" ? "bg-badge-success text-badge-success-foreground" : "bg-badge-warning text-badge-warning-foreground",
                       )}
                     >
                       {m.doc.match?.confidence === "high" ? "Sure" : "Check"}
@@ -431,8 +431,8 @@ function MatchReview({ matches, onClose, onLink }: { matches: Match[]; onClose: 
           })}
         </div>
 
-        <div className="flex items-center justify-between gap-3 border-t border-gray-100 px-5 py-3">
-          <span className="text-xs text-gray-500">
+        <div className="flex items-center justify-between gap-3 border-t border-border px-5 py-3">
+          <span className="text-xs text-muted-foreground">
             {chosen.length} of {matches.length} selected · {matches.filter((m) => m.doc.match?.confidence !== "high").length} marked Check
           </span>
           <button

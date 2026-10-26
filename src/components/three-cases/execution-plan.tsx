@@ -94,25 +94,25 @@ export function ExecutionPlan({
   }, [phase, step, actionable.length, createExecution, linkDocs, job.id, job.basedOn]);
 
   return (
-    <div className="flex h-full min-h-0 flex-col rounded-xl border border-indigo-200 bg-white shadow-sm">
-      <div className="flex items-start justify-between gap-3 border-b border-gray-100 px-4 py-3">
+    <div className="flex h-full min-h-0 flex-col rounded-xl border border-primary/40 bg-card shadow-sm">
+      <div className="flex items-start justify-between gap-3 border-b border-border px-4 py-3">
         <div className="min-w-0">
           <div className="flex min-w-0 items-center gap-2">
             <AiTag label="Plan drafted by AI" className="shrink-0" />
             {job.recurring ? (
-              <span className="inline-flex shrink-0 items-center gap-1 rounded-full bg-amber-50 px-2 py-0.5 text-[11px] font-medium text-amber-800">
+              <span className="inline-flex shrink-0 items-center gap-1 rounded-full bg-badge-warning px-2 py-0.5 text-xs font-medium text-badge-warning-foreground">
                 <Repeat className="size-3" /> Recurring
               </span>
             ) : null}
-            <h3 className="truncate text-base font-semibold text-gray-900">{job.title}</h3>
+            <h3 className="truncate text-base font-semibold text-foreground">{job.title}</h3>
           </div>
-          <p className="mt-0.5 text-xs text-gray-500">
-            {asked ? <span className="text-gray-700">You asked &ldquo;{asked}&rdquo; · </span> : null}
+          <p className="mt-0.5 text-xs text-muted-foreground">
+            {asked ? <span className="text-foreground">You asked &ldquo;{asked}&rdquo; · </span> : null}
             {a?.code} · {job.when} · {job.reason}
           </p>
         </div>
         {onBack && phase === "review" ? (
-          <button onClick={onBack} className="shrink-0 text-xs font-medium text-gray-500 hover:text-gray-800">
+          <button onClick={onBack} className="shrink-0 text-xs font-medium text-muted-foreground hover:text-foreground">
             Change
           </button>
         ) : null}
@@ -129,21 +129,21 @@ export function ExecutionPlan({
             return (
               <li
                 key={item.id}
-                className={cn("flex gap-2.5 rounded-lg border px-3 py-2", created ? "border-emerald-200 bg-emerald-50/50" : "border-gray-200")}
+                className={cn("flex gap-2.5 rounded-lg border px-3 py-2", created ? "border-emerald-200 bg-emerald-50/50" : "border-border")}
               >
                 <span
                   className={cn(
                     "mt-0.5 flex size-7 shrink-0 items-center justify-center rounded-md",
-                    created ? "bg-emerald-100 text-emerald-700" : "bg-gray-100 text-gray-600",
+                    created ? "bg-emerald-100 text-badge-success-foreground" : "bg-muted text-muted-foreground",
                   )}
                 >
                   {created ? <Check className="size-4" /> : working ? <Loader2 className="size-4 animate-spin" /> : <Icon className="size-4" />}
                 </span>
                 <div className="min-w-0 flex-1">
                   <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5">
-                    <span className="text-[10px] font-semibold uppercase tracking-wide text-gray-400">{KIND_LABEL[item.kind]}</span>
+                    <span className="text-xs font-semibold uppercase tracking-wide text-text-placeholder">{KIND_LABEL[item.kind]}</span>
                     {item.isNew ? (
-                      <span className={cn("text-[10px] font-medium", created ? "text-emerald-700" : "text-indigo-600")}>
+                      <span className={cn("text-xs font-medium", created ? "text-badge-success-foreground" : "text-badge-accent-foreground")}>
                         {(() => {
                           const ref = item.ref ?? (item.kind === "wo" || item.kind === "pm" ? job.woRef : undefined);
                           return created ? `created${ref ? ` · ${ref}` : ""}` : `${ref ? `${ref} ` : ""}will be created`;
@@ -151,11 +151,11 @@ export function ExecutionPlan({
                       </span>
                     ) : null}
                   </div>
-                  <div className="text-sm font-medium text-gray-900">{item.title.replace(/^Work order WO-\d+:\s*/, "")}</div>
-                  <div className="text-xs text-gray-600">
+                  <div className="text-sm font-medium text-foreground">{item.title.replace(/^Work order WO-\d+:\s*/, "")}</div>
+                  <div className="text-xs text-muted-foreground">
                     {[item.detail, ...item.meta].join(" · ")}
                   </div>
-                  {item.why ? <div className="mt-1 text-[11px] text-indigo-700">Why: {item.why}</div> : null}
+                  {item.why ? <div className="mt-1 text-xs text-badge-accent-foreground">Why: {item.why}</div> : null}
                 </div>
               </li>
             );
@@ -175,27 +175,27 @@ export function ExecutionPlan({
                   title={item.why ? `Why: ${item.why}` : undefined}
                   className={cn(
                     "flex items-start gap-2 rounded-md px-2 py-1 text-xs",
-                    item.kind === "note" ? "bg-amber-50 text-amber-900" : "text-gray-700",
+                    item.kind === "note" ? "bg-badge-warning text-amber-900" : "text-foreground",
                   )}
                 >
                   {created && item.kind === "notify" ? (
-                    <Check className="mt-px size-3.5 shrink-0 text-emerald-600" />
+                    <Check className="mt-px size-3.5 shrink-0 text-badge-success-foreground" />
                   ) : (
-                    <Icon className={cn("mt-px size-3.5 shrink-0", item.kind === "note" ? "text-amber-600" : "text-gray-400")} />
+                    <Icon className={cn("mt-px size-3.5 shrink-0", item.kind === "note" ? "text-badge-warning-foreground" : "text-text-placeholder")} />
                   )}
                   <span>
-                    <span className="font-medium text-gray-900">{item.title}</span>
-                    <span className="text-gray-500"> · {item.detail}</span>
+                    <span className="font-medium text-foreground">{item.title}</span>
+                    <span className="text-muted-foreground"> · {item.detail}</span>
                   </span>
                 </li>
               );
             })}
             {job.recurring ? (
-              <li className="flex flex-wrap items-center gap-1.5 px-2 py-1 text-xs text-gray-700">
-                <CalendarClock className="size-3.5 text-gray-400" />
-                <span className="font-medium text-gray-900">Next</span>
+              <li className="flex flex-wrap items-center gap-1.5 px-2 py-1 text-xs text-foreground">
+                <CalendarClock className="size-3.5 text-text-placeholder" />
+                <span className="font-medium text-foreground">Next</span>
                 {job.recurring.next.map((n) => (
-                  <span key={n.date} className="rounded bg-gray-100 px-1.5 py-0.5 text-[11px] text-gray-800" title={n.note}>
+                  <span key={n.date} className="rounded bg-muted px-1.5 py-0.5 text-xs text-foreground" title={n.note}>
                     {n.date}
                     {n.note ? <span className="ml-0.5 text-amber-700">*</span> : null}
                   </span>
@@ -206,12 +206,12 @@ export function ExecutionPlan({
         ) : null}
       </div>
 
-      <div className="flex items-center justify-between gap-3 border-t border-gray-100 px-4 py-3">
+      <div className="flex items-center justify-between gap-3 border-t border-border px-4 py-3">
         {phase === "done" && executionId ? (
           <>
-            <span className="flex items-center gap-1.5 text-sm font-medium text-emerald-700">
+            <span className="flex items-center gap-1.5 text-sm font-medium text-badge-success-foreground">
               <Check className="size-4" /> Created {[...job.plan.filter((p) => p.ref).map((p) => p.ref), job.woRef].join(", ")}
-              <span className="font-normal text-gray-500">· now on the asset</span>
+              <span className="font-normal text-muted-foreground">· now on the asset</span>
             </span>
             <Button asChild size="sm">
               <Link href={`/safety-execution/work-orders/${executionId}`}>
@@ -221,7 +221,7 @@ export function ExecutionPlan({
           </>
         ) : (
           <>
-            <span className="text-xs text-gray-500">
+            <span className="text-xs text-muted-foreground">
               {actionable.length} items
               {toLink.length ? ` · also links ${toLink.map((d) => d.ref).join(", ")} to ${a?.name}` : ""} · nothing is created until you approve
             </span>

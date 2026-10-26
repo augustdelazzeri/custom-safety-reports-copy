@@ -78,22 +78,28 @@ export function useMeterFinish() {
 }
 
 /** Live click count; turns green with the final number once the work order exists. */
-export function MeterBadge() {
+export function MeterBadge({ legacy = false }: { /** Option F's frame, as shown on Oct 20. */ legacy?: boolean }) {
   const m = useMeter();
   if (!m) return null;
   const done = m.finished !== null;
   return (
     <div data-no-count className="flex items-center gap-2 text-xs">
       <span
-        className="rounded-lg border border-dashed border-gray-300 bg-white px-2.5 py-1.5 text-gray-600"
+        className={legacy ? "rounded-lg border border-dashed border-gray-300 bg-white px-2.5 py-1.5 text-gray-600" : "rounded-lg border border-dashed border-sidebar-border bg-card px-2.5 py-1.5 text-muted-foreground"}
         title="Measured on staging on Oct 20, 2026, with the minimum the forms accept. Forklift cleaning (permit and work order): 37 clicks. Press hose (SOP, LOTO, permit and work order): 123 clicks."
       >
-        <span className="font-semibold text-gray-900">Safety today:</span> 37 clicks (forklift) · 123 (press)
+        <span className={legacy ? "font-semibold text-gray-900" : "font-semibold text-foreground"}>Safety today:</span> 37 clicks (forklift) · 123 (press)
       </span>
       <span
         className={cn(
           "inline-flex items-center gap-1.5 rounded-lg border px-2.5 py-1.5 font-medium",
-          done ? "border-emerald-200 bg-emerald-50 text-emerald-800" : "border-indigo-200 bg-indigo-50 text-indigo-800",
+          legacy
+            ? done
+              ? "border-emerald-200 bg-emerald-50 text-emerald-800"
+              : "border-indigo-200 bg-indigo-50 text-indigo-800"
+            : done
+              ? "border-transparent bg-badge-success text-badge-success-foreground"
+              : "border-transparent bg-badge-accent text-badge-accent-foreground",
         )}
         title="Clicks on buttons, links, fields and options since the page opened. Typing is flagged, not counted."
       >

@@ -70,11 +70,11 @@ export function WorkOrderColumn({ asset, refs = false }: { asset: Asset; refs?: 
   const total = executions.length + history.length;
 
   return (
-    <div className="flex min-w-0 flex-col rounded-lg border border-gray-200 bg-white">
-      <div className="flex min-w-0 items-center gap-1.5 border-b border-gray-100 px-2 py-1.5 text-xs font-semibold text-gray-800">
-        <Wrench className="size-3.5 shrink-0 text-gray-400" />
+    <div className="flex min-w-0 flex-col rounded-lg border border-border bg-card">
+      <div className="flex min-w-0 items-center gap-1.5 border-b border-border px-2 py-1.5 text-xs font-semibold text-foreground">
+        <Wrench className="size-3.5 shrink-0 text-text-placeholder" />
         <span className="truncate">Work orders</span>
-        <span className="ml-auto text-[10px] font-medium text-gray-400">{total}</span>
+        <span className="ml-auto text-xs font-medium text-text-placeholder">{total}</span>
       </div>
 
       <div className={cn("flex flex-1 flex-col p-1.5", refs ? "gap-1" : "min-h-[72px] gap-1.5")}>
@@ -86,24 +86,24 @@ export function WorkOrderColumn({ asset, refs = false }: { asset: Asset; refs?: 
             <Link
               key={e.id}
               href={`/safety-execution/work-orders/${e.id}`}
-              className="flex items-center justify-between gap-1 rounded border border-emerald-300 bg-emerald-50 px-1.5 py-0.5 hover:border-emerald-400"
+              className="flex items-center justify-between gap-1 rounded border border-emerald-300 bg-badge-success px-1.5 py-0.5 hover:border-emerald-400"
               title={`${e.woRef} · ${j?.title} · ${status}`}
             >
-              <span className="truncate font-mono text-[11px] text-emerald-900">{e.woRef}</span>
+              <span className="truncate font-mono text-xs text-emerald-900">{e.woRef}</span>
               <span className="rounded bg-emerald-600 px-1 text-[9px] font-bold uppercase text-white">New</span>
             </Link>
           ) : (
             <Link
               key={e.id}
               href={`/safety-execution/work-orders/${e.id}`}
-              className="rounded-md border border-emerald-300 bg-emerald-50 px-2 py-1.5 hover:border-emerald-400"
+              className="rounded-md border border-emerald-300 bg-badge-success px-2 py-1.5 hover:border-emerald-400"
             >
               <div className="flex items-center justify-between gap-1">
-                <span className="font-mono text-[10px] text-gray-500">{e.woRef}</span>
+                <span className="font-mono text-xs text-muted-foreground">{e.woRef}</span>
                 <span className="rounded bg-emerald-600 px-1 py-px text-[9px] font-bold uppercase tracking-wide text-white">New</span>
               </div>
-              <div className="line-clamp-1 text-[11px] leading-snug text-gray-800">{j?.title}</div>
-              <div className={cn("mt-0.5 flex items-center gap-1 text-[10px] font-medium", waiting ? "text-amber-700" : "text-emerald-700")}>
+              <div className="line-clamp-1 text-xs leading-snug text-foreground">{j?.title}</div>
+              <div className={cn("mt-0.5 flex items-center gap-1 text-xs font-medium", waiting ? "text-amber-700" : "text-badge-success-foreground")}>
                 {e.recurring ? <Repeat className="size-2.5" /> : null}
                 <span className="truncate">{status}</span>
               </div>
@@ -120,43 +120,43 @@ export function WorkOrderColumn({ asset, refs = false }: { asset: Asset; refs?: 
                 onClick={() => setOpenRef(open ? null : wo.ref)}
                 title={`${wo.ref} · ${wo.title}`}
                 className={cn(
-                  "w-full rounded-md border text-left hover:border-gray-300",
-                  open ? "border-indigo-300 bg-indigo-50" : "border-gray-100 bg-gray-50",
+                  "w-full rounded-md border text-left hover:border-border",
+                  open ? "border-primary/40 bg-badge-accent" : "border-border bg-surface-subtle",
                   refs ? "flex items-center justify-between gap-1 px-1.5 py-0.5" : "px-2 py-1.5",
                 )}
               >
                 {refs ? (
                   <>
-                    <span className="truncate font-mono text-[11px] text-gray-600">{wo.ref}</span>
-                    <span className="shrink-0 text-[10px] text-gray-400">{wo.date}</span>
+                    <span className="truncate font-mono text-xs text-muted-foreground">{wo.ref}</span>
+                    <span className="shrink-0 text-xs text-text-placeholder">{wo.date}</span>
                   </>
                 ) : (
                   <>
                     <div className="flex items-center justify-between gap-1">
-                      <span className="font-mono text-[10px] text-gray-500">{wo.ref}</span>
-                      <span className="text-[10px] text-gray-400">{wo.date}</span>
+                      <span className="font-mono text-xs text-muted-foreground">{wo.ref}</span>
+                      <span className="text-xs text-text-placeholder">{wo.date}</span>
                     </div>
-                    <div className="line-clamp-2 text-[11px] leading-snug text-gray-800">{wo.title}</div>
+                    <div className="line-clamp-2 text-xs leading-snug text-foreground">{wo.title}</div>
                   </>
                 )}
               </button>
               {open ? (
                 <>
                   <button className="fixed inset-0 z-20 cursor-default" aria-label="Close" onClick={() => setOpenRef(null)} />
-                  <div className="absolute right-0 top-full z-30 mt-1 w-64 rounded-lg border border-gray-200 bg-white p-3 text-xs shadow-lg">
+                  <div className="absolute right-0 top-full z-30 mt-1 w-64 rounded-lg border border-border bg-card p-3 text-xs shadow-lg">
                     <div className="flex items-center justify-between">
-                      <span className="font-mono text-[11px] text-gray-500">{wo.ref}</span>
-                      <span className="rounded bg-gray-100 px-1.5 py-0.5 text-[10px] font-medium text-gray-700">Complete</span>
+                      <span className="font-mono text-xs text-muted-foreground">{wo.ref}</span>
+                      <span className="rounded bg-muted px-1.5 py-0.5 text-xs font-medium text-foreground">Complete</span>
                     </div>
-                    <div className="mt-1 text-sm font-medium text-gray-900">{wo.title}</div>
-                    <div className="mt-2 flex items-center gap-2 text-gray-600">
+                    <div className="mt-1 text-sm font-medium text-foreground">{wo.title}</div>
+                    <div className="mt-2 flex items-center gap-2 text-muted-foreground">
                       <Avatar initials={who.initials} className="size-5 text-[9px]" />
                       Completed {wo.date} by {who.name}
                     </div>
-                    <div className="mt-1 text-gray-500">
+                    <div className="mt-1 text-muted-foreground">
                       {asset.code} · {asset.name}
                     </div>
-                    <span className="mt-2 inline-flex items-center gap-1 font-medium text-indigo-700">
+                    <span className="mt-2 inline-flex items-center gap-1 font-medium text-badge-accent-foreground">
                       Open in UpKeep CMMS <ExternalLink className="size-3" />
                     </span>
                   </div>
@@ -166,21 +166,21 @@ export function WorkOrderColumn({ asset, refs = false }: { asset: Asset; refs?: 
           );
         })}
 
-        {total === 0 ? <span className="m-auto text-[11px] text-gray-400">None in this period</span> : null}
-        <div className="relative mt-auto flex items-center justify-between gap-1 whitespace-nowrap px-0.5 text-[10px] text-gray-500">
-          <button onClick={() => setMenu((m) => !m)} className="flex items-center gap-0.5 rounded hover:text-gray-800" aria-label="Period">
+        {total === 0 ? <span className="m-auto text-xs text-text-placeholder">None in this period</span> : null}
+        <div className="relative mt-auto flex items-center justify-between gap-1 whitespace-nowrap px-0.5 text-xs text-muted-foreground">
+          <button onClick={() => setMenu((m) => !m)} className="flex items-center gap-0.5 rounded hover:text-foreground" aria-label="Period">
             {range === 0 ? "All time" : `${range} days`}
             <ChevronDown className="size-3" />
           </button>
           {hidden > 0 ? (
-            <button onClick={() => setRange(0)} className="hover:text-gray-800">
+            <button onClick={() => setRange(0)} className="hover:text-foreground">
               +{hidden} older
             </button>
           ) : null}
           {menu ? (
             <>
               <button className="fixed inset-0 z-20 cursor-default" aria-label="Close" onClick={() => setMenu(false)} />
-              <div className="absolute bottom-full left-0 z-30 mb-1 w-28 rounded-md border border-gray-200 bg-white py-1 text-xs shadow-lg">
+              <div className="absolute bottom-full left-0 z-30 mb-1 w-28 rounded-md border border-border bg-card py-1 text-xs shadow-lg">
                 {RANGES.map((r) => (
                   <button
                     key={r.value}
@@ -188,7 +188,7 @@ export function WorkOrderColumn({ asset, refs = false }: { asset: Asset; refs?: 
                       setRange(r.value);
                       setMenu(false);
                     }}
-                    className={cn("block w-full px-2.5 py-1 text-left hover:bg-gray-50", r.value === range && "font-semibold text-indigo-700")}
+                    className={cn("block w-full px-2.5 py-1 text-left hover:bg-surface-subtle", r.value === range && "font-semibold text-badge-accent-foreground")}
                   >
                     {r.label}
                   </button>

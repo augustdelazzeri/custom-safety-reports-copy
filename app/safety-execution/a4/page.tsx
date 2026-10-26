@@ -50,20 +50,20 @@ export default function StepsPage() {
                   onClick={() => goTo(i)}
                   className={cn(
                     "flex min-w-0 flex-1 items-center gap-2 rounded-lg border px-3 py-2 text-left text-sm",
-                    i === step ? "border-indigo-300 bg-indigo-50 text-indigo-900" : done ? "border-gray-200 bg-white text-gray-700 hover:border-gray-300" : "border-gray-100 bg-gray-50 text-gray-400",
+                    i === step ? "border-primary/40 bg-badge-accent text-indigo-900" : done ? "border-border bg-card text-foreground hover:border-border" : "border-border bg-surface-subtle text-text-placeholder",
                   )}
                 >
                   <span
                     className={cn(
-                      "flex size-5 shrink-0 items-center justify-center rounded-full text-[11px] font-semibold",
-                      done ? "bg-emerald-500 text-white" : i === step ? "bg-indigo-600 text-white" : "bg-gray-200 text-gray-500",
+                      "flex size-5 shrink-0 items-center justify-center rounded-full text-xs font-semibold",
+                      done ? "bg-emerald-500 text-white" : i === step ? "bg-primary text-white" : "bg-gray-200 text-muted-foreground",
                     )}
                   >
                     {done ? <Check className="size-3" /> : i + 1}
                   </span>
                   <span className="truncate">
                     {label}
-                    {done && value ? <span className="text-gray-500"> · {value}</span> : null}
+                    {done && value ? <span className="text-muted-foreground"> · {value}</span> : null}
                   </span>
                 </button>
               </li>
@@ -73,24 +73,24 @@ export default function StepsPage() {
 
         {step === 0 ? (
           <section>
-            <h2 className="mb-3 text-lg font-semibold text-gray-900">Which asset?</h2>
+            <h2 className="mb-3 text-lg font-semibold text-foreground">Which asset?</h2>
             <AssetSearch mode="inline" size="lg" autoFocus onPick={setAssetId} />
           </section>
         ) : null}
 
         {step === 1 && a ? (
           <section className="min-h-0 overflow-y-auto">
-            <h2 className="text-lg font-semibold text-gray-900">What on {a.name}?</h2>
-            <p className="mb-3 text-xs text-gray-500">
+            <h2 className="text-lg font-semibold text-foreground">What on {a.name}?</h2>
+            <p className="mb-3 text-xs text-muted-foreground">
               {a.code} · {locationName(a.locationId)} · the AI read its documents and work orders
             </p>
             <Legend className="mb-2" />
-            <div role="listbox" className="space-y-1 rounded-xl border border-gray-200 bg-white p-1.5">
+            <div role="listbox" className="space-y-1 rounded-xl border border-border bg-card p-1.5">
               {tasks.map((t) => (
                 <TaskOption key={t.job.id} task={t} onPick={setJobId} className="py-3" />
               ))}
               <form
-                className="flex items-center gap-2 border-t border-gray-100 px-2.5 pt-2"
+                className="flex items-center gap-2 border-t border-border px-2.5 pt-2"
                 onSubmit={(e) => {
                   e.preventDefault();
                   const m = matchTask(typed, a.id, s);
@@ -103,10 +103,10 @@ export default function StepsPage() {
                   value={typed}
                   onChange={(e) => setTyped(e.target.value)}
                   placeholder="Something else? Describe it and press Enter"
-                  className="min-w-0 flex-1 bg-transparent py-2 text-sm outline-none placeholder:text-gray-400"
+                  className="min-w-0 flex-1 bg-transparent py-2 text-sm outline-none placeholder:text-text-placeholder"
                 />
               </form>
-              {miss ? <p className="px-2.5 pb-1 text-[11px] text-gray-500">No match in the prototype. Try clean, inspect, repair, change or service.</p> : null}
+              {miss ? <p className="px-2.5 pb-1 text-xs text-muted-foreground">No match in the prototype. Try clean, inspect, repair, change or service.</p> : null}
             </div>
           </section>
         ) : null}

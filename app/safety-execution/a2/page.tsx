@@ -22,9 +22,9 @@ function shortTask(j: ExecutionJob, a: Asset) {
 function Blank({ children, filled, onClick, ai }: { children: ReactNode; filled: boolean; onClick?: () => void; ai?: boolean }) {
   const cls = cn(
     "inline-flex items-baseline gap-1 border-b-2 px-0.5 transition",
-    filled ? "border-indigo-300 font-medium text-gray-900" : "border-dashed border-gray-300 text-gray-400",
+    filled ? "border-primary/40 font-medium text-foreground" : "border-dashed border-border text-text-placeholder",
     onClick && "hover:border-indigo-500 hover:text-indigo-800",
-    ai && "border-dotted border-gray-300 font-normal text-gray-700",
+    ai && "border-dotted border-border font-normal text-foreground",
   );
   if (!onClick) {
     return (
@@ -36,7 +36,7 @@ function Blank({ children, filled, onClick, ai }: { children: ReactNode; filled:
   return (
     <button type="button" onClick={onClick} className={cls}>
       {children}
-      <ChevronDown className="size-4 self-center text-gray-400" />
+      <ChevronDown className="size-4 self-center text-text-placeholder" />
     </button>
   );
 }
@@ -69,7 +69,7 @@ export default function SentencePage() {
   return (
     <VariantPage note="A · Sentence (earlier version). Two blanks to fill (asset and task); when and who come from the AI. The button says exactly what it creates.">
       <div className="mx-auto flex h-full w-full max-w-3xl flex-col justify-center pb-[12vh]">
-        <p className="text-[28px] font-light leading-[1.7] text-gray-600">
+        <p className="text-[28px] font-light leading-[1.7] text-muted-foreground">
           On{" "}
           <Popover open={open === "asset"} onOpenChange={(o) => setOpen(o ? "asset" : null)}>
             <PopoverAnchor asChild>
@@ -101,7 +101,7 @@ export default function SentencePage() {
               </span>
             </PopoverAnchor>
             <PopoverContent align="start" className="w-[480px] p-2">
-              <div className="flex items-center gap-1 px-2.5 pb-1 pt-1 text-[11px] font-semibold text-indigo-700">
+              <div className="flex items-center gap-1 px-2.5 pb-1 pt-1 text-xs font-semibold text-badge-accent-foreground">
                 <Sparkles className="size-3" /> Suggested for {a?.name}
               </div>
               {tasks.map((t) => (
@@ -115,7 +115,7 @@ export default function SentencePage() {
                 />
               ))}
               <form
-                className="mt-1 border-t border-gray-100 px-1 pt-2"
+                className="mt-1 border-t border-border px-1 pt-2"
                 onSubmit={(e) => {
                   e.preventDefault();
                   const m = a ? matchTask(typed, a.id, s) : undefined;
@@ -131,9 +131,9 @@ export default function SentencePage() {
                   value={typed}
                   onChange={(e) => setTyped(e.target.value)}
                   placeholder="Or describe it: replace the hose, change the oil…"
-                  className="w-full rounded-md border border-gray-200 px-2.5 py-1.5 text-sm outline-none focus:border-indigo-300"
+                  className="w-full rounded-md border border-border px-2.5 py-1.5 text-sm outline-none focus:border-primary/40"
                 />
-                {miss ? <p className="px-1 pt-1 text-[11px] text-gray-500">No match in the prototype. Try clean, inspect, repair, change or service.</p> : null}
+                {miss ? <p className="px-1 pt-1 text-xs text-muted-foreground">No match in the prototype. Try clean, inspect, repair, change or service.</p> : null}
               </form>
             </PopoverContent>
           </Popover>
@@ -164,12 +164,12 @@ export default function SentencePage() {
                 </div>
                 <div className="flex items-center gap-3">
                   <ApproveButton task={task} approval={approval} size="default" />
-                  <button onClick={() => setDetails((d) => !d)} className="text-xs font-medium text-gray-500 hover:text-gray-800">
+                  <button onClick={() => setDetails((d) => !d)} className="text-xs font-medium text-muted-foreground hover:text-foreground">
                     {details ? "Hide details" : "See details"}
                   </button>
                 </div>
                 {details ? (
-                  <div className="max-w-xl rounded-xl border border-gray-200 bg-white p-3">
+                  <div className="max-w-xl rounded-xl border border-border bg-card p-3">
                     <ReceiptLines task={task} />
                   </div>
                 ) : null}

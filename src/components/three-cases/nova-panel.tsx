@@ -64,12 +64,12 @@ export const KIND_ICON: Record<ProposalKind, React.ComponentType<{ className?: s
 };
 
 export const TONE_TEXT: Record<string, string> = {
-  indigo: "text-indigo-600",
-  amber: "text-amber-600",
-  sky: "text-sky-600",
+  indigo: "text-badge-accent-foreground",
+  amber: "text-badge-warning-foreground",
+  sky: "text-badge-accent-foreground",
   teal: "text-teal-600",
-  emerald: "text-emerald-600",
-  violet: "text-violet-600",
+  emerald: "text-badge-success-foreground",
+  violet: "text-badge-accent-foreground",
 };
 
 const CHIP_COLORS = ["#10B981", "#3B82F6", "#F59E0B", "#14B8A6"];
@@ -125,23 +125,23 @@ export function NovaFrame({
   };
 
   return (
-    <aside className={cn("flex h-full min-h-0 shrink-0 flex-col overflow-hidden border-l border-gray-200 bg-[#fafafa] shadow-xl", className)}>
-      <div className="flex h-16 shrink-0 items-center justify-between border-b border-gray-200 bg-white px-3">
+    <aside className={cn("flex h-full min-h-0 shrink-0 flex-col overflow-hidden border-l border-border bg-surface-subtle shadow-xl", className)}>
+      <div className="flex h-16 shrink-0 items-center justify-between border-b border-border bg-card px-3">
         <div className="flex items-center gap-2">
-          <button className="rounded-md p-1.5 text-gray-600 hover:bg-gray-100" aria-label="Conversations">
+          <button className="rounded-md p-1.5 text-muted-foreground hover:bg-muted" aria-label="Conversations">
             <Menu className="size-4" />
           </button>
           <NovaBall />
-          <span className="text-sm font-semibold text-gray-900">Nova</span>
+          <span className="text-sm font-semibold text-foreground">Nova</span>
         </div>
         <div className="flex items-center">
           {onToggleMax ? (
-            <button onClick={onToggleMax} className="rounded-md p-1.5 text-gray-600 hover:bg-gray-100" aria-label={maximized ? "Restore" : "Maximize"}>
+            <button onClick={onToggleMax} className="rounded-md p-1.5 text-muted-foreground hover:bg-muted" aria-label={maximized ? "Restore" : "Maximize"}>
               {maximized ? <Minimize2 className="size-4" /> : <Maximize2 className="size-4" />}
             </button>
           ) : null}
           {onClose ? (
-            <button onClick={onClose} className="rounded-md p-1.5 text-gray-600 hover:bg-gray-100" aria-label="Close Nova">
+            <button onClick={onClose} className="rounded-md p-1.5 text-muted-foreground hover:bg-muted" aria-label="Close Nova">
               <X className="size-4" />
             </button>
           ) : null}
@@ -149,10 +149,10 @@ export function NovaFrame({
       </div>
 
       <div ref={scroller} className="min-h-0 flex-1 space-y-5 overflow-y-auto px-4 py-5">
-        <h2 className="text-center text-xl font-semibold text-gray-900">{greeting}</h2>
+        <h2 className="text-center text-xl font-semibold text-foreground">{greeting}</h2>
         {children}
         {thinking ? (
-          <div className="flex items-center gap-2 text-sm text-gray-500">
+          <div className="flex items-center gap-2 text-sm text-muted-foreground">
             <Loader2 className="size-4 animate-spin" /> {thinkingText}
           </div>
         ) : null}
@@ -165,7 +165,7 @@ export function NovaFrame({
           send(input);
         }}
       >
-        <div className="flex flex-col gap-2 rounded-2xl border border-gray-200 bg-white p-3 shadow-md">
+        <div className="flex flex-col gap-2 rounded-2xl border border-border bg-card p-3 shadow-md">
           <textarea
             id="nova-input"
             rows={1}
@@ -178,20 +178,20 @@ export function NovaFrame({
               }
             }}
             placeholder="Ask anything"
-            className="w-full resize-none bg-transparent px-1 text-sm outline-none placeholder:text-gray-400"
+            className="w-full resize-none bg-transparent px-1 text-sm outline-none placeholder:text-text-placeholder"
           />
           <div className="flex items-center justify-between">
-            <button type="button" className="flex size-8 items-center justify-center rounded-full border border-gray-200 text-gray-600" aria-label="Attach">
+            <button type="button" className="flex size-8 items-center justify-center rounded-full border border-border text-muted-foreground" aria-label="Attach">
               <Plus className="size-4" />
             </button>
             <div className="flex items-center gap-2">
-              <button type="button" className="flex size-8 items-center justify-center rounded-full border border-gray-200 text-gray-600" aria-label="Dictate">
+              <button type="button" className="flex size-8 items-center justify-center rounded-full border border-border text-muted-foreground" aria-label="Dictate">
                 <Mic className="size-4" />
               </button>
               <button
                 type="submit"
                 disabled={!input.trim() || thinking}
-                className="flex size-8 items-center justify-center rounded-full bg-[#3e63dd] text-white disabled:bg-[#3e63dd]/40"
+                className="flex size-8 items-center justify-center rounded-full bg-primary text-white disabled:bg-primary/40"
                 aria-label="Send"
               >
                 <ArrowUp className="size-4" />
@@ -207,18 +207,18 @@ export function NovaFrame({
 /** The person's message, as Nova draws it. */
 export function UserBubble({ children }: { children: ReactNode }) {
   return (
-    <div className="ml-auto w-fit max-w-[85%] whitespace-pre-wrap rounded-3xl bg-[#c6d4fb]/50 px-4 py-2 text-sm text-gray-900 shadow-sm">{children}</div>
+    <div className="ml-auto w-fit max-w-[85%] whitespace-pre-wrap rounded-3xl bg-[#c6d4fb]/50 px-4 py-2 text-sm text-foreground shadow-sm">{children}</div>
   );
 }
 
 /** Nova's key-value card (uppercase labels on the left). */
 export function NovaCard({ rows }: { rows: KV[] }) {
   return (
-    <div className="divide-y divide-gray-200 overflow-hidden rounded-lg border border-gray-200 bg-white">
+    <div className="divide-y divide-gray-200 overflow-hidden rounded-lg border border-border bg-card">
       {rows.map((row) => (
         <div key={row.label} className="flex items-center justify-between gap-4 px-3 py-2">
-          <span className="text-[10px] font-semibold uppercase tracking-wider text-gray-500">{row.label}</span>
-          <span className="text-right text-sm text-gray-900">{row.value}</span>
+          <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">{row.label}</span>
+          <span className="text-right text-sm text-foreground">{row.value}</span>
         </div>
       ))}
     </div>
@@ -233,7 +233,7 @@ export function NovaChips({ items, onPick }: { items: string[]; onPick: (text: s
         <button
           key={f}
           onClick={() => onPick(f)}
-          className="flex items-center gap-1.5 rounded-full border border-gray-300 bg-white px-3 py-1.5 text-left text-sm font-medium text-gray-700 hover:bg-gray-100"
+          className="flex items-center gap-1.5 rounded-full border border-border bg-card px-3 py-1.5 text-left text-sm font-medium text-foreground hover:bg-muted"
         >
           <CalendarClock className="size-3.5 shrink-0" style={{ color: CHIP_COLORS[i % CHIP_COLORS.length] }} />
           {f}
@@ -245,7 +245,7 @@ export function NovaChips({ items, onPick }: { items: string[]; onPick: (text: s
 
 export function NovaThumbs() {
   return (
-    <div className="flex gap-2 text-gray-500">
+    <div className="flex gap-2 text-muted-foreground">
       <ThumbsUp className="size-4" />
       <ThumbsDown className="size-4" />
     </div>
@@ -359,7 +359,7 @@ export function NovaPanel({
           <UserBubble key={m.id}>{m.text}</UserBubble>
         ) : (
           <div key={m.id} className="space-y-3">
-            <p className="text-[15px] leading-7 text-gray-900">{m.reply.text}</p>
+            <p className="text-[15px] leading-7 text-foreground">{m.reply.text}</p>
             {m.reply.cards?.map((card, i) => <NovaCard key={i} rows={card} />)}
             {m.reply.proposals?.length ? (
               <ProposalBlock
@@ -425,10 +425,10 @@ function ProposalBlock({
   }, [running, step, queue, onApprove, onApproved]);
 
   return (
-    <div className="overflow-hidden rounded-xl border border-gray-200 bg-white">
-      <div className="flex items-center justify-between border-b border-gray-200 bg-gray-50 px-3 py-1.5">
-        <span className="text-xs font-semibold text-gray-800">Proposed by Nova</span>
-        <span className="text-[11px] text-gray-500">
+    <div className="overflow-hidden rounded-xl border border-border bg-card">
+      <div className="flex items-center justify-between border-b border-border bg-surface-subtle px-3 py-1.5">
+        <span className="text-xs font-semibold text-foreground">Proposed by Nova</span>
+        <span className="text-xs text-muted-foreground">
           {items.filter(isDone).length} of {items.length} done
         </span>
       </div>
@@ -447,17 +447,17 @@ function ProposalBlock({
               data-proposal={p.id}
               title={`${meta.label}: ${p.detail}\nWhy: ${p.why}`}
               className={cn(
-                "flex items-start gap-2.5 border-b border-gray-100 px-3 py-2 last:border-b-0",
-                focusId === p.id && "bg-indigo-50/70 ring-1 ring-inset ring-indigo-300",
+                "flex items-start gap-2.5 border-b border-border px-3 py-2 last:border-b-0",
+                focusId === p.id && "bg-badge-accent/60 ring-1 ring-inset ring-primary/40",
               )}
             >
               <span className="mt-0.5 flex size-4 shrink-0 items-center justify-center">
                 {done ? (
-                  <CheckCircle2 className="size-4 text-emerald-600" />
+                  <CheckCircle2 className="size-4 text-badge-success-foreground" />
                 ) : working ? (
-                  <Loader2 className="size-4 animate-spin text-blue-500" />
+                  <Loader2 className="size-4 animate-spin text-badge-accent-foreground" />
                 ) : waiting ? (
-                  <Clock className="size-3.5 text-gray-400" />
+                  <Clock className="size-3.5 text-text-placeholder" />
                 ) : (
                   <input
                     type="checkbox"
@@ -471,23 +471,23 @@ function ProposalBlock({
               <div className="min-w-0 flex-1">
                 <div className="flex items-center gap-1.5">
                   <Icon className={cn("size-3.5 shrink-0", TONE_TEXT[meta.tone])} />
-                  <span className={cn("truncate text-sm font-medium", done ? "text-gray-500" : "text-gray-900")}>{p.title}</span>
-                  <span className="ml-auto shrink-0 text-[11px] text-gray-500">{fmtDay(dayOf(p))}</span>
+                  <span className={cn("truncate text-sm font-medium", done ? "text-muted-foreground" : "text-foreground")}>{p.title}</span>
+                  <span className="ml-auto shrink-0 text-xs text-muted-foreground">{fmtDay(dayOf(p))}</span>
                 </div>
                 {done ? (
-                  <div className="truncate text-xs text-emerald-700">
+                  <div className="truncate text-xs text-badge-success-foreground">
                     {p.result}
                     {href ? (
-                      <Link href={href} className="ml-1 font-medium text-indigo-700 hover:underline">
+                      <Link href={href} className="ml-1 font-medium text-badge-accent-foreground hover:underline">
                         Open
                       </Link>
                     ) : null}
                   </div>
                 ) : (
-                  <div className="flex items-baseline gap-1.5 text-xs text-gray-500">
+                  <div className="flex items-baseline gap-1.5 text-xs text-muted-foreground">
                     <span className="truncate">{p.why}</span>
                     {p.jobId ? (
-                      <button onClick={() => onOpenPlan(p.jobId as string)} className="shrink-0 font-medium text-indigo-700 hover:underline">
+                      <button onClick={() => onOpenPlan(p.jobId as string)} className="shrink-0 font-medium text-badge-accent-foreground hover:underline">
                         Plan
                       </button>
                     ) : null}
@@ -499,15 +499,15 @@ function ProposalBlock({
         })}
       </ul>
       {pending.length > 0 || running ? (
-        <div className="flex items-center justify-between gap-3 border-t border-gray-200 bg-white px-3 py-2">
-          <span className="text-xs text-gray-500">{running ? `Creating ${step} of ${queue.length}` : `${pending.length} selected`}</span>
+        <div className="flex items-center justify-between gap-3 border-t border-border bg-card px-3 py-2">
+          <span className="text-xs text-muted-foreground">{running ? `Creating ${step} of ${queue.length}` : `${pending.length} selected`}</span>
           <button
             disabled={running || pending.length === 0}
             onClick={() => {
               setQueue(pending.map((p) => p.id));
               setStep(0);
             }}
-            className="rounded-full bg-[#3e63dd] px-4 py-1.5 text-sm font-medium text-white hover:bg-[#3557c5] disabled:opacity-50"
+            className="rounded-full bg-primary px-4 py-1.5 text-sm font-medium text-white hover:bg-primary/90 disabled:opacity-50"
           >
             {running ? "Working…" : "Approve checked"}
           </button>

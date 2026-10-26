@@ -29,6 +29,9 @@
 @import '@radix-ui/colors/indigo-dark-alpha.css';
 @import '@radix-ui/colors/slate-dark-alpha.css';
 
+/* The redesign's "friendly" look (pills, a size larger), on only while the redesign shell is up. */
+@import './redesign-friendly.css';
+
 /* ─── 2. Plugins ─────────────────────────────────────────────────────────── */
 
 @plugin 'tailwindcss-animate';
@@ -111,6 +114,26 @@
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-ring: var(--sidebar-ring);
+
+  /* c2) Soft badge tones, as in Safety's client/src/index.css (main, Sep 2026) and the
+     safety-redesign copy. Success is ours: Safety has no soft green yet, and the documents
+     of use case 2 need "approved" apart from "draft". */
+  --color-badge-neutral: var(--slate-3);
+  --color-badge-neutral-foreground: var(--slate-11);
+  --color-badge-accent: var(--indigo-3);
+  --color-badge-accent-foreground: var(--indigo-11);
+  --color-badge-warning: var(--amber-4);
+  --color-badge-warning-foreground: var(--amber-12);
+  --color-badge-error: var(--red-3);
+  --color-badge-error-foreground: var(--red-11);
+  --color-badge-success: var(--green-3);
+  --color-badge-success-foreground: var(--green-11);
+
+  /* Quiet fills and text (Safety). */
+  --color-surface-subtle: var(--slate-2);
+  --color-text-subtle: var(--slate-11);
+  --color-text-placeholder: var(--slate-9);
+  --color-avatar-foreground-dark: #000000;
 
   /* d) Brand extended palette (fixed, mode-invariant) */
   --color-primary-300: #e2f2ff;
@@ -215,15 +238,25 @@
   --chart-4: var(--amber-9);
   --chart-5: var(--red-9);
 
-  /* Sidebar */
-  --sidebar: var(--slate-2);
+  /* Sidebar — Safety's current values (Figma `navigation-side`): the sidebar sits on slate-3,
+     so its selected row is slate-5. */
+  --sidebar: var(--slate-3);
   --sidebar-foreground: var(--slate-12);
   --sidebar-primary: var(--indigo-9);
   --sidebar-primary-foreground: white;
-  --sidebar-accent: var(--slate-3);
+  --sidebar-accent: var(--slate-5);
   --sidebar-accent-foreground: var(--slate-12);
-  --sidebar-border: var(--slate-6);
+  --sidebar-border: var(--slate-5);
   --sidebar-ring: var(--slate-8);
+
+  /* The redesign's own tokens (safety-redesign src/index.css): the ground under the shell,
+     the floating panel, the card radius and the page gutter. */
+  --lab-ground: #f0f0f3;
+  --lab-panel-radius: 16px;
+  --lab-panel-shadow: 0 1px 2px rgba(16, 18, 24, 0.04), 0 8px 24px rgba(16, 18, 24, 0.06);
+  --lab-radius: 12px;
+  --lab-gutter: 32px;
+  --lab-warning-soft: var(--amber-2);
 }
 
 /* ─── 6. .dark — dark mode CSS variable values ───────────────────────────── */

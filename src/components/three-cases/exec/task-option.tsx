@@ -26,18 +26,18 @@ export function TaskOption({
       aria-selected={active}
       onMouseDown={(e) => e.preventDefault()}
       onClick={() => onPick(task.job.id)}
-      className={cn("group flex w-full items-start gap-2.5 rounded-lg px-2.5 py-2 text-left", active ? "bg-indigo-50" : "hover:bg-gray-50", className)}
+      className={cn("group flex w-full items-start gap-2.5 rounded-lg px-2.5 py-2 text-left", active ? "bg-badge-accent" : "hover:bg-surface-subtle", className)}
     >
       <Dot level={task.level} className="mt-1.5" />
       <span className="min-w-0 flex-1">
         <span className="flex items-baseline gap-2">
-          <span className="text-[10px] font-semibold uppercase tracking-wide text-gray-400">{task.job.verb}</span>
-          <span className="truncate text-sm font-medium text-gray-900">{task.job.title}</span>
+          <span className="text-xs font-semibold uppercase tracking-wide text-text-placeholder">{task.job.verb}</span>
+          <span className="truncate text-sm font-medium text-foreground">{task.job.title}</span>
         </span>
         <span className={cn("block text-xs", LEVEL[task.level].text)}>{task.headline}</span>
         {chips ? <NeedChips task={task} className="mt-1" /> : null}
       </span>
-      <ArrowRight className={cn("mt-1 size-4 shrink-0 transition", active ? "text-indigo-600" : "text-gray-300 group-hover:text-indigo-600")} />
+      <ArrowRight className={cn("mt-1 size-4 shrink-0 transition", active ? "text-badge-accent-foreground" : "text-text-placeholder group-hover:text-badge-accent-foreground")} />
     </button>
   );
 }

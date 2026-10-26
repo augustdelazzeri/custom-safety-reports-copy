@@ -2,6 +2,7 @@
 
 import Header from "@/components/Header";
 import Sidebar from "@/components/Sidebar";
+import { RedesignShell } from "@/components/redesign/shell";
 import { cn } from "@/lib/utils";
 import { PanelLeft, Sparkles } from "lucide-react";
 import { useEffect, useState, type ReactNode } from "react";
@@ -9,10 +10,36 @@ import { useEffect, useState, type ReactNode } from "react";
 const SIDEBAR_KEY = "ehs-prototype-sidebar-hidden";
 
 /**
- * Same frame as the Safety pages: sidebar, header, scrollable main. The sidebar hides with the
- * button before the title, as in the product, and the choice is remembered in this browser.
+ * The frame of the Safety redesign (Thiago's safety-redesign, design-review-2026-10-05): global
+ * top bar, the nine-row sidebar and the page in one floating panel. `prototypeBar` holds the
+ * prototype's own controls, on the ground above the panel.
  */
 export function PageShell({
+  title,
+  children,
+  mainClassName,
+  aside,
+  prototypeBar,
+}: {
+  title?: string;
+  children: ReactNode;
+  mainClassName?: string;
+  /** Full-height panel on the right of the page (Nova). */
+  aside?: ReactNode;
+  prototypeBar?: ReactNode;
+}) {
+  return (
+    <RedesignShell title={title} aside={aside} prototypeBar={prototypeBar} panelClassName={cn("p-[var(--lab-gutter)]", mainClassName)}>
+      {children}
+    </RedesignShell>
+  );
+}
+
+/**
+ * The frame as it was on Oct 20, when option F was shown to Ryan: today's Safety sidebar, the
+ * header, a scrollable main. Kept for option F only, so it stays exactly as presented.
+ */
+export function LegacyPageShell({
   title,
   children,
   mainClassName,
@@ -87,15 +114,15 @@ export function AiTag({ label = "AI", className }: { label?: string; className?:
 export function TapCompare({ today, here, todayDetail }: { today: string; here: string; todayDetail: string }) {
   return (
     <div
-      className="flex items-center gap-3 rounded-lg border border-dashed border-gray-300 bg-white px-3 py-1.5 text-xs text-gray-600"
+      className="flex items-center gap-3 rounded-lg border border-dashed border-sidebar-border bg-card px-3 py-1.5 text-xs text-muted-foreground"
       title={`Today: ${today} (${todayDetail})`}
     >
       <span className="whitespace-nowrap">
-        <span className="font-semibold text-gray-900">Today:</span> {today}
+        <span className="font-semibold text-foreground">Today:</span> {today}
       </span>
-      <span className="h-4 w-px bg-gray-200" />
+      <span className="h-4 w-px bg-border" />
       <span>
-        <span className="font-semibold text-indigo-700">Here:</span> {here}
+        <span className="font-semibold text-badge-accent-foreground">Here:</span> {here}
       </span>
     </div>
   );

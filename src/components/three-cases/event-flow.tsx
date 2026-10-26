@@ -28,17 +28,17 @@ import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 
 export const SEVERITY_STYLE: Record<string, string> = {
-  Critical: "bg-rose-600 text-white",
-  High: "bg-rose-50 text-rose-700 ring-1 ring-rose-200",
-  Medium: "bg-amber-50 text-amber-800 ring-1 ring-amber-200",
-  Low: "bg-gray-100 text-gray-600",
+  Critical: "bg-destructive text-white",
+  High: "bg-badge-error text-badge-error-foreground ring-1 ring-[var(--red-6)]",
+  Medium: "bg-badge-warning text-badge-warning-foreground ring-1 ring-[var(--amber-6)]",
+  Low: "bg-muted text-muted-foreground",
 };
 
 export const SEVERITY_BAR: Record<string, string> = {
-  Critical: "bg-rose-600",
-  High: "bg-rose-500",
-  Medium: "bg-amber-400",
-  Low: "bg-gray-300",
+  Critical: "bg-destructive",
+  High: "bg-destructive",
+  Medium: "bg-[var(--amber-9)]",
+  Low: "bg-border",
 };
 
 const STEP_ICON: Record<string, React.ComponentType<{ className?: string }>> = {
@@ -51,23 +51,23 @@ const STEP_ICON: Record<string, React.ComponentType<{ className?: string }>> = {
 
 export const STATUS_LABEL: Record<RecordStatus, string> = { open: "Open", in_review: "In review", closed: "Closed" };
 const STATUS_STYLE: Record<RecordStatus, string> = {
-  open: "bg-sky-50 text-sky-700",
-  in_review: "bg-amber-50 text-amber-800",
-  closed: "bg-gray-100 text-gray-600",
+  open: "bg-badge-accent text-badge-accent-foreground",
+  in_review: "bg-badge-warning text-badge-warning-foreground",
+  closed: "bg-muted text-muted-foreground",
 };
 export const WO_LABEL: Record<WoStatus, string> = { open: "Open", in_progress: "In progress", complete: "Complete" };
 const WO_STYLE: Record<WoStatus, string> = {
-  open: "bg-white text-gray-600 ring-1 ring-gray-200",
-  in_progress: "bg-amber-50 text-amber-800",
-  complete: "bg-emerald-50 text-emerald-700",
+  open: "bg-card text-muted-foreground ring-1 ring-border",
+  in_progress: "bg-badge-warning text-badge-warning-foreground",
+  complete: "bg-badge-success text-badge-success-foreground",
 };
 
 export function StatusPill({ status, className }: { status: RecordStatus; className?: string }) {
-  return <span className={cn("rounded-full px-2 py-0.5 text-[11px] font-medium", STATUS_STYLE[status], className)}>{STATUS_LABEL[status]}</span>;
+  return <span className={cn("rounded-full px-2 py-0.5 text-xs font-medium", STATUS_STYLE[status], className)}>{STATUS_LABEL[status]}</span>;
 }
 
 export function WoPill({ status }: { status: WoStatus }) {
-  return <span className={cn("whitespace-nowrap rounded-full px-2 py-0.5 text-[11px] font-medium", WO_STYLE[status])}>{WO_LABEL[status]}</span>;
+  return <span className={cn("whitespace-nowrap rounded-full px-2 py-0.5 text-xs font-medium", WO_STYLE[status])}>{WO_LABEL[status]}</span>;
 }
 
 /** Where an event stands, derived from the scripted requirements and what the flow created. */
@@ -113,19 +113,19 @@ export function StepTrack({ ev, flow, size = "md", center = false }: { ev: Safet
             <span
               className={cn(
                 "inline-flex items-center gap-1 rounded-full font-medium",
-                size === "sm" ? "px-1.5 py-0.5 text-[10px]" : "px-2.5 py-1 text-xs",
-                s.state === "done" && "bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200",
-                s.state === "todo" && s.requirement === "required" && "bg-white text-gray-900 ring-1 ring-gray-300",
-                s.state === "todo" && s.requirement !== "required" && "border border-dashed border-gray-300 bg-white text-gray-500",
-                s.state === "skip" && "text-gray-300 line-through",
+                size === "sm" ? "px-1.5 py-0.5 text-xs" : "px-2.5 py-1 text-xs",
+                s.state === "done" && "bg-badge-success text-badge-success-foreground ring-1 ring-[var(--green-6)]",
+                s.state === "todo" && s.requirement === "required" && "bg-card text-foreground ring-1 ring-border",
+                s.state === "todo" && s.requirement !== "required" && "border border-dashed border-border bg-card text-muted-foreground",
+                s.state === "skip" && "text-text-placeholder line-through",
               )}
               title={s.state === "todo" ? s.requirement : s.state}
             >
               {s.state === "done" ? <Check className={size === "sm" ? "size-3" : "size-3.5"} /> : <Icon className={size === "sm" ? "size-3" : "size-3.5"} />}
               {s.label}
-              {s.state === "todo" && s.requirement !== "required" && size === "md" ? <span className="text-[10px] font-normal">({s.requirement})</span> : null}
+              {s.state === "todo" && s.requirement !== "required" && size === "md" ? <span className="text-xs font-normal">({s.requirement})</span> : null}
             </span>
-            {i < steps.length - 1 ? <span className="h-px w-3 bg-gray-300" /> : null}
+            {i < steps.length - 1 ? <span className="h-px w-3 bg-border" /> : null}
           </li>
         );
       })}
@@ -140,23 +140,23 @@ export function RecordChain({ ev, flow, dense = false }: { ev: SafetyEventDemo; 
   const owner = person(ev.capaDefaults?.ownerId ?? "dan");
   const row = "flex items-center gap-2";
   return (
-    <div className={cn("divide-y divide-gray-100 rounded-lg border border-gray-200 bg-white text-xs", dense && "text-[11px]")}>
+    <div className={cn("divide-y divide-gray-100 rounded-lg border border-border bg-card text-xs", dense && "text-xs")}>
       <div className={cn(row, "px-3 py-2")}>
-        <AlertTriangle className="size-3.5 shrink-0 text-gray-400" />
-        <span className="w-16 shrink-0 text-[10px] font-semibold uppercase tracking-wide text-gray-400">Event</span>
-        <span className="min-w-0 flex-1 truncate font-mono text-gray-700">{ev.ref}</span>
+        <AlertTriangle className="size-3.5 shrink-0 text-text-placeholder" />
+        <span className="w-16 shrink-0 text-xs font-semibold uppercase tracking-wide text-text-placeholder">Event</span>
+        <span className="min-w-0 flex-1 truncate font-mono text-foreground">{ev.ref}</span>
         <StatusPill status={flow.status} />
       </div>
       {flow.capaRef ? (
         <div className="px-3 py-2">
           <div className={row}>
-            <ClipboardCheck className="size-3.5 shrink-0 text-gray-400" />
-            <span className="w-16 shrink-0 text-[10px] font-semibold uppercase tracking-wide text-gray-400">CAPA</span>
+            <ClipboardCheck className="size-3.5 shrink-0 text-text-placeholder" />
+            <span className="w-16 shrink-0 text-xs font-semibold uppercase tracking-wide text-text-placeholder">CAPA</span>
             <span className="min-w-0 flex-1 truncate">
-              <Link href={recordHref(flow.capaRef)} className="font-mono font-medium text-indigo-700 hover:underline">
+              <Link href={recordHref(flow.capaRef)} className="font-mono font-medium text-badge-accent-foreground hover:underline">
                 {flow.capaRef}
               </Link>
-              <span className="text-gray-500">
+              <span className="text-muted-foreground">
                 {" "}
                 · {owner.name} · due {ev.capaDefaults?.due}
               </span>
@@ -164,14 +164,14 @@ export function RecordChain({ ev, flow, dense = false }: { ev: SafetyEventDemo; 
             {flow.capaStatus ? <StatusPill status={flow.capaStatus} /> : null}
           </div>
           {flow.wos.length ? (
-            <ul className="mt-1.5 space-y-1 border-l border-gray-200 pl-3 ml-[7px]">
+            <ul className="mt-1.5 space-y-1 border-l border-border pl-3 ml-[7px]">
               {flow.wos.map((w) => (
                 <li key={w.ref} className={row}>
-                  <Wrench className="size-3 shrink-0 text-gray-400" />
-                  <Link href={recordHref(w.ref)} className="shrink-0 font-mono font-medium text-indigo-700 hover:underline">
+                  <Wrench className="size-3 shrink-0 text-text-placeholder" />
+                  <Link href={recordHref(w.ref)} className="shrink-0 font-mono font-medium text-badge-accent-foreground hover:underline">
                     {w.ref}
                   </Link>
-                  <span className="min-w-0 flex-1 truncate text-gray-600" title={w.title}>
+                  <span className="min-w-0 flex-1 truncate text-muted-foreground" title={w.title}>
                     {w.title} · {person(w.assigneeId).name.split(" ")[0]}
                   </span>
                   <WoPill status={w.status} />
@@ -183,12 +183,12 @@ export function RecordChain({ ev, flow, dense = false }: { ev: SafetyEventDemo; 
       ) : null}
       {flow.oshaRef ? (
         <div className={cn(row, "px-3 py-2")}>
-          <FileBarChart className="size-3.5 shrink-0 text-gray-400" />
-          <span className="w-16 shrink-0 text-[10px] font-semibold uppercase tracking-wide text-gray-400">OSHA</span>
-          <span className="min-w-0 flex-1 truncate text-gray-700">
+          <FileBarChart className="size-3.5 shrink-0 text-text-placeholder" />
+          <span className="w-16 shrink-0 text-xs font-semibold uppercase tracking-wide text-text-placeholder">OSHA</span>
+          <span className="min-w-0 flex-1 truncate text-foreground">
             {flow.oshaRef} · {ev.osha?.classification}
           </span>
-          <span className="rounded-full bg-emerald-50 px-2 py-0.5 text-[11px] font-medium text-emerald-700">Logged</span>
+          <span className="rounded-full bg-badge-success px-2 py-0.5 text-xs font-medium text-badge-success-foreground">Logged</span>
         </div>
       ) : null}
     </div>
@@ -204,12 +204,12 @@ const UPDATE_ICON: Record<FlowUpdate["tone"], React.ComponentType<{ className?: 
   closed: Check,
 };
 const UPDATE_TONE: Record<FlowUpdate["tone"], string> = {
-  info: "text-gray-400",
-  progress: "text-amber-600",
-  done: "text-emerald-600",
-  review: "text-indigo-600",
-  late: "text-rose-600",
-  closed: "text-gray-500",
+  info: "text-text-placeholder",
+  progress: "text-badge-warning-foreground",
+  done: "text-badge-success-foreground",
+  review: "text-badge-accent-foreground",
+  late: "text-badge-error-foreground",
+  closed: "text-muted-foreground",
 };
 
 /** What the CAPA owner was told, newest first. */
@@ -218,15 +218,15 @@ export function UpdatesFeed({ ev, flow, limit }: { ev: SafetyEventDemo; flow: Ev
   if (!list.length) return null;
   return (
     <div>
-      <div className="mb-1 text-[11px] font-semibold text-gray-500">Updates sent to {person(ev.capaDefaults?.ownerId ?? "dan").name}</div>
+      <div className="mb-1 text-xs font-semibold text-muted-foreground">Updates sent to {person(ev.capaDefaults?.ownerId ?? "dan").name}</div>
       <ul className="space-y-1">
         {list.map((u, i) => {
           const Icon = UPDATE_ICON[u.tone];
           return (
-            <li key={`${u.at}-${i}`} className="flex items-start gap-2 text-xs text-gray-700">
+            <li key={`${u.at}-${i}`} className="flex items-start gap-2 text-xs text-foreground">
               <Icon className={cn("mt-0.5 size-3.5 shrink-0", UPDATE_TONE[u.tone])} />
               <span className="min-w-0 flex-1">{u.text}</span>
-              <span className="shrink-0 text-[11px] text-gray-400">{u.at}</span>
+              <span className="shrink-0 text-xs text-text-placeholder">{u.at}</span>
             </li>
           );
         })}
@@ -247,11 +247,11 @@ export function NextActions({ ev, flow, compact = false }: { ev: SafetyEventDemo
   return (
     <div className="space-y-2">
       {flow.capaStatus === "in_review" ? (
-        <div className="rounded-lg border border-indigo-200 bg-indigo-50/50 p-3">
-          <div className="flex items-center gap-1.5 text-sm font-semibold text-gray-900">
-            <Bell className="size-4 text-indigo-600" /> {flow.capaRef} is back with {owner.name}
+        <div className="rounded-lg border border-primary/40 bg-badge-accent/60 p-3">
+          <div className="flex items-center gap-1.5 text-sm font-semibold text-foreground">
+            <Bell className="size-4 text-badge-accent-foreground" /> {flow.capaRef} is back with {owner.name}
           </div>
-          <p className="mt-0.5 text-xs text-gray-600">
+          <p className="mt-0.5 text-xs text-muted-foreground">
             {flow.wos.length ? `All ${flow.wos.length} work orders are done.` : "No work orders to wait for."} {ev.verifyEvidence ? `AI checked the evidence: ${ev.verifyEvidence}` : ""}
           </p>
           {followUp ? (
@@ -270,16 +270,16 @@ export function NextActions({ ev, flow, compact = false }: { ev: SafetyEventDemo
                 value={draft}
                 onChange={(e) => setDraft(e.target.value)}
                 placeholder="What else needs to happen?"
-                className="min-w-0 flex-1 rounded-md border border-gray-200 bg-white px-2 py-1.5 text-xs outline-none focus:border-indigo-300"
+                className="min-w-0 flex-1 rounded-md border border-border bg-card px-2 py-1.5 text-xs outline-none focus:border-primary/40"
               />
-              <button className="rounded-md bg-gray-900 px-2.5 py-1.5 text-xs font-semibold text-white">Add work order</button>
+              <button className="rounded-md bg-foreground px-2.5 py-1.5 text-xs font-semibold text-white">Add work order</button>
             </form>
           ) : (
             <div className="mt-2 flex flex-wrap gap-2">
-              <button onClick={() => closeCapa(ev.id)} className="inline-flex items-center gap-1 rounded-md bg-indigo-600 px-3 py-1.5 text-xs font-semibold text-white">
+              <button onClick={() => closeCapa(ev.id)} className="inline-flex items-center gap-1 rounded-md bg-primary px-3 py-1.5 text-xs font-semibold text-white">
                 <Check className="size-3.5" /> Close {flow.capaRef}
               </button>
-              <button onClick={() => setFollowUp(true)} className="rounded-md border border-gray-200 bg-white px-3 py-1.5 text-xs font-medium text-gray-800">
+              <button onClick={() => setFollowUp(true)} className="rounded-md border border-border bg-card px-3 py-1.5 text-xs font-medium text-foreground">
                 Keep open, add an action
               </button>
             </div>
@@ -288,14 +288,14 @@ export function NextActions({ ev, flow, compact = false }: { ev: SafetyEventDemo
       ) : null}
 
       {flow.capaStatus === "open" && next ? (
-        <div className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-xs text-gray-600">
+        <div className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-border bg-surface-subtle px-3 py-2 text-xs text-muted-foreground">
           <span>
             Waiting on {pending.length} of {flow.wos.length} work orders. {owner.name.split(" ")[0]} gets an update on every change and the CAPA back when all
             are done.
           </span>
           <button
             onClick={() => advanceWo(ev.id)}
-            className="inline-flex items-center gap-1 rounded-md border border-gray-300 bg-white px-2 py-1 font-medium text-gray-800 hover:bg-gray-50"
+            className="inline-flex items-center gap-1 rounded-md border border-border bg-card px-2 py-1 font-medium text-foreground hover:bg-surface-subtle"
             title="Demo control"
           >
             <Play className="size-3" /> Simulate: {next.ref} {next.status === "open" ? "started" : "completed"}
@@ -306,13 +306,13 @@ export function NextActions({ ev, flow, compact = false }: { ev: SafetyEventDemo
       {flow.status !== "closed" ? (
         <div className={cn("flex flex-wrap items-center gap-2", compact ? "justify-start" : "justify-between")}>
           {!compact ? (
-            <span className="text-xs text-gray-500">
+            <span className="text-xs text-muted-foreground">
               {flow.capaStatus && flow.capaStatus !== "closed" ? `The event can close now; ${flow.capaRef} stays open on its own.` : "Everything is done. Close the event."}
             </span>
           ) : null}
           <button
             onClick={() => closeEvent(ev.id, flow.capaStatus && flow.capaStatus !== "closed" ? `${flow.capaRef} stays open.` : "All records closed.")}
-            className="inline-flex items-center gap-1 rounded-md border border-gray-300 bg-white px-3 py-1.5 text-xs font-semibold text-gray-800 hover:bg-gray-50"
+            className="inline-flex items-center gap-1 rounded-md border border-border bg-card px-3 py-1.5 text-xs font-semibold text-foreground hover:bg-surface-subtle"
           >
             <Check className="size-3.5" /> Close {ev.ref}
           </button>
@@ -374,16 +374,16 @@ export function EventFlowPanel({ eventId, showHeader = true }: { eventId: string
       {/* What happened */}
       {showHeader ? (
         <div>
-          <div className="flex flex-wrap items-center gap-1.5 text-xs text-gray-500">
+          <div className="flex flex-wrap items-center gap-1.5 text-xs text-muted-foreground">
             <span className="font-mono">{ev.ref}</span>
             <span>·</span>
             <span>{ev.type}</span>
-            <span className={cn("rounded-full px-1.5 py-0.5 text-[10px] font-medium", SEVERITY_STYLE[ev.severity])}>{ev.severity}</span>
-            {ev.oshaRecordable ? <span className="rounded-full bg-rose-600 px-1.5 py-0.5 text-[10px] font-semibold text-white">OSHA recordable</span> : null}
+            <span className={cn("rounded-full px-1.5 py-0.5 text-xs font-medium", SEVERITY_STYLE[ev.severity])}>{ev.severity}</span>
+            {ev.oshaRecordable ? <span className="rounded-full bg-destructive px-1.5 py-0.5 text-xs font-semibold text-white">OSHA recordable</span> : null}
             {flow ? <StatusPill status={flow.status} className="ml-auto" /> : null}
           </div>
-          <h3 className="mt-1 text-lg font-semibold leading-snug text-gray-900">{ev.title}</h3>
-          <p className="mt-0.5 text-xs text-gray-500">
+          <h3 className="mt-1 text-lg font-semibold leading-snug text-foreground">{ev.title}</h3>
+          <p className="mt-0.5 text-xs text-muted-foreground">
             {locationName(ev.locationId)}
             {a ? ` · ${a.code} ${a.name}` : ""} · {ev.reportedBy} · {ev.reportedAt}
           </p>
@@ -392,24 +392,24 @@ export function EventFlowPanel({ eventId, showHeader = true }: { eventId: string
 
       <div className="text-sm">
         <button onClick={() => setWhy((w) => !w)} className="flex w-full items-start gap-2 text-left">
-          <Sparkles className="mt-0.5 size-4 shrink-0 text-indigo-600" />
-          <span className="flex-1 font-medium text-gray-900">{ev.aiRecommendation}</span>
-          <span className="flex shrink-0 items-center gap-0.5 text-xs text-gray-500">
+          <Sparkles className="mt-0.5 size-4 shrink-0 text-badge-accent-foreground" />
+          <span className="flex-1 font-medium text-foreground">{ev.aiRecommendation}</span>
+          <span className="flex shrink-0 items-center gap-0.5 text-xs text-muted-foreground">
             Why <ChevronDown className={cn("size-3.5 transition", why && "rotate-180")} />
           </span>
         </button>
-        {why ? <p className="mt-1 pl-6 text-xs leading-relaxed text-gray-600">{ev.aiSummary}</p> : null}
+        {why ? <p className="mt-1 pl-6 text-xs leading-relaxed text-muted-foreground">{ev.aiSummary}</p> : null}
       </div>
 
       <StepTrack ev={ev} flow={flow} center />
 
       {/* Closed without a decision */}
       {flow?.status === "closed" && !flow.capaRef && !flow.oshaRef ? (
-        <div className="flex items-center justify-between gap-2 rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm text-gray-700">
+        <div className="flex items-center justify-between gap-2 rounded-lg border border-border bg-surface-subtle px-3 py-2 text-sm text-foreground">
           <span className="flex items-center gap-2">
-            <Check className="size-4 text-emerald-600" /> Closed. {flow.closedNote}
+            <Check className="size-4 text-badge-success-foreground" /> Closed. {flow.closedNote}
           </span>
-          <button onClick={() => reopenEvent(eventId)} className="inline-flex items-center gap-1 text-xs font-medium text-gray-500 hover:text-gray-800">
+          <button onClick={() => reopenEvent(eventId)} className="inline-flex items-center gap-1 text-xs font-medium text-muted-foreground hover:text-foreground">
             <RotateCcw className="size-3" /> Reopen
           </button>
         </div>
@@ -430,13 +430,13 @@ export function EventFlowPanel({ eventId, showHeader = true }: { eventId: string
           <div className="flex flex-wrap justify-center gap-2">
             <button
               onClick={() => closeEvent(eventId, "No action needed, confirmed by the AI triage.")}
-              className="inline-flex items-center gap-1.5 rounded-lg bg-indigo-600 px-3 py-2 text-sm font-semibold text-white"
+              className="inline-flex items-center gap-1.5 rounded-lg bg-primary px-3 py-2 text-sm font-semibold text-white"
             >
               <Check className="size-4" /> Close, nothing needed
             </button>
             <button
               onClick={() => closeEvent(eventId, "Work request sent to maintenance in the CMMS, not linked to a CAPA.")}
-              className="rounded-lg border border-gray-200 px-3 py-2 text-sm font-medium text-gray-800"
+              className="rounded-lg border border-border px-3 py-2 text-sm font-medium text-foreground"
             >
               Close and send a CMMS work request
             </button>
@@ -445,8 +445,8 @@ export function EventFlowPanel({ eventId, showHeader = true }: { eventId: string
           <>
             <div className="space-y-1">
               <div className="flex items-center justify-between px-0.5 text-xs">
-                <span className="font-semibold text-gray-900">Suggested actions</span>
-                <span className="text-gray-500">{selected.length + custom.length} selected</span>
+                <span className="font-semibold text-foreground">Suggested actions</span>
+                <span className="text-muted-foreground">{selected.length + custom.length} selected</span>
               </div>
               {ev.options.map((o) => {
                 const on = selected.includes(o.id);
@@ -456,7 +456,7 @@ export function EventFlowPanel({ eventId, showHeader = true }: { eventId: string
                     title={`${CONTROL_LABEL[o.controlLevel]} · ${o.why}`}
                     className={cn(
                       "flex cursor-pointer items-center gap-2.5 rounded-lg border px-3 py-2 transition",
-                      on ? "border-indigo-300 bg-indigo-50/50" : "border-gray-200 hover:border-gray-300",
+                      on ? "border-primary/40 bg-badge-accent/60" : "border-border hover:border-border",
                     )}
                   >
                     <input
@@ -464,32 +464,32 @@ export function EventFlowPanel({ eventId, showHeader = true }: { eventId: string
                       type="checkbox"
                       checked={on}
                       onChange={() => setSelected((s) => (s.includes(o.id) ? s.filter((x) => x !== o.id) : [...s, o.id]))}
-                      className="size-4 shrink-0 accent-indigo-600"
+                      className="size-4 shrink-0 accent-[var(--indigo-9)]"
                     />
-                    <span className="min-w-0 flex-1 truncate text-sm text-gray-900">{o.title}</span>
-                    <span className="shrink-0 text-[11px] text-gray-500">
+                    <span className="min-w-0 flex-1 truncate text-sm text-foreground">{o.title}</span>
+                    <span className="shrink-0 text-xs text-muted-foreground">
                       {o.workOrder ? `WO · ${person(o.workOrder.assigneeId).name.split(" ")[0]} · ${o.workOrder.due}` : "No work order"}
                     </span>
                   </label>
                 );
               })}
               {custom.map((c, i) => (
-                <div key={c} className="flex items-center gap-2.5 rounded-lg border border-indigo-300 bg-indigo-50/50 px-3 py-2 text-sm text-gray-900">
-                  <Check className="size-4 text-indigo-600" /> <span className="flex-1 truncate">{c}</span>
-                  <button className="text-gray-400" onClick={() => setCustom((x) => x.filter((_, k) => k !== i))} aria-label="Remove">
+                <div key={c} className="flex items-center gap-2.5 rounded-lg border border-primary/40 bg-badge-accent/60 px-3 py-2 text-sm text-foreground">
+                  <Check className="size-4 text-badge-accent-foreground" /> <span className="flex-1 truncate">{c}</span>
+                  <button className="text-text-placeholder" onClick={() => setCustom((x) => x.filter((_, k) => k !== i))} aria-label="Remove">
                     <X className="size-4" />
                   </button>
                 </div>
               ))}
               <form
-                className="flex items-center gap-2.5 rounded-lg border border-dashed border-gray-300 px-3 py-1.5"
+                className="flex items-center gap-2.5 rounded-lg border border-dashed border-border px-3 py-1.5"
                 onSubmit={(e) => {
                   e.preventDefault();
                   if (draft.trim()) setCustom((x) => [...x, draft.trim()]);
                   setDraft("");
                 }}
               >
-                <Plus className="size-4 text-gray-400" />
+                <Plus className="size-4 text-text-placeholder" />
                 <input
                   id={`custom-${eventId}`}
                   value={draft}
@@ -499,7 +499,7 @@ export function EventFlowPanel({ eventId, showHeader = true }: { eventId: string
                 />
                 <button
                   type="button"
-                  className="rounded p-1 text-gray-500 hover:bg-gray-100"
+                  className="rounded p-1 text-muted-foreground hover:bg-muted"
                   aria-label="Speak"
                   onClick={() => setDraft("Install a second light curtain on the operator side")}
                 >
@@ -508,27 +508,27 @@ export function EventFlowPanel({ eventId, showHeader = true }: { eventId: string
               </form>
             </div>
 
-            <div className="rounded-lg bg-gray-50 px-3 py-2">
-              <div className="mb-1 text-[11px] font-semibold text-gray-500">Run the flow creates</div>
+            <div className="rounded-lg bg-surface-subtle px-3 py-2">
+              <div className="mb-1 text-xs font-semibold text-muted-foreground">Run the flow creates</div>
               {toCreate.length === 0 ? (
-                <p className="text-xs text-gray-500">Pick at least one action, or close the event.</p>
+                <p className="text-xs text-muted-foreground">Pick at least one action, or close the event.</p>
               ) : (
                 <ul className="space-y-0.5">
                   {toCreate.map((t, i) => (
-                    <li key={t} className="flex items-center gap-2 text-xs text-gray-700">
+                    <li key={t} className="flex items-center gap-2 text-xs text-foreground">
                       {running && i === progress ? (
-                        <Loader2 className="size-3.5 animate-spin text-indigo-600" />
+                        <Loader2 className="size-3.5 animate-spin text-badge-accent-foreground" />
                       ) : running && i < progress ? (
-                        <Check className="size-3.5 text-emerald-600" />
+                        <Check className="size-3.5 text-badge-success-foreground" />
                       ) : (
-                        <span className="mx-1 size-1.5 rounded-full bg-gray-400" />
+                        <span className="mx-1 size-1.5 rounded-full bg-text-placeholder" />
                       )}
                       {t}
                     </li>
                   ))}
                 </ul>
               )}
-              <p className="mt-1 text-[11px] text-gray-400">Nothing is closed. The event goes to In review; the CAPA and each work order follow their own status.</p>
+              <p className="mt-1 text-xs text-text-placeholder">Nothing is closed. The event goes to In review; the CAPA and each work order follow their own status.</p>
             </div>
 
             <div className="flex items-center gap-2">
@@ -538,13 +538,13 @@ export function EventFlowPanel({ eventId, showHeader = true }: { eventId: string
                   setProgress(0);
                   setRunning(true);
                 }}
-                className="inline-flex flex-1 items-center justify-center gap-1.5 rounded-lg bg-indigo-600 px-3 py-2.5 text-sm font-semibold text-white disabled:opacity-40"
+                className="inline-flex flex-1 items-center justify-center gap-1.5 rounded-lg bg-primary px-3 py-2.5 text-sm font-semibold text-white disabled:opacity-40"
               >
                 {running ? <Loader2 className="size-4 animate-spin" /> : <Play className="size-4" />} Run the flow
               </button>
               <button
                 onClick={() => closeEvent(eventId, "Closed without action.")}
-                className="rounded-lg border border-gray-200 px-3 py-2.5 text-sm font-medium text-gray-700"
+                className="rounded-lg border border-border px-3 py-2.5 text-sm font-medium text-foreground"
               >
                 Close without action
               </button>
