@@ -27,7 +27,7 @@ import { cn } from "@/lib/utils";
 import {
   ArrowUp,
   Bell,
-  BookOpen,
+  GraduationCap,
   ChartNoAxesColumn,
   Check,
   CircleHelp,
@@ -48,6 +48,7 @@ import {
   Sparkles,
   TriangleAlert,
   User,
+  Wrench,
   X,
   type LucideIcon,
 } from "lucide-react";
@@ -70,7 +71,10 @@ interface NavGroup {
   items: NavItem[];
 }
 
-/** Nine destinations, as in the redesign, plus the prototype's demo page at the top. */
+/**
+ * The redesign's destinations, plus the prototype's demo page at the top. The SDS library is a tab of
+ * Documentation, and OSHA (log, 300A, agency reports) and the calendar are tabs of Compliance.
+ */
 const NAV: NavGroup[] = [
   {
     key: "primary",
@@ -85,8 +89,8 @@ const NAV: NavGroup[] = [
     label: "Work",
     items: [
       { key: "events", label: "Events", href: "/events", icon: TriangleAlert },
-      { key: "actions", label: "Corrective actions", href: "/capas", icon: ListChecks },
-      { key: "workOrders", label: "Safety work orders", href: "/safety-execution/f2", icon: Clipboard, match: ["/safety-execution"] },
+      { key: "actions", label: "Corrective actions", href: "/actions", icon: ListChecks },
+      { key: "workOrders", label: "Safety work orders", href: "/work-orders", icon: Clipboard, match: ["/work-orders", "/safety-execution"] },
       { key: "documentation", label: "Documentation", href: "/documentation", icon: FileText },
     ],
   },
@@ -94,17 +98,14 @@ const NAV: NavGroup[] = [
     key: "oversight",
     label: "Oversight",
     items: [
-      { key: "dashboard", label: "Dashboard", href: "/", icon: ChartNoAxesColumn },
-      { key: "compliance", label: "Compliance", href: "/compliance-calendar", icon: ShieldCheck, match: ["/compliance-calendar", "/osha"] },
+      { key: "dashboard", label: "Dashboard", href: "/dashboard", icon: ChartNoAxesColumn },
+      { key: "compliance", label: "Compliance", href: "/compliance", icon: ShieldCheck, match: ["/compliance", "/compliance-calendar", "/osha"] },
     ],
   },
   {
     key: "resources",
     label: "Resources",
-    items: [
-      { key: "accessPoints", label: "Access points", href: "/access-points", icon: QrCode },
-      { key: "library", label: "Library", href: "/sds", icon: BookOpen },
-    ],
+    items: [{ key: "accessPoints", label: "Access points", href: "/access-points", icon: QrCode }],
   },
 ];
 
@@ -166,11 +167,12 @@ function NavGroups({ path, collapsed, onNavigate }: { path: string; collapsed: b
 
 // ───────────────────────────── top bar menus (lab-shell-menus.tsx)
 
+/** The UpKeep products, each with its icon in UpKeep's red, as the product's app switcher shows them. */
 function AppSwitcher() {
-  const apps = [
-    { label: "Maintenance", hint: "Work orders, assets, PMs" },
-    { label: "Safety", hint: "Events, CAPAs, documents", on: true },
-    { label: "Learn", hint: "Training and courses" },
+  const apps: { label: string; hint: string; icon: LucideIcon; on?: boolean }[] = [
+    { label: "Maintenance", hint: "Work orders, assets, PMs", icon: Wrench },
+    { label: "Safety", hint: "Events, CAPAs, documents", icon: ShieldCheck, on: true },
+    { label: "Learn", hint: "Training and courses", icon: GraduationCap },
   ];
   return (
     <Popover>
@@ -183,12 +185,15 @@ function AppSwitcher() {
         <p className={menuTitle}>UpKeep apps</p>
         <ul className={menuList}>
           {apps.map((a) => (
-            <li key={a.label} className={cn(menuItem, "flex-col items-stretch gap-0", a.on && "bg-accent")}>
-              <span className="flex items-center justify-between">
-                {a.label}
-                {a.on ? <Check className="size-4 text-primary" aria-hidden /> : null}
+            <li key={a.label} className={cn(menuItem, a.on && "bg-accent")}>
+              <span className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-[var(--red-2)] text-[var(--upkeep-brand)]">
+                <a.icon className="size-4" aria-hidden />
               </span>
-              <span className={menuItemHint}>{a.hint}</span>
+              <span className="flex min-w-0 flex-1 flex-col">
+                <span>{a.label}</span>
+                <span className={menuItemHint}>{a.hint}</span>
+              </span>
+              {a.on ? <Check className="size-4 shrink-0 text-primary" aria-hidden /> : null}
             </li>
           ))}
         </ul>
@@ -382,6 +387,7 @@ export function RedesignShell({
   prototypeBar,
   aside,
   panelClassName,
+  onAskSafety,
   children,
 }: {
   /** The page's name, for the breadcrumb when it is deeper than the sidebar row. */
@@ -391,6 +397,8 @@ export function RedesignShell({
   /** A full-height panel on the right of the page (Nova in Today). */
   aside?: ReactNode;
   panelClassName?: string;
+  /** A page with its own Nova opens it from Ask Safety, so there is only one Nova on screen. */
+  onAskSafety?: () => void;
   children: ReactNode;
 }) {
   const path = usePathname() ?? "/";
@@ -463,7 +471,7 @@ export function RedesignShell({
           )}
         </nav>
         <div className="ml-auto flex items-center gap-1">
-          <Button type="button" variant="outline" size="sm" onClick={() => setAskOpen(true)} aria-expanded={askOpen} className="gap-2 rounded-lg border-sidebar-border px-3 text-sm text-foreground">
+          <Button type="button" variant="outline" size="sm" onClick={() => (onAskSafety ? onAskSafety() : setAskOpen(true))} aria-expanded={askOpen} className="gap-2 rounded-lg border-sidebar-border px-3 text-sm text-foreground">
             {/* eslint-disable-next-line @next/next/no-img-element -- Nova's gradient sparkles */}
             <img src="/redesign/sparkles-soft.svg" alt="" className="size-4" aria-hidden />
             <span className="hidden sm:inline">Ask Safety</span>
@@ -489,7 +497,7 @@ export function RedesignShell({
           <NavGroups path={path} collapsed={collapsed} />
           <div className={cn("flex items-center gap-1 pt-2", collapsed ? "flex-col" : "justify-between")}>
             <RdTooltip label="Settings" side={collapsed ? "right" : "top"}>
-              <Link href="/settings/people" aria-label="Settings" className={cn(iconButton, path.startsWith("/settings") && "text-primary")}>
+              <Link href="/settings" aria-label="Settings" className={cn(iconButton, path.startsWith("/settings") && "text-primary")}>
                 <Settings aria-hidden />
               </Link>
             </RdTooltip>

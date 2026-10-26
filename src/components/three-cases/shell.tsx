@@ -20,6 +20,7 @@ export function PageShell({
   mainClassName,
   aside,
   prototypeBar,
+  onAskSafety,
 }: {
   title?: string;
   children: ReactNode;
@@ -27,9 +28,11 @@ export function PageShell({
   /** Full-height panel on the right of the page (Nova). */
   aside?: ReactNode;
   prototypeBar?: ReactNode;
+  /** Opens the page's own Nova from Ask Safety in the top bar. */
+  onAskSafety?: () => void;
 }) {
   return (
-    <RedesignShell title={title} aside={aside} prototypeBar={prototypeBar} panelClassName={cn("p-[var(--lab-gutter)]", mainClassName)}>
+    <RedesignShell title={title} aside={aside} prototypeBar={prototypeBar} onAskSafety={onAskSafety} panelClassName={cn("p-[var(--lab-gutter)]", mainClassName)}>
       {children}
     </RedesignShell>
   );

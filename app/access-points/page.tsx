@@ -1,225 +1,154 @@
 "use client";
 
-import {
-  AccessPointBulkActionsDropdown,
-  AccessPointBulkImport,
-  AccessPointsEmpty,
-  AccessPointsError,
-  Filters,
-  AccessPointsLoading,
-  MobileFilters,
-  AccessPointsMobileView,
-  AccessPointsTable,
-  BulkImportSummaryModal,
-  QrViewingModal,
-} from '@/components/access-points/mocks';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
-import { useDataTableStateAdapter } from '@/hooks/use-data-table-state-adapter';
-import { useInfiniteAccessPoints } from '@/hooks/use-paginated-data';
-import { usePermissions } from '@/hooks/use-permissions';
-import { PERMISSION_KEYS } from '@shared/types/permissions.types';
-import { useAccessPointsUrlFilters } from '@/hooks/use-url-filters';
-import { trpc } from '@/providers/trpc';
-import { ROUTES } from '@shared/ROUTE_PATHS';
-import {
-  ACCESS_POINTS_DEFAULT_SORT_BY,
-  ACCESS_POINTS_DEFAULT_SORT_ORDER,
-  isAccessPointsTableColumnId,
-  isAccessPointsSortBy,
-  type AccessPointsSortBy,
-  type AccessPointsTableColumnId,
-} from '@shared/types/access-points.types';
-import { FileDown, Search, X } from 'lucide-react';
-import { useCallback, useEffect, useMemo, useState } from 'react';
-import { useRouter } from 'next/navigation';
-import Sidebar from '@/components/Sidebar';
-import Header from '@/components/Header';
+/**
+ * Access points, as in the redesign (safety-redesign src/lab/pages/lab-access-points.tsx): every
+ * QR code on the wall is one, and each opens the no-login report form. The list answers where
+ * each code is, what it files against and whether people use it; a row opens the code itself on
+ * the right, ready to print. Codes created or paused here live in this page only.
+ */
 
-// Mock translation
-const t = (key: string, options?: any) => {
-  const map: Record<string, string> = {
-    'accessPoints.view.title': 'Access Points',
-    'accessPoints.view.description': 'Manage physical access points and QR codes',
-    'accessPoints.view.searchPlaceholder': 'Search access points...',
-    'accessPoints.view.createButton': 'Create Access Point',
-    'accessPoints.view.exportTooltipLine1': 'Export current view',
-  };
-  return map[key] || key;
-};
+import { AccessPointSheet, STATUS_LABEL } from "@/components/screens/access-points/access-point-sheet";
+import { NewAccessPointDialog, type NewAccessPoint } from "@/components/screens/access-points/new-access-point-dialog";
+import { RdAsk, RdTable, RdToolbar, type RdColumn } from "@/components/redesign/table";
+import { Muted, RdBadge, RdEmptyState, RdPage, figmaButton } from "@/components/redesign/ui";
+import { PageShell } from "@/components/three-cases/shell";
+import { Button } from "@/components/ui/button";
+import { ACCESS_POINTS, formatWhen, newAccessPointId, todayIso, type AccessPoint, type AccessPointStatus } from "@/lib/screens/access-points";
+import { asset, locationName } from "@/lib/three-cases/data";
+import { useDataMode } from "@/lib/three-cases/demo-data";
+import { Plus, QrCode } from "lucide-react";
+import { useState } from "react";
 
-export default function AccessPointsView() {
-  const router = useRouter();
-  const [isBulkImportOpen, setIsBulkImportOpen] = useState<boolean>(false);
-  const [isQrModalOpen, setIsQrModalOpen] = useState<boolean>(false);
-  const [selectedAccessPoint, setSelectedAccessPoint] = useState<any>(undefined);
-  const [isSummaryModalOpen, setIsSummaryModalOpen] = useState<boolean>(false);
-  const [bulkImportResult, setBulkImportResult] = useState<any>(null);
+const where = (p: AccessPoint) => (p.locationId === "plant" ? "Company-wide" : locationName(p.locationId));
 
-  const { hasPermission } = usePermissions();
-  const isMobile = false; // Mock for now
+const SORTS = [
+  { value: "last", label: "Last used, newest first" },
+  { value: "reports", label: "Reports, most first" },
+  { value: "name", label: "Name, A to Z" },
+];
 
-  const getSortLabel = (sortBy: AccessPointsSortBy): string => sortBy;
+export default function AccessPointsPage() {
+  const [mode] = useDataMode();
+  const [created, setCreated] = useState<AccessPoint[]>([]);
+  const [statusOf, setStatusOf] = useState<Record<string, AccessPointStatus>>({});
+  const [q, setQ] = useState("");
+  const [picked, setPicked] = useState<string[]>([]);
+  const [sort, setSort] = useState("last");
+  const [creating, setCreating] = useState(false);
+  const [selectedId, setSelectedId] = useState<string>();
+  const [sheetOpen, setSheetOpen] = useState(false);
 
-  const { filters, sort, immediateFilters, updateFilter, updateFilters, resetFilters, activeFilterCount } =
-    useAccessPointsUrlFilters();
-    
-  const {
-    sorting,
-    hasActiveSorting,
-    columnOrder,
-    columnPinning,
-    columnSizing,
-    onSortingChange: handleSortingChange,
-    resetSorting: handleClearSorting,
-    onColumnOrderChange: handleColumnOrderChange,
-    onColumnPinningChange: handleColumnPinningChange,
-    onColumnSizingChange: handleColumnSizingChange,
-    columnVisibility,
-    onColumnVisibilityChange: handleColumnVisibilityChange,
-  } = useDataTableStateAdapter({
-    sort,
-    immediateFilters,
-    defaultSortBy: ACCESS_POINTS_DEFAULT_SORT_BY,
-    defaultSortOrder: ACCESS_POINTS_DEFAULT_SORT_ORDER,
-  } as any);
+  // A brand-new account has no codes on its walls yet.
+  const all = [...created, ...(mode === "new" ? [] : ACCESS_POINTS)].map((p) => ({ ...p, status: statusOf[p.id] ?? p.status }));
+  const words = q.trim().toLowerCase();
+  const rows = all
+    .filter((p) => !picked.length || picked.includes(p.status))
+    .filter((p) => !words || `${p.name} ${where(p)} ${p.assetId ? (asset(p.assetId)?.name ?? "") : ""} ${STATUS_LABEL[p.status]}`.toLowerCase().includes(words))
+    .sort((a, b) => {
+      if (sort === "name") return a.name.localeCompare(b.name);
+      if (sort === "reports") return b.reports30d - a.reports30d;
+      // A code never scanned counts from the end of the day it was made, so a new one lands on top.
+      const last = (p: AccessPoint) => p.lastReportAt ?? `${p.createdAt}T24:00`;
+      return last(b).localeCompare(last(a));
+    });
+  const selected = all.find((p) => p.id === selectedId);
 
-  const {
-    data: accessPoints,
-    isLoading,
-    error,
-    hasNextPage,
-    isFetchingNextPage,
-    fetchNextPage,
-  } = useInfiniteAccessPoints({ filters, sort });
-
-  const handleResetFilters = () => {
-    resetFilters();
+  const open = (id: string) => {
+    setSelectedId(id);
+    setSheetOpen(true);
   };
 
-  const handleBulkImportSuccess = (result: any) => {
-    setBulkImportResult(result);
-    setIsBulkImportOpen(false);
-    setIsSummaryModalOpen(true);
+  const create = (input: NewAccessPoint) => {
+    const id = newAccessPointId(
+      input.name,
+      all.map((p) => p.id),
+    );
+    setCreated((list) => [{ id, ...input, status: "active", reports30d: 0, eventIds: [], createdAt: todayIso(), createdBy: "maria" }, ...list]);
+    open(id);
   };
 
-  const handleExport = async () => {
-    console.log('Exporting...');
-  };
+  const columns: RdColumn<AccessPoint>[] = [
+    {
+      key: "name",
+      header: "Access point",
+      render: (p) => (
+        <span className="block truncate font-medium text-foreground" title={p.name}>
+          {p.name}
+        </span>
+      ),
+    },
+    { key: "location", header: "Location", width: "17%", render: (p) => (p.locationId === "plant" ? <Muted>Company-wide</Muted> : <span className="block truncate">{where(p)}</span>) },
+    {
+      key: "asset",
+      header: "Asset",
+      width: "17%",
+      render: (p) => {
+        const a = p.assetId ? asset(p.assetId) : undefined;
+        return a ? <span className="block truncate">{a.name}</span> : <Muted />;
+      },
+    },
+    { key: "reports", header: "Reports (30 days)", width: "14%", render: (p) => <span className={p.reports30d ? "tabular-nums" : "text-muted-foreground tabular-nums"}>{p.reports30d}</span> },
+    { key: "last", header: "Last used", width: "15%", render: (p) => (p.lastReportAt ? <span className="block truncate text-muted-foreground">{formatWhen(p.lastReportAt)}</span> : <Muted>Never used</Muted>) },
+    { key: "status", header: "Status", width: "11%", render: (p) => <RdBadge tone={p.status === "active" ? "accent" : "neutral"}>{STATUS_LABEL[p.status]}</RdBadge> },
+  ];
 
-  const handleViewQRCode = useCallback((accessPoint: any) => {
-    setSelectedAccessPoint(accessPoint);
-    setIsQrModalOpen(true);
-  }, []);
+  const count = (s: AccessPointStatus) => all.filter((p) => p.status === s).length;
 
   return (
-    <div className="min-h-screen bg-background flex">
-      <Sidebar />
-      <div className="flex-1 ml-[var(--spacing-sidebar)]">
-        <Header />
-        <main className="container mx-auto px-4 py-6 md:px-6">
-          <div className="flex flex-col items-start justify-between gap-4 lg:flex-row">
-            <div>
-              <h1 className="text-2xl font-bold md:mb-0">{t('accessPoints.view.title')}</h1>
-              <p className="mt-1 text-sm text-muted-foreground">{t('accessPoints.view.description')}</p>
+    <PageShell title="Access points" mainClassName="p-0">
+      <RdPage
+        title="Access points"
+        subtitle="The QR codes on the wall. Anyone can report from one, with no login."
+        actions={
+          <Button type="button" className={figmaButton} onClick={() => setCreating(true)}>
+            <Plus aria-hidden />
+            New access point
+          </Button>
+        }
+      >
+        {all.length ? (
+          <div className="flex flex-col gap-6">
+            <div className="flex flex-wrap items-start gap-2">
+              <RdAsk value={q} onChange={setQ} />
+              <RdToolbar
+                filters={(["active", "paused"] as const).map((s) => ({ value: s, label: STATUS_LABEL[s], count: count(s) }))}
+                selected={picked}
+                onToggle={(v) => setPicked((p) => (p.includes(v) ? p.filter((x) => x !== v) : [...p, v]))}
+                sorts={SORTS}
+                sort={sort}
+                onSort={setSort}
+              />
             </div>
-
-            <div className="flex min-h-10 w-full flex-col-reverse items-start gap-4 pb-4 md:w-auto md:flex-row md:gap-2 md:pb-0">
-              <div className="relative w-full flex-1 md:w-64">
-                <Search className="absolute top-2.5 left-2.5 h-4 w-4 text-muted-foreground" />
-                <Input
-                  placeholder={t('accessPoints.view.searchPlaceholder')}
-                  className="pr-4 pl-8"
-                  value={immediateFilters.search ?? ''}
-                  onChange={(e) => updateFilter('search' as any, e.target.value)}
-                />
-                {immediateFilters.search && (
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="absolute top-0 right-0"
-                    onClick={() => updateFilter('search' as any, '')}
-                  >
-                    <X className="h-4 w-4" />
-                  </Button>
-                )}
-              </div>
-              <div className="flex w-full items-start gap-4 md:w-auto md:flex-row md:gap-2">
-                {hasPermission(PERMISSION_KEYS.ACCESS_CREATE) && (
-                  <>
-                    <Button
-                      onClick={() => router.push('/access-points/new')}
-                      className="flex-1"
-                    >
-                      {t('accessPoints.view.createButton')}
-                    </Button>
-                    <AccessPointBulkActionsDropdown onImportClick={() => setIsBulkImportOpen(true)} />
-                  </>
-                )}
-                {hasPermission(PERMISSION_KEYS.ACCESS_VIEW) && (
-                  <Tooltip delayDuration={500}>
-                    <TooltipTrigger asChild>
-                      <Button
-                        variant="outline"
-                        size="icon"
-                        onClick={handleExport}
-                      >
-                        <FileDown className="h-4 w-4" />
-                      </Button>
-                    </TooltipTrigger>
-                    <TooltipContent align="end">
-                      {t('accessPoints.view.exportTooltipLine1')}
-                    </TooltipContent>
-                  </Tooltip>
-                )}
-                <MobileFilters />
-              </div>
-            </div>
+            {rows.length ? <RdTable rows={rows} columns={columns} rowKey={(p) => p.id} onRow={(p) => open(p.id)} /> : <RdEmptyState title="Nothing matches" body="Try other words, or clear the filters." />}
+            <p className="text-xs text-text-subtle">
+              Showing {rows.length} of {all.length}
+            </p>
           </div>
-
-          <Filters />
-
-          {/* Error state */}
-          {error && <AccessPointsError />}
-
-          {/* Loading state */}
-          {isLoading && <AccessPointsLoading />}
-
-          <QrViewingModal />
-
-          <AccessPointBulkImport />
-
-          <BulkImportSummaryModal />
-
-          {/* Table View */}
-          {!isLoading && !error && accessPoints && accessPoints.length > 0 && (
-            <AccessPointsTable
-              accessPoints={accessPoints}
-              onViewQRCode={handleViewQRCode}
-            />
-          )}
-
-          {/* Empty state */}
-          {!isLoading && !error && accessPoints && accessPoints.length === 0 && (
-            <AccessPointsEmpty />
-          )}
-
-          {/* Load More */}
-          {accessPoints && accessPoints.length > 0 && hasNextPage && (
-            <div className="mt-6 flex justify-center">
-              <Button
-                onClick={() => fetchNextPage()}
-                disabled={isFetchingNextPage}
-                variant="outline"
-                className="px-6"
-              >
-                Load More
+        ) : (
+          <RdEmptyState
+            icon={QrCode}
+            title="No access points yet"
+            body="An access point is a QR code you print and stick where the work happens."
+            action={
+              <Button type="button" className={figmaButton} onClick={() => setCreating(true)}>
+                <Plus aria-hidden />
+                New access point
               </Button>
-            </div>
-          )}
-        </main>
-      </div>
-    </div>
+            }
+          />
+        )}
+      </RdPage>
+
+      <NewAccessPointDialog open={creating} onOpenChange={setCreating} takenNames={all.map((p) => p.name)} onCreate={create} />
+      <AccessPointSheet
+        point={selected}
+        open={sheetOpen}
+        onClose={() => setSheetOpen(false)}
+        onToggleStatus={(id) => {
+          const current = all.find((p) => p.id === id)?.status;
+          setStatusOf((s) => ({ ...s, [id]: current === "active" ? "paused" : "active" }));
+        }}
+      />
+    </PageShell>
   );
 }

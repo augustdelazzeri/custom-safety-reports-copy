@@ -3,6 +3,8 @@
 // (the events and their flows), the documents of use case 2 and the work orders made in F2.
 
 import type { EventFlowState, FlowWo } from "@/contexts/ThreeCasesContext";
+import { OTHER_ACTIONS, actionHref, ownerName } from "@/lib/screens/actions";
+import { MORE_WORK_ORDERS, WO_PRIORITY_LABEL, WO_SOURCE_LABEL, WO_STATUS_LABEL, assetOf, daysUntil, type WoStatus } from "@/lib/screens/work-orders";
 import { EVENTS, TODAY, person } from "./data";
 import { DOCS, getMvpAsset, type MvpWo } from "./mvp-rules";
 import type { SafetyEventDemo } from "./types";
@@ -31,6 +33,12 @@ export interface SourceItem {
   /** A work order made in F2 or a document: shown on the right on their own. */
   wo?: MvpWo;
   docRef?: string;
+  /** The record's own page (Corrective actions, Safety work orders), when it has one. */
+  href?: string;
+  /** For a record shown on its own: its facts, what it is and what it needs. */
+  facts?: [string, string][];
+  overview?: string;
+  needed?: string;
 }
 
 const DAY = 86_400_000;
@@ -99,12 +107,6 @@ function events(flows: Record<string, EventFlowState>): SourceItem[] {
 }
 
 /** CAPAs that are not part of an event of use case 3, so the list is not only the demo's own. */
-const OTHER_CAPAS: { ref: string; title: string; owner: string; due: string; status: EventFlowState["status"] }[] = [
-  { ref: "CAPA-0039", title: "Guard missing on band saw", owner: "dan", due: "Oct 14", status: "open" },
-  { ref: "CAPA-0036", title: "Worn sling on overhead crane OC-1", owner: "aisha", due: "Oct 19", status: "in_review" },
-  { ref: "CAPA-0031", title: "Eyewash station blocked in Packaging", owner: "jo", due: "Oct 6", status: "closed" },
-];
-
 function capas(flows: Record<string, EventFlowState>): SourceItem[] {
   const fromFlows = EVENTS.flatMap((e): SourceItem[] => {
     const flow = flows[e.id];
@@ -124,24 +126,54 @@ function capas(flows: Record<string, EventFlowState>): SourceItem[] {
         meta: [`From ${e.ref}`, ...(owner ? [owner] : [])],
         risk: e.capaDefaults?.priority === "High" ? "High" : undefined,
         eventId: e.id,
+        href: actionHref({ ref: flow.capaRef }),
       },
     ];
   });
-  const others = OTHER_CAPAS.map(
-    (c): SourceItem => ({
-      id: `capa-${c.ref}`,
+  // The rest of the plant's CAPAs: the same records as the Corrective actions list.
+  const refs = new Set(fromFlows.map((c) => c.ref));
+  const others = OTHER_ACTIONS.filter((a) => !refs.has(a.ref)).map((a): SourceItem => {
+    const owner = ownerName(a);
+    const done = a.workOrders.filter((w) => w.status === "complete").length;
+    return {
+      id: `capa-${a.ref}`,
       kind: "capa",
-      ref: c.ref,
-      title: c.title,
-      open: c.status !== "closed",
-      status: RECORD_STATUS[c.status],
-      dueIn: daysFromDemoToday(c.due),
+      ref: a.ref,
+      title: a.title,
+      open: a.status !== "closed",
+      status: RECORD_STATUS[a.status],
+      dueIn: daysFromDemoToday(a.due),
       dueWord: "Due",
-      meta: ["Corrective", person(c.owner).name],
-    }),
-  );
+      meta: [a.event ? `From ${a.event.ref}` : a.type, owner ?? "No owner"],
+      risk: a.priority === "High" ? "High" : undefined,
+      href: actionHref(a),
+      facts: [
+        ["Owner", owner ?? "No owner"],
+        ["Type", a.type],
+        ["Priority", a.priority],
+        ["Work orders", a.workOrders.length ? `${done} of ${a.workOrders.length} complete` : "None yet"],
+      ],
+      overview: a.rootCause ?? (a.event ? `From ${a.event.ref}, ${a.event.title}.` : (a.source ?? "A corrective action.")),
+      needed:
+        a.status === "closed"
+          ? "Nothing. It is closed."
+          : !a.ownerId
+            ? "Give it an owner: nobody is following it."
+            : a.workOrders.length && done === a.workOrders.length
+              ? "Its work orders are done. Check that it worked, then close it."
+              : "Its work orders are with Maintenance; the owner hears about each one.",
+    };
+  });
   return [...fromFlows, ...others];
 }
+
+const woHref = (ref: string) => `/work-orders?wo=${ref}`;
+const PLANT_WO_STATUS: Record<WoStatus, { label: string; tone: Tone }> = {
+  open: { label: WO_STATUS_LABEL.open, tone: "accent" },
+  in_progress: { label: WO_STATUS_LABEL.in_progress, tone: "accent" },
+  on_hold: { label: WO_STATUS_LABEL.on_hold, tone: "warning" },
+  complete: { label: WO_STATUS_LABEL.complete, tone: "neutral" },
+};
 
 function workOrders(flows: Record<string, EventFlowState>, made: MvpWo[]): SourceItem[] {
   const fromFlows = EVENTS.flatMap((e) =>
@@ -157,6 +189,7 @@ function workOrders(flows: Record<string, EventFlowState>, made: MvpWo[]): Sourc
         dueWord: w.status === "complete" ? "Done" : "Due",
         meta: [person(w.assigneeId).name, `From ${flows[e.id]?.capaRef ?? e.ref}`],
         eventId: e.id,
+        href: woHref(w.ref),
       }),
     ),
   );
@@ -172,9 +205,37 @@ function workOrders(flows: Record<string, EventFlowState>, made: MvpWo[]): Sourc
       dueWord: w.status === "done" ? "Done" : "Due",
       meta: [person(w.assigneeId).name, getMvpAsset(w.assetId)?.name ?? "", "Made in F2"].filter(Boolean),
       wo: w,
+      href: woHref(w.ref),
     }),
   );
-  return [...fromFlows, ...fromF2];
+  // The rest of the plant's work orders: the same records as the Safety work orders list.
+  const plant = MORE_WORK_ORDERS.map((w): SourceItem => {
+    const asset = assetOf(w.assetId);
+    const who = w.assigneeId ? person(w.assigneeId).name : undefined;
+    const done = w.status === "complete";
+    return {
+      id: `wo-${w.ref}`,
+      kind: "wo",
+      ref: w.ref,
+      title: w.title,
+      open: !done,
+      status: PLANT_WO_STATUS[w.status],
+      dueIn: daysUntil(done ? (w.doneAt ?? w.due) : w.due),
+      dueWord: done ? "Done" : "Due",
+      meta: [who ?? "Nobody assigned", asset?.name ?? w.location ?? ""].filter(Boolean),
+      risk: w.priority === "high" ? "High" : undefined,
+      href: woHref(w.ref),
+      facts: [
+        ["Asset", asset ? [asset.name, asset.code].filter(Boolean).join(" · ") : (w.location ?? "—")],
+        ["Assigned to", who ?? "Nobody"],
+        ["Priority", WO_PRIORITY_LABEL[w.priority]],
+        ["Came from", `${WO_SOURCE_LABEL[w.source.kind]} · ${w.source.ref}`],
+      ],
+      overview: w.description ?? `A safety work order from ${w.source.ref}, ${w.source.title}.`,
+      needed: done ? "Nothing. It is complete." : w.status === "on_hold" ? (w.holdReason ?? "It is on hold.") : !who ? "Assign it: nobody has it yet." : `${who.split(" ")[0]} does the work in Maintenance. Nothing waits on you.`,
+    };
+  });
+  return [...fromFlows, ...fromF2, ...plant];
 }
 
 const DOC_STATUS = {

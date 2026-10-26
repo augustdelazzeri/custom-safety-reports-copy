@@ -16,6 +16,7 @@ import { docByRef, getMvpAsset, MVP_LABEL } from "@/lib/three-cases/mvp-rules";
 import { fmtDate } from "@/lib/three-cases/real-jobs";
 import { dueLabel, type SourceItem, type SourceKind } from "@/lib/three-cases/sources";
 import { cn } from "@/lib/utils";
+import Link from "next/link";
 import { Check, Clipboard, Clock, FileCheck2, FileText, ListChecks, TriangleAlert, type LucideIcon } from "lucide-react";
 import type { ReactNode } from "react";
 
@@ -167,6 +168,14 @@ export function SourceDetail({ item }: { item?: SourceItem }) {
         {item.kind !== "event" ? (
           <p className="border-b border-border bg-surface-subtle px-6 py-3 text-sm text-muted-foreground">
             <span className="font-medium text-foreground">{item.ref}</span> is part of this event&apos;s flow: the event, its CAPA and its work orders keep their own status.
+            {item.href ? (
+              <>
+                {" "}
+                <Link href={item.href} className="font-medium text-badge-accent-foreground hover:underline">
+                  Open {item.ref}
+                </Link>
+              </>
+            ) : null}
           </p>
         ) : null}
         <div className="p-6">
@@ -190,11 +199,7 @@ export function SourceDetail({ item }: { item?: SourceItem }) {
         ]}
         overview={`A safety work order made from Safety work orders (F2) for this job on ${asset?.name ?? "the asset"}.`}
         needed={w.status === "open" ? `${person(w.assigneeId).name.split(" ")[0]} does the work and completes it in Maintenance. Nothing waits on you.` : "Nothing. It is complete."}
-        actions={
-          <Button size="sm" variant="outline" title={soon}>
-            Open {w.ref}
-          </Button>
-        }
+        actions={<OpenRecord item={item} />}
       />
     );
   }
@@ -244,33 +249,27 @@ export function SourceDetail({ item }: { item?: SourceItem }) {
     );
   }
 
-  // A CAPA with no event of use case 3 behind it.
+  // A CAPA or a work order with no event of use case 3 behind it: the same record as on its own list.
   return (
     <RecordDetail
       item={item}
-      facts={[
-        ["Owner", item.meta[1] ?? "—"],
-        ["Type", item.meta[0] ?? "Corrective"],
-        ["Due", dueLabel(item)],
-      ]}
-      overview="A corrective action from an earlier event. Its work orders are done in Maintenance; the owner hears about each one."
-      needed={item.open ? "Check that the action worked, then close it, or keep it open with a follow-up work order." : "Nothing. It is closed."}
-      actions={
-        item.open ? (
-          <>
-            <Button size="sm" title={soon}>
-              Plan the work
-            </Button>
-            <Button size="sm" variant="outline" className="gap-2" title={soon}>
-              <Clock className="size-4" /> Not now
-            </Button>
-          </>
-        ) : (
-          <Button size="sm" variant="outline" title={soon}>
-            Open {item.ref}
-          </Button>
-        )
-      }
+      facts={[...(item.facts ?? []), [item.dueWord === "Done" ? "Done" : "Due", dueLabel(item)]]}
+      overview={item.overview}
+      needed={item.needed}
+      actions={<OpenRecord item={item} />}
     />
+  );
+}
+
+/** Opens the record on its own page (Corrective actions, Safety work orders). */
+function OpenRecord({ item }: { item: SourceItem }) {
+  return item.href ? (
+    <Button size="sm" variant="outline" asChild>
+      <Link href={item.href}>Open {item.ref}</Link>
+    </Button>
+  ) : (
+    <Button size="sm" variant="outline" title={soon}>
+      Open {item.ref}
+    </Button>
   );
 }

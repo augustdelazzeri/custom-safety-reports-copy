@@ -54,6 +54,7 @@ export default function InboxPage() {
       title="Today"
       mainClassName="p-0 overflow-hidden"
       aside={novaOpen ? <InboxNova onClose={() => setNovaOpen(false)} className="w-[400px]" /> : null}
+      onAskSafety={() => setNovaOpen(true)}
       prototypeBar={
         <div className="flex flex-wrap items-center justify-between gap-2">
           <OptionSwitcher caseLabel="Use case 3" options={CASE_C_OPTIONS} />

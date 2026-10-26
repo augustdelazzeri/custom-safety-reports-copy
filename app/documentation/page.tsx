@@ -22,13 +22,119 @@ import { cn } from "@/lib/utils";
 import { ChevronDown, FileText, FileUp, Plus } from "lucide-react";
 import { useMemo, useState } from "react";
 
-const TABS: { key: MvpKind; label: string; one: string }[] = [
+/** The six documentation rows of today's sidebar, in its order, as tabs, with the redesign's short labels. The SDS library was "Library" in the redesign's sidebar. */
+type TabKey = MvpKind | "sds";
+const TABS: { key: TabKey; label: string; one: string }[] = [
   { key: "jha", label: "Job hazard analyses", one: "job hazard analysis" },
   { key: "sop", label: "Procedures", one: "procedure" },
   { key: "loto", label: "Lockout/tagout", one: "lockout/tagout" },
   { key: "ptw", label: "Permits", one: "permit" },
   { key: "audit", label: "Audits", one: "audit" },
+  { key: "sds", label: "SDS library", one: "safety data sheet" },
 ];
+
+// ───────────────────────────── SDS library
+
+type SdsStatus = "current" | "due" | "overdue";
+const SDS_STATUS: Record<SdsStatus, { label: string; tone: BadgeTone }> = {
+  current: { label: "Current", tone: "success" },
+  due: { label: "Review due", tone: "warning" },
+  overdue: { label: "Review overdue", tone: "error" },
+};
+interface SdsRow {
+  ref: string;
+  product: string;
+  maker: string;
+  hazards: string[];
+  where: string;
+  /** Days since the last revision; a sheet is reviewed every 3 years. */
+  revisedDaysAgo: number;
+  status: SdsStatus;
+}
+const SDS_ROWS: SdsRow[] = [
+  { ref: "SDS-0100", product: "Argon / CO2 shielding gas", maker: "Airgas", hazards: ["Gas under pressure"], where: "Welding bay 1", revisedDaysAgo: 220, status: "current" },
+  { ref: "SDS-0102", product: "Pump seal flush", maker: "Chemours", hazards: ["Irritant"], where: "Utility room", revisedDaysAgo: 1155, status: "overdue" },
+  { ref: "SDS-0104", product: "Hydraulic oil AW 46", maker: "Mobil DTE 25", hazards: ["Aspiration"], where: "Press line", revisedDaysAgo: 410, status: "current" },
+  { ref: "SDS-0106", product: "Heavy-duty degreaser", maker: "Simple Green", hazards: ["Irritant"], where: "Maintenance shop", revisedDaysAgo: 95, status: "current" },
+  { ref: "SDS-0108", product: "Isopropyl alcohol 99%", maker: "Fisher Scientific", hazards: ["Flammable", "Irritant"], where: "Machine shop", revisedDaysAgo: 600, status: "current" },
+  { ref: "SDS-0110", product: "Machine coolant S-500", maker: "Hangsterfer's", hazards: ["Irritant"], where: "Machine shop", revisedDaysAgo: 1060, status: "due" },
+  { ref: "SDS-0112", product: "Battery electrolyte (sulfuric acid)", maker: "EnerSys", hazards: ["Corrosive"], where: "Warehouse charging station", revisedDaysAgo: 300, status: "current" },
+  { ref: "SDS-0114", product: "Propane, forklift fuel", maker: "AmeriGas", hazards: ["Flammable", "Gas under pressure"], where: "Warehouse", revisedDaysAgo: 150, status: "current" },
+  { ref: "SDS-0116", product: "Boiler water treatment", maker: "Nalco", hazards: ["Corrosive", "Toxic"], where: "Boiler room", revisedDaysAgo: 1120, status: "due" },
+  { ref: "SDS-0118", product: "Multi-surface cleaner", maker: "Ecolab", hazards: ["Irritant"], where: "Packaging", revisedDaysAgo: 40, status: "current" },
+];
+
+// Sheets revised before this year show the year, so "Dec 1" is not read as five weeks from now.
+const fmtRevised = (iso: string) =>
+  iso.slice(0, 4) === dateIn(0).slice(0, 4) ? fmtDate(iso) : new Date(`${iso}T12:00:00`).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
+
+function SdsList({ empty }: { empty: boolean }) {
+  const [q, setQ] = useState("");
+  const [picked, setPicked] = useState<string[]>([]);
+  const [sort, setSort] = useState("revision");
+  if (empty) {
+    return (
+      <RdEmptyState
+        icon={FileText}
+        title="No safety data sheets yet"
+        body="Upload the SDS PDFs from your suppliers: Safety reads the product, the maker and the hazards, and files each one where the chemical is used."
+        action={
+          <Button variant="outline" className="gap-2" title="Opens the upload (not part of this prototype)">
+            <FileUp className="size-4" /> Upload SDS
+          </Button>
+        }
+      />
+    );
+  }
+  const words = q.trim().toLowerCase();
+  const rows = SDS_ROWS.filter((r) => !picked.length || picked.includes(r.status))
+    .filter((r) => !words || `${r.ref} ${r.product} ${r.maker} ${r.where} ${r.hazards.join(" ")}`.toLowerCase().includes(words))
+    .sort((a, b) => (sort === "product" ? a.product.localeCompare(b.product) : b.revisedDaysAgo - a.revisedDaysAgo));
+  const counts = (s: SdsStatus) => SDS_ROWS.filter((r) => r.status === s).length;
+  const columns: RdColumn<SdsRow>[] = [
+    { key: "product", header: "Product", render: (r) => <TitleCell title={r.product} reference={r.ref} /> },
+    { key: "maker", header: "Manufacturer", width: "15%", render: (r) => <span className="block truncate">{r.maker}</span> },
+    {
+      key: "hazards",
+      header: "Hazards",
+      width: "20%",
+      render: (r) => (
+        <span className="flex flex-wrap gap-1">
+          {r.hazards.map((h) => (
+            <RdBadge key={h} tone={h === "Flammable" || h === "Corrosive" || h === "Toxic" ? "warning" : "neutral"}>
+              {h}
+            </RdBadge>
+          ))}
+        </span>
+      ),
+    },
+    { key: "where", header: "Location", width: "16%", render: (r) => <span className="block truncate">{r.where}</span> },
+    { key: "revised", header: "Revised", width: "11%", render: (r) => <span className="whitespace-nowrap text-muted-foreground">{fmtRevised(dateIn(-r.revisedDaysAgo))}</span> },
+    { key: "status", header: "Status", width: "13%", render: (r) => <RdBadge tone={SDS_STATUS[r.status].tone}>{SDS_STATUS[r.status].label}</RdBadge> },
+  ];
+  return (
+    <div className="flex flex-col gap-6">
+      <div className="flex flex-wrap items-start gap-2">
+        <RdAsk value={q} onChange={setQ} />
+        <RdToolbar
+          filters={(Object.keys(SDS_STATUS) as SdsStatus[]).map((s) => ({ value: s, label: SDS_STATUS[s].label, count: counts(s) }))}
+          selected={picked}
+          onToggle={(v) => setPicked((p) => (p.includes(v) ? p.filter((x) => x !== v) : [...p, v]))}
+          sorts={[
+            { value: "revision", label: "Oldest revision first" },
+            { value: "product", label: "Product, A to Z" },
+          ]}
+          sort={sort}
+          onSort={setSort}
+        />
+      </div>
+      {rows.length ? <RdTable rows={rows} columns={columns} rowKey={(r) => r.ref} onRow={() => undefined} /> : <RdEmptyState title="Nothing matches" body="Try other words, or clear the filters." />}
+      <p className="text-xs text-text-subtle">
+        Showing {rows.length} of {SDS_ROWS.length}
+      </p>
+    </div>
+  );
+}
 
 type Status = "approved" | "approval" | "draft" | "due" | "overdue";
 const STATUS: Record<Status, { label: string; tone: BadgeTone }> = {
@@ -146,7 +252,7 @@ function DocList({ kind, rows, empty }: { kind: (typeof TABS)[number]; rows: Doc
 export default function DocumentationPage() {
   const [mode] = useDataMode();
   const empty = mode !== "sample";
-  const [active, setActive] = useState<MvpKind>("jha");
+  const [active, setActive] = useState<TabKey>("jha");
   const rows = useMemo(() => DOCS.map(toRow), []);
 
   return (
@@ -156,13 +262,13 @@ export default function DocumentationPage() {
       prototypeBar={
         <div className="flex flex-wrap items-center gap-2">
           <DataModeSwitch />
-          <p className="px-1 text-xs text-muted-foreground">Thiago&apos;s Documentation page: the five document types are tabs of one page. The rows are the documents use case 2 reads.</p>
+          <p className="px-1 text-xs text-muted-foreground">Thiago&apos;s Documentation page: the six documentation rows of today&apos;s sidebar, SDS library included, are tabs of one page. The rows are the documents use case 2 reads.</p>
         </div>
       }
     >
       <RdPage
         title="Documentation"
-        subtitle="The written safety standards. Five kinds, one place."
+        subtitle="The written safety standards and the safety data sheets. Six kinds, one place."
         actions={
           <Popover>
             <PopoverTrigger asChild>
@@ -183,8 +289,9 @@ export default function DocumentationPage() {
         }
       >
         <RdTabs
-          onChange={(k) => setActive(k as MvpKind)}
+          onChange={(k) => setActive(k as TabKey)}
           tabs={TABS.map((t) => {
+            if (t.key === "sds") return { key: t.key, label: t.label, count: empty ? 0 : SDS_ROWS.length, render: () => <SdsList empty={empty} /> };
             const list = rows.filter((r) => r.doc.type === t.key);
             return { key: t.key, label: t.label, count: empty ? 0 : list.length, render: () => <DocList kind={t} rows={list} empty={empty} /> };
           })}

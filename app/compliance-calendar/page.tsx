@@ -1,7 +1,8 @@
 "use client";
 
+import { ComplianceTabBar } from "@/components/screens/compliance/tab-bar";
 import { ExecutionPlan } from "@/components/three-cases/execution-plan";
-import { KIND_ICON, NovaBall, NovaPanel } from "@/components/three-cases/nova-panel";
+import { KIND_ICON, NovaPanel } from "@/components/three-cases/nova-panel";
 import { CASE_B_OPTIONS, OptionSwitcher } from "@/components/three-cases/option-switcher";
 import { PageShell, TapCompare } from "@/components/three-cases/shell";
 import { Button } from "@/components/ui/button";
@@ -130,12 +131,12 @@ export default function ComplianceCalendarPage() {
     setFocusId(p.id);
   };
 
-  const pendingCount = PROPOSALS.filter((p) => listed.includes(p.id) && !isDone(p)).length;
 
   return (
     <PageShell
-      title="Compliance Calendar"
-      mainClassName="flex flex-col gap-3 overflow-hidden p-6"
+      title="Compliance"
+      mainClassName="flex flex-col gap-6 overflow-hidden p-8"
+      onAskSafety={() => setNovaOpen(true)}
       prototypeBar={
         <div className="flex flex-wrap items-center justify-between gap-2">
           <OptionSwitcher caseLabel="Use case 2" options={CASE_B_OPTIONS} />
@@ -163,6 +164,8 @@ export default function ComplianceCalendarPage() {
         ) : null
       }
     >
+      {/* The calendar is the last tab of Compliance, so it carries the same title and tabs. */}
+      <ComplianceTabBar active="calendar" />
       <div className="grid min-h-0 flex-1 grid-cols-1 gap-3">
         {/* Calendar, same structure as the Compliance Calendar in production */}
         <div className="flex min-h-0 flex-col rounded-xl border border-border bg-card">
@@ -282,16 +285,6 @@ export default function ComplianceCalendarPage() {
         </div>
 
       </div>
-
-      {!novaOpen ? (
-        <button
-          onClick={() => setNovaOpen(true)}
-          className="fixed bottom-6 right-6 z-40 flex items-center gap-2 rounded-full border border-border bg-card px-4 py-2.5 text-sm font-medium text-foreground shadow-lg hover:bg-surface-subtle"
-        >
-          <NovaBall /> Ask Nova
-          {pendingCount ? <span className="rounded-full bg-primary px-1.5 text-xs font-semibold text-white">{pendingCount}</span> : null}
-        </button>
-      ) : null}
 
       {openJob ? (
         <div className="fixed inset-0 z-50 flex justify-end bg-black/20" onClick={() => setOpenJobId(null)}>

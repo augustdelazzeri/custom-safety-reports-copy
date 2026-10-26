@@ -257,6 +257,8 @@
   --lab-radius: 12px;
   --lab-gutter: 32px;
   --lab-warning-soft: var(--amber-2);
+  /* UpKeep's red, from the logo: the app icons in the app switcher. */
+  --upkeep-brand: #ff3c4d;
 }
 
 /* ─── 6. .dark — dark mode CSS variable values ───────────────────────────── */
