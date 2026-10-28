@@ -57,7 +57,7 @@ export default function CommandBarPage() {
   const count = stage === "asset" ? assetOptions.length : stage === "task" ? taskOptions.length : 0;
 
   return (
-    <VariantPage note="A · Command bar. Keyboard first: type, arrows, Enter. Every pick becomes a chip in the same field.">
+    <VariantPage note="A · Command bar. Keyboard first: type, arrows, Enter.">
       <div className="mx-auto flex h-full w-full max-w-2xl flex-col pt-[6vh]">
         <div className="mb-3 flex items-center gap-2 text-sm text-muted-foreground">
           <Command className="size-4 text-badge-accent-foreground" />

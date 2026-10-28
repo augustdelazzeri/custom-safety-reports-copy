@@ -115,7 +115,7 @@ export default function ChatReceiptPage() {
   };
 
   return (
-    <VariantPage note="A · Chat + receipt (earlier version). Quick replies make it clickable; typing the whole job works too. The right side is what will exist.">
+    <VariantPage note="A · Chat + receipt. Quick replies, with a live receipt on the right.">
       <div className="grid h-full min-h-0 grid-cols-[minmax(0,1fr)_400px] gap-3">
         <div className="flex min-h-0 flex-col rounded-xl border border-border bg-card">
           <div className="flex-1 space-y-3 overflow-y-auto p-4">

@@ -258,8 +258,13 @@ interface Store {
   nextPm: number;
   /** The empty account: no seeded documents or PMs, only what the person makes. */
   empty?: boolean;
+  /** Jobs the person hid (defaults or their own). They stay in the store so they can be shown again. */
+  hidden: string[];
+  /** Documents moved between Required and Optional, by job, asset and type. */
+  levels: Record<string, Level>;
 }
-const BLANK: Store = { docs: {}, recs: [], custom: [], nextWo: 1201, nextPm: 210 };
+const BLANK: Store = { docs: {}, recs: [], custom: [], nextWo: 1201, nextPm: 210, hidden: [], levels: {} };
+export const levelKey = (famId: string, assetId: string, type: Kind) => `${famId}|${assetId}|${type}`;
 const KEY = "ehs-real-jobs-v4";
 
 const key = (assetId: string, type: Kind) => `${assetId}|${type}`;
@@ -343,8 +348,15 @@ export function pmOf(store: Pick<Store, "recs" | "empty">, assetId: string, famI
 }
 
 export function rowStatus(store: Store, fam: Family, asset: RAsset): RowStatus {
-  // A job the person added has no package of its own: the documents are the ones the asset already has.
-  const base: Need[] = fam.custom ? KINDS.filter((t) => docOf(store, asset.id, t)).map((t) => ({ type: t, level: "required" as Level })) : needsOf(fam, asset);
+  // The AI suggests documents for every asset, so Required is never empty. A job the person added has no package of its
+  // own: it suggests the three general ones (JHA, SOP, audit) and anything else the asset already has.
+  const suggested: Need[] = fam.custom ? KINDS.filter((t) => ["jha", "sop", "audit"].includes(t) || docOf(store, asset.id, t)).map((t) => ({ type: t, level: "required" as Level })) : needsOf(fam, asset);
+  // The account without documents has only the suggestions to show, so all of them are listed as required (and missing).
+  const base: Need[] = suggested.map((n) => ({ ...n, level: store.empty ? ("required" as Level) : n.level }));
+  // Documents the asset has that the AI did not suggest for this job: optional.
+  for (const t of KINDS) if (!base.some((n) => n.type === t) && docOf(store, asset.id, t)) base.push({ type: t, level: "recommended" });
+  // What the person dragged between Required and Optional counts from then on.
+  for (const n of base) n.level = store.levels?.[levelKey(fam.id, asset.id, n.type)] ?? n.level;
   const needs = base.map((n): NeedState => {
     const doc = docOf(store, asset.id, n.type);
     return { type: n.type, level: n.level, state: doc?.state ?? "missing", doc };
@@ -482,11 +494,14 @@ export function useRealStore(empty = false) {
     setSt((x) => ({ ...x, custom: [...x.custom, { id, label, group: "routine", hint: "Added by you", rhythm: "Your rule", every: { n: 1, unit: "month" }, needs: [], custom: true }] }));
     return id;
   };
-  const removeFamily = (famId: string) => setSt((x) => ({ ...x, custom: x.custom.filter((f) => f.id !== famId) }));
+  const removeFamily = (famId: string) => setSt((x) => ({ ...x, custom: x.custom.filter((f) => f.id !== famId), hidden: x.hidden.filter((h) => h !== famId) }));
+  const hideFamily = (famId: string) => setSt((x) => ({ ...x, hidden: x.hidden.includes(famId) ? x.hidden : [...x.hidden, famId] }));
+  const showFamily = (famId: string) => setSt((x) => ({ ...x, hidden: x.hidden.filter((h) => h !== famId) }));
+  const setLevel = (famId: string, assetId: string, type: Kind, level: Level) => setSt((x) => ({ ...x, levels: { ...x.levels, [levelKey(famId, assetId, type)]: level } }));
   // eslint-disable-next-line react-hooks/exhaustive-deps -- `blank` only changes with `empty`, which remounts the page
   const reset = useCallback(() => setSt(blank), [empty]);
 
-  return { ...st, hydrated, createDrafts, createRecs, addFamily, removeFamily, reset };
+  return { ...st, hydrated, createDrafts, createRecs, addFamily, removeFamily, hideFamily, showFamily, setLevel, reset };
 }
 export type RealStore = ReturnType<typeof useRealStore>;
 

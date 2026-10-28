@@ -12,8 +12,8 @@ export type DataMode = "sample" | "no-docs" | "new";
 
 export const DATA_MODES: { value: DataMode; label: string; hint: string }[] = [
   { value: "sample", label: "Sample plant", hint: "Assets, documents and work orders" },
-  { value: "no-docs", label: "No documents", hint: "Assets from Maintenance, no JHA, SOP, LOTO, permit or audit yet" },
-  { value: "new", label: "New account", hint: "No assets and no documents" },
+  { value: "no-docs", label: "No documents", hint: "Assets exist, no JHA, SOP, LOTO, permit or audit yet" },
+  { value: "new", label: "No assets", hint: "No assets yet: the screen asks the user to create them" },
 ];
 
 const KEY = "ehs-demo-data-mode";

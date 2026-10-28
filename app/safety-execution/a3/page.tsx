@@ -37,7 +37,7 @@ export default function TaskCardsPage() {
   };
 
   return (
-    <VariantPage note="A · Task cards (earlier version). The readiness lives on each job, not on a document grid. Green: only the permit and work order are created.">
+    <VariantPage note="A · Task cards. Readiness lives on each job.">
       <div className={cn("grid h-full min-h-0 gap-3", task ? "grid-cols-[minmax(0,1fr)_380px]" : "grid-cols-1")}>
         <div className="flex min-h-0 flex-col gap-3 overflow-y-auto">
           <div className="flex flex-wrap items-center gap-3">

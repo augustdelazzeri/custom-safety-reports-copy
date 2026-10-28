@@ -147,7 +147,7 @@ export default function TaskFirstPage() {
     // NOTE: option F is frozen on purpose. It is exactly what was presented on Oct 20; do not change its flow.
     // Edge-case work (document-to-work-order link, unapproved documents, document statuses) happens in new
     // versions next to it, starting with V1 (app/safety-execution/v1). To redesign the UI, branch from here.
-    <VariantPage note="F · Task first. Pick the job, tick the assets, one approval. Add your own job type: the AI reads which documents it needs.">
+    <VariantPage note="F · Task first. Pick the job, tick the assets, one approval.">
       <div className="grid h-full min-h-0 grid-cols-[230px_minmax(0,1fr)] gap-3">
         <nav className="flex min-h-0 flex-col gap-0.5 overflow-y-auto rounded-xl border border-border bg-card p-2">
           <div className="px-2 pb-1 pt-1 text-xs font-semibold uppercase tracking-wide text-text-placeholder">Jobs</div>

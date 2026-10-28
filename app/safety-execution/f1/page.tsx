@@ -13,7 +13,7 @@ export default function F1Page() {
       bare
       title="Safety work orders"
       barExtra={<DataModeSwitch />}
-      note="F1 · Long-term vision. Not complete: this is where we want the feature to go (PM, document drafts, checklists, selecting several assets). The first deliverable is F2 · MVP. Hover a row for New work order / New PM. Data switches to an empty account: with No documents, tick assets and let the AI draft what is missing."
+      note="F1 · Long-term vision. Not complete: where the feature should go. The first deliverable is F2."
     >
       <Bench links calm status hue="green" mode={mode} />
     </VariantPage>

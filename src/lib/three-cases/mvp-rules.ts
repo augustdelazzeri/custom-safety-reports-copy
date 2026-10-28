@@ -294,8 +294,8 @@ export interface Row {
   found: number;
 }
 
-/** Optional types only show when there is something to act on: the asset has a document of that type, the answer depends on the work, it is recommended, or the person moved it. */
-export const isShown = (s: Slot, all: boolean) => s.level === "required" || all || Boolean(s.doc) || s.candidates.length > 0 || Boolean(s.ask) || s.moved || Boolean(s.recommended);
+/** Optional only lists documents that exist and are linked to the asset: nothing is shown for a type the asset has no document of. */
+export const isShown = (s: Slot, all: boolean) => s.level === "required" || all || Boolean(s.doc) || s.candidates.length > 0;
 
 export const slotKey = (assetId: string, jobId: string, type: MvpKind) => `${assetId}|${jobId}|${type}`;
 
@@ -319,9 +319,11 @@ export function resolveRow(st: MvpStore, job: MvpJob, a: MvpAsset, s: Settings):
     const base = def[type];
     const key = slotKey(a.id, job.id, type);
     const moved = s.phase >= 2 ? st.levels[key] : undefined;
-    if (base.level === "none" && !moved && !s.all) continue;
-    const level: Level = moved ?? (base.level === "none" ? "optional" : base.level);
     const candidates = pool.filter((x) => x.type === type && x.assetIds.includes(a.id));
+    if (base.level === "none" && !moved && !s.all && !candidates.length) continue;
+    // The AI suggests every document for every asset. With no documents in the account the suggestions are all there is, so all are required.
+    const suggestedLevel: Level = base.level === "none" ? "optional" : s.empty ? "required" : base.level;
+    const level: Level = moved ?? suggestedLevel;
     let doc: MvpDoc | undefined;
     let suggested = false;
     let picked = false;
@@ -348,9 +350,9 @@ export function resolveRow(st: MvpStore, job: MvpJob, a: MvpAsset, s: Settings):
     slots.push({
       type,
       level,
-      suggestedLevel: base.level,
+      suggestedLevel,
       recommended: base.recommended,
-      ask: moved === "required" ? undefined : base.ask,
+      ask: level === "required" ? undefined : base.ask,
       why: base.level === "none" ? none.why : base.why,
       doc,
       suggested,
@@ -359,6 +361,17 @@ export function resolveRow(st: MvpStore, job: MvpJob, a: MvpAsset, s: Settings):
       state,
       moved: Boolean(moved),
     });
+  }
+  // Required is never empty: when the OSHA table asks for nothing, what the AI suggests becomes required.
+  // What the person moved does not count, or dragging one document would send the suggestions back to Optional.
+  if (!slots.some((x) => x.level === "required" && !x.moved)) {
+    for (const x of slots) {
+      if (!x.moved && x.suggestedLevel !== "none" && x.why !== none.why) {
+        x.level = "required";
+        x.suggestedLevel = "required";
+        x.ask = undefined;
+      }
+    }
   }
   slots.sort((x, y) => (x.level === y.level ? MVP_KINDS.indexOf(x.type) - MVP_KINDS.indexOf(y.type) : x.level === "required" ? -1 : 1));
   const action = slots.filter((x) => x.level === "required" && x.state !== "valid");
@@ -438,6 +451,8 @@ export interface MvpStore {
   /** Documents the person chose, by asset, job and type. */
   picks: Record<string, string>;
   custom: MvpJob[];
+  /** Jobs the person hid, defaults or their own. */
+  hidden: string[];
   nextWo: number;
 }
 
@@ -467,6 +482,7 @@ const BLANK: MvpStore = {
   levels: {},
   picks: {},
   custom: [],
+  hidden: [],
   nextWo: 1205,
 };
 const KEY = "ehs-mvp-f2-v2";
@@ -497,7 +513,7 @@ export interface CreateWoInput {
 }
 
 /** The empty account: no work orders made from this screen yet, kept apart from the sample plant. */
-const EMPTY: MvpStore = { wos: [], levels: {}, picks: {}, custom: [], nextWo: 1001 };
+const EMPTY: MvpStore = { wos: [], levels: {}, picks: {}, custom: [], hidden: [], nextWo: 1001 };
 
 /** Work orders and corrections, kept in this browser. `empty` keeps the empty account's apart. */
 export function useMvpStore(empty = false) {
@@ -521,6 +537,7 @@ export function useMvpStore(empty = false) {
   }, [st, hydrated, storeKey]);
 
   const jobs = [...JOBS, ...st.custom];
+  const hidden = st.hidden ?? [];
 
   const createWo = (input: CreateWoInput): MvpWo => {
     const ref = `WO-${st.nextWo}`;
@@ -551,10 +568,12 @@ export function useMvpStore(empty = false) {
     setSt((x) => ({ ...x, custom: [...x.custom, asJob(name.trim(), id)] }));
     return id;
   };
-  const removeJob = (id: string) => setSt((x) => ({ ...x, custom: x.custom.filter((j) => j.id !== id) }));
+  const removeJob = (id: string) => setSt((x) => ({ ...x, custom: x.custom.filter((j) => j.id !== id), hidden: x.hidden.filter((h) => h !== id) }));
+  const hideJob = (id: string) => setSt((x) => ({ ...x, hidden: x.hidden.includes(id) ? x.hidden : [...x.hidden, id] }));
+  const showJob = (id: string) => setSt((x) => ({ ...x, hidden: x.hidden.filter((h) => h !== id) }));
   const reset = useCallback(() => setSt(blank), [blank]);
 
-  return { ...st, hydrated, empty, jobs, createWo, setLevel, setPick, addJob, removeJob, reset };
+  return { ...st, hidden, hydrated, empty, jobs, createWo, setLevel, setPick, addJob, removeJob, hideJob, showJob, reset };
 }
 export type MvpStoreApi = ReturnType<typeof useMvpStore>;
 

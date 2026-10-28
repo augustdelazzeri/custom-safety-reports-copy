@@ -37,7 +37,7 @@ export default function StepsPage() {
   };
 
   return (
-    <VariantPage note="A · Steps (earlier version). Asset, job, review: one thing at a time. Slower to read, hardest to get wrong.">
+    <VariantPage note="A · Steps. One thing at a time, hardest to get wrong.">
       <div className="mx-auto flex h-full w-full max-w-2xl flex-col gap-5 pt-[3vh]">
         <ol className="flex items-center gap-2">
           {STEPS.map((label, i) => {

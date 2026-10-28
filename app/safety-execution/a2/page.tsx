@@ -67,7 +67,7 @@ export default function SentencePage() {
   };
 
   return (
-    <VariantPage note="A · Sentence (earlier version). Two blanks to fill (asset and task); when and who come from the AI. The button says exactly what it creates.">
+    <VariantPage note="A · Sentence. Fill two blanks: asset and task.">
       <div className="mx-auto flex h-full w-full max-w-3xl flex-col justify-center pb-[12vh]">
         <p className="text-[28px] font-light leading-[1.7] text-muted-foreground">
           On{" "}

@@ -66,8 +66,8 @@ export function VariantPage({
               {barExtra}
             </div>
             <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-1">
-              {/* One line until hovered, so the panel keeps its height. */}
-              {note ? <p className="line-clamp-1 min-w-0 flex-1 basis-96 px-1 text-xs text-muted-foreground hover:line-clamp-none" title={note}>{note}</p> : <span />}
+              {/* Always one line (full text in the tooltip), so nothing moves on hover. */}
+              {note ? <p className="min-w-0 flex-1 basis-96 truncate px-1 text-xs text-muted-foreground" title={note}>{note}</p> : <span />}
               <MeterBadge />
             </div>
           </div>

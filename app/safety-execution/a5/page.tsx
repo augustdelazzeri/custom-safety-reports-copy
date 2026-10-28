@@ -73,7 +73,7 @@ export default function OneListPage() {
   const tasks = a ? tasksFor(a.id, s) : [];
 
   return (
-    <VariantPage note="A · One list (earlier version). The asset is a switcher at the top; each job row carries its own create button. No separate review screen.">
+    <VariantPage note="A · One list. Each job row has its own create button.">
       <div className="mx-auto flex h-full w-full max-w-4xl flex-col gap-3">
         <div className="flex flex-wrap items-center gap-3">
           <Popover open={pickerOpen} onOpenChange={setPickerOpen}>

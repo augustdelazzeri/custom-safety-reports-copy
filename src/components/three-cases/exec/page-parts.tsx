@@ -2,11 +2,11 @@
 
 /** The parts F1 and F2 share, drawn in the Safety redesign's language. */
 
-import { RdEmptyState, RdNotice } from "@/components/redesign/ui";
+import { RdEmptyState } from "@/components/redesign/ui";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { Boxes, Check, FileText, FileUp, Plus, X } from "lucide-react";
-import type { ReactNode } from "react";
+import { Boxes, Check, ChevronRight, Eye, EyeOff, Plus, X } from "lucide-react";
+import { useState, type ReactNode } from "react";
 
 export const PAGE_TITLE = "Safety work orders";
 
@@ -16,61 +16,64 @@ export const jobLabel = (on: boolean) => cn("min-w-0 flex-1 truncate text-left t
 /** Group labels at the sidebar's 12px, kept clear of the friendly look's larger small text. */
 export const groupLabel = "px-3 pb-1 text-[0.75rem] leading-4 font-medium tracking-wide text-muted-foreground uppercase";
 
-/** The account has assets but no Safety documents: say so once, above the list, with the way forward. */
-export function NoDocsNotice({ ai = false }: { ai?: boolean }) {
-  return (
-    <RdNotice
-      icon={FileText}
-      title="No safety documents yet"
-      action={
-        <Button size="sm" variant="outline" className="gap-2" title="Opens the upload in Safety (not part of this prototype)">
-          <FileUp className="size-4" /> Upload documents
-        </Button>
-      }
-    >
-      {ai
-        ? "Work orders still go out, without them. Tick the assets and let the AI draft what each job needs, or upload the JHAs, SOPs and LOTOs you use as PDFs."
-        : "Work orders still go out, without them. Upload the JHAs, SOPs and LOTOs you use as PDFs: Safety turns each one into a draft and links it to its asset."}
-    </RdNotice>
-  );
-}
-
-/** No assets and no documents: nothing to pick yet, so the page says where to start. */
-export function NewAccount() {
-  const steps = [
-    { title: "Add your assets", body: "They come from Maintenance: add them there or import a spreadsheet." },
-    { title: "Upload your documents", body: "JHA, SOP, LOTO, permits and audits as PDFs. Safety turns each one into a draft and links it to its asset." },
-    { title: "Pick a job, then the asset", body: "The work order comes with the documents the OSHA asks for that job." },
-  ];
+/** No assets in the account: say it plainly and link to the Assets screen. Nothing else. */
+export function NoAssets() {
   return (
     <div className="flex flex-1 flex-col items-center">
       <RdEmptyState
         icon={Boxes}
-        title="No assets yet"
-        body="Safety work orders start from an asset. Once your assets are in, every job shows the documents the OSHA asks for on each one."
+        title="You have no assets"
+        body="Work orders start from an asset."
         action={
-          <div className="flex flex-wrap justify-center gap-2">
-            <Button title="Opens Maintenance (not part of this prototype)">
-              <Plus className="size-4" /> Add assets
-            </Button>
-            <Button variant="outline" title="Opens the upload in Safety (not part of this prototype)">
-              <FileUp className="size-4" /> Upload documents
-            </Button>
-          </div>
+          <Button asChild>
+            <a href="#" onClick={(e) => e.preventDefault()} title="Opens Assets in Maintenance (not part of this prototype)">
+              <Plus className="size-4" /> Create assets
+            </a>
+          </Button>
         }
       />
-      <ol className="grid w-full max-w-3xl grid-cols-1 gap-4 md:grid-cols-3">
-        {steps.map((s, i) => (
-          <li key={s.title} className="flex gap-3 rounded-[var(--lab-radius)] border border-border p-4">
-            <span className="flex size-6 shrink-0 items-center justify-center rounded-full bg-badge-accent text-xs font-semibold text-badge-accent-foreground">{i + 1}</span>
-            <span>
-              <span className="block text-sm font-medium text-foreground">{s.title}</span>
-              <span className="block text-sm text-muted-foreground">{s.body}</span>
-            </span>
-          </li>
-        ))}
-      </ol>
     </div>
+  );
+}
+
+/** The hide button of a job row (shown on hover) and the "Hidden (n)" list under the jobs, to bring them back. */
+export function HideJobButton({ label, onClick }: { label: string; onClick: () => void }) {
+  return (
+    <button aria-label={`Hide ${label}`} title="Hide this routine. You can show it again under Hidden." onClick={onClick} className="shrink-0 text-text-placeholder opacity-0 hover:text-foreground focus-visible:opacity-100 group-hover:opacity-100">
+      <EyeOff className="size-3.5" />
+    </button>
+  );
+}
+
+export function HiddenJobs({ jobs, onShow }: { jobs: { id: string; label: string }[]; onShow: (id: string) => void }) {
+  const [open, setOpen] = useState(false);
+  if (!jobs.length) return null;
+  return (
+    <div className="flex flex-col gap-0.5">
+      <button onClick={() => setOpen(!open)} aria-expanded={open} className="flex min-h-8 items-center gap-1.5 rounded-lg px-3 text-left text-sm font-medium text-muted-foreground hover:bg-muted hover:text-foreground">
+        <ChevronRight className={cn("size-3.5 transition-transform", open && "rotate-90")} />
+        Hidden ({jobs.length})
+      </button>
+      {open
+        ? jobs.map((j) => (
+            <div key={j.id} className="group flex min-h-8 items-center gap-1 rounded-lg px-3 py-1 hover:bg-muted">
+              <span className="min-w-0 flex-1 truncate text-sm text-text-placeholder">{j.label}</span>
+              <button aria-label={`Show ${j.label}`} title="Show this routine again" onClick={() => onShow(j.id)} className="shrink-0 text-muted-foreground hover:text-foreground">
+                <Eye className="size-3.5" />
+              </button>
+            </div>
+          ))
+        : null}
+    </div>
+  );
+}
+
+/** The row action: a small icon button that is always in its own cell, so it never covers the list or blocks a click. */
+export function RowAction({ label, onClick, children }: { label: string; onClick: () => void; children: ReactNode }) {
+  return (
+    <Button size="icon-xs" variant="outline" aria-label={label} title={label} onClick={onClick} className="bg-card opacity-0 transition focus-visible:opacity-100 group-hover:opacity-100">
+      {children}
+    </Button>
   );
 }
 

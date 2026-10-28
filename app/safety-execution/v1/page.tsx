@@ -9,7 +9,7 @@ import { VariantPage } from "@/components/three-cases/exec/variant-page";
  */
 export default function V1Page() {
   return (
-    <VariantPage bare title="Safety work orders" note="V1 · Pick the job and the assets. Missing documents start as drafts; a PM or a work order is created with the checklist and the documents attached.">
+    <VariantPage bare title="Safety work orders" note="V1 · Pick the job and assets; missing documents start as drafts.">
       <Bench />
     </VariantPage>
   );

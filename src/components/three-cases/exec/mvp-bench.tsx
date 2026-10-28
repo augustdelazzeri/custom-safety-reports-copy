@@ -20,7 +20,6 @@ import type { DataMode } from "@/lib/three-cases/demo-data";
 import {
   CLASS_LABEL,
   GROUPS,
-  MVP_KINDS,
   MVP_LABEL,
   MVP_SHORT,
   WO_ASSIGNEES,
@@ -48,7 +47,8 @@ import { Check, ChevronDown, FilePlus, FileUp, Loader2, Plus, Search, Sparkles, 
 import { useMemo, useRef, useState } from "react";
 import { CHIP, STATUS_HINT, STATUS_KEY, STATUS_WORD, StatusDot, statusUi, type StatusKey } from "./bench-parts";
 import { useMeterFinish } from "./meter";
-import { CreatedToast, ListHeading, NewAccount, NoDocsNotice, PAGE_TITLE, groupLabel, jobLabel, jobRow, type Created } from "./page-parts";
+import { BenchDnd, DragChip, DropCell } from "./dnd";
+import { CreatedToast, HiddenJobs, HideJobButton, ListHeading, NoAssets, PAGE_TITLE, RowAction, groupLabel, jobLabel, jobRow, type Created } from "./page-parts";
 
 /** Everything of the MVP is on: the AI class, swapping a document, Required/Optional and the work orders column. */
 const PHASE = 3 as const;
@@ -83,12 +83,7 @@ function Chip({ row, slot, job, st }: { row: Row; slot: Slot; job: MvpJob; st: M
   const ui = doc ? statusUi(stateKey(doc.state), "green") : { Icon: FilePlus, chip: MISSING_CHIP };
   const Icon = ui.Icon;
   return (
-    <span
-      draggable
-      onDragStart={(e) => e.dataTransfer.setData("text/plain", `${row.asset.id}|${slot.type}`)}
-      title={chipTitle(slot)}
-      className={cn(CHIP, "max-w-full cursor-grab pr-1 active:cursor-grabbing", ui.chip, slot.ask && "border-dashed")}
-    >
+    <span title={chipTitle(slot)} className={cn(CHIP, "max-w-full pr-1", ui.chip, slot.ask && "border-dashed")}>
       <Icon />
       {doc ? (
         <a href="#" draggable={false} onClick={(e) => e.preventDefault()} title={`Opens ${doc.ref} inside Safety, to view or edit (not part of this prototype)`} className="truncate underline-offset-2 hover:underline">
@@ -168,15 +163,17 @@ function ChipMenu({ row, slot, job, st, close }: { row: Row; slot: Slot; job: Mv
         </div>
       )}
       <div className="flex flex-wrap items-center gap-x-4 gap-y-1 border-t border-border px-3 py-2 text-sm">
-        <button
-          onClick={() => {
-            st.setLevel(row.asset.id, job.id, slot.type, other === slot.suggestedLevel ? undefined : other);
-            close();
-          }}
-          className="font-medium text-badge-accent-foreground hover:underline"
-        >
-          Mark as {other}
-        </button>
+        {other === "required" || slot.doc ? (
+          <button
+            onClick={() => {
+              st.setLevel(row.asset.id, job.id, slot.type, other === slot.suggestedLevel ? undefined : other);
+              close();
+            }}
+            className="font-medium text-badge-accent-foreground hover:underline"
+          >
+            Mark as {other}
+          </button>
+        ) : null}
         {slot.picked || slot.moved ? (
           <button
             onClick={() => {
@@ -194,44 +191,11 @@ function ChipMenu({ row, slot, job, st, close }: { row: Row; slot: Slot; job: Mv
   );
 }
 
-/** The "+" that brings a document type the OSHA table did not suggest into Optional. */
-function AddType({ row, job, st }: { row: Row; job: MvpJob; st: MvpStoreApi }) {
-  const [open, setOpen] = useState(false);
-  const hidden = MVP_KINDS.filter((t) => !row.slots.some((s) => s.type === t && isShown(s, false)));
-  if (!hidden.length) return null;
-  return (
-    <Popover open={open} onOpenChange={setOpen}>
-      <PopoverTrigger asChild>
-        <button
-          aria-label="Add a document type"
-          title="Add a document type the OSHA table did not suggest"
-          className="inline-flex size-5 items-center justify-center rounded-full border border-dashed border-text-placeholder text-muted-foreground hover:border-primary hover:text-badge-accent-foreground"
-        >
-          <Plus className="size-3" />
-        </button>
-      </PopoverTrigger>
-      <PopoverContent align="start" className="w-48 p-2">
-        <p className={cn(menuCaption, "pb-1")}>Add to Optional</p>
-        {hidden.map((t) => (
-          <button
-            key={t}
-            onClick={() => {
-              st.setLevel(row.asset.id, job.id, t, "optional");
-              setOpen(false);
-            }}
-            className={cn(menuItem, "py-1.5")}
-          >
-            {MVP_LABEL[t]}
-          </button>
-        ))}
-      </PopoverContent>
-    </Popover>
-  );
-}
-
 // ───────────────────────────── jobs on the left
 
 function Nav({ job, jobs, st, onPick }: { job: MvpJob; jobs: MvpJob[]; st: MvpStoreApi; onPick: (id: string) => void }) {
+  const hiddenJobs = jobs.filter((j) => st.hidden.includes(j.id));
+  jobs = jobs.filter((j) => !st.hidden.includes(j.id));
   const [adding, setAdding] = useState(false);
   const item = (j: MvpJob) => {
     const on = j.id === job.id;
@@ -240,6 +204,13 @@ function Nav({ job, jobs, st, onPick }: { job: MvpJob; jobs: MvpJob[]; st: MvpSt
         <button title={j.hint} onClick={() => onPick(j.id)} aria-current={on ? "true" : undefined} className={jobLabel(on)}>
           {j.label}
         </button>
+        <HideJobButton
+          label={j.label}
+          onClick={() => {
+            st.hideJob(j.id);
+            if (on) onPick(jobs.find((x) => x.id !== j.id)?.id ?? j.id);
+          }}
+        />
         {j.custom ? (
           <button
             aria-label={`Delete ${j.label}`}
@@ -248,7 +219,7 @@ function Nav({ job, jobs, st, onPick }: { job: MvpJob; jobs: MvpJob[]; st: MvpSt
               st.removeJob(j.id);
               if (on) onPick("inspect");
             }}
-            className="shrink-0 text-text-placeholder opacity-0 hover:text-foreground group-hover:opacity-100"
+            className="shrink-0 text-text-placeholder opacity-0 hover:text-foreground focus-visible:opacity-100 group-hover:opacity-100"
           >
             <Trash2 className="size-3.5" />
           </button>
@@ -259,7 +230,7 @@ function Nav({ job, jobs, st, onPick }: { job: MvpJob; jobs: MvpJob[]; st: MvpSt
   return (
     <nav aria-label="Jobs" className="flex min-h-0 flex-col gap-4">
       <div className="flex min-h-0 flex-col gap-3 overflow-y-auto">
-        {GROUPS.map((g) => (
+        {GROUPS.filter((g) => jobs.some((j) => j.group === g.id && !j.custom)).map((g) => (
           <div key={g.id} className="flex flex-col gap-0.5">
             <span className={groupLabel}>{g.label}</span>
             {jobs.filter((j) => j.group === g.id && !j.custom).map(item)}
@@ -271,6 +242,7 @@ function Nav({ job, jobs, st, onPick }: { job: MvpJob; jobs: MvpJob[]; st: MvpSt
             {jobs.filter((j) => j.custom).map(item)}
           </div>
         ) : null}
+        <HiddenJobs jobs={hiddenJobs} onShow={st.showJob} />
       </div>
       <Button variant="outline" size="sm" onClick={() => setAdding(true)} className="w-full shrink-0 gap-2">
         <Plus className="size-4" /> New job
@@ -330,7 +302,7 @@ function NewJobDialog({ st, open, onOpenChange, onCreated }: { st: MvpStoreApi; 
 
 // ───────────────────────────── the assets of a job
 
-const COLS = "grid-cols-[minmax(150px,1.2fr)_144px_minmax(0,1fr)_minmax(0,1.1fr)_156px]";
+const COLS = "grid-cols-[minmax(150px,1.2fr)_144px_minmax(0,1fr)_minmax(0,1.1fr)_188px]";
 
 function ColumnHeads() {
   return (
@@ -387,30 +359,16 @@ function WoCell({ r }: { r: Row }) {
 }
 
 function AssetRow({ r, job, st, onCreate }: { r: Row; job: MvpJob; st: MvpStoreApi; onCreate: () => void }) {
-  const [over, setOver] = useState<Level | null>(null);
   const required = r.slots.filter((s) => s.level === "required");
   const optional = r.slots.filter((s) => s.level === "optional" && isShown(s, false));
-
-  const zone = (level: Level) => ({
-    onDragOver: (e: React.DragEvent) => {
-      e.preventDefault();
-      setOver(level);
-    },
-    onDragLeave: () => setOver(null),
-    onDrop: (e: React.DragEvent) => {
-      e.preventDefault();
-      setOver(null);
-      const [aid, type] = e.dataTransfer.getData("text/plain").split("|");
-      if (aid !== r.asset.id) return;
-      const slot = r.slots.find((s) => s.type === type);
-      if (!slot || slot.level === level) return;
-      st.setLevel(r.asset.id, job.id, slot.type, level === slot.suggestedLevel ? undefined : level);
-    },
-  });
-  const zoneCls = (level: Level) => cn("flex min-h-6 flex-wrap items-center gap-1.5 rounded-lg", over === level && "bg-badge-accent ring-1 ring-primary/40");
+  const chip = (s: Slot) => (
+    <DragChip key={s.type} assetId={r.asset.id} type={s.type} label={s.doc?.ref ?? MVP_SHORT[s.type]} disabled={!s.doc && s.candidates.length === 0}>
+      <Chip row={r} slot={s} job={job} st={st} />
+    </DragChip>
+  );
 
   return (
-    <li className="group relative border-b border-border transition-colors last:border-b-0 hover:bg-muted/50">
+    <li className="group border-b border-border transition-colors last:border-b-0 hover:bg-muted/50">
       <div className={cn("grid items-start gap-4 px-4 py-3", COLS)}>
         <div className="min-w-0">
           <p className="truncate text-sm font-medium text-foreground" title={r.asset.name}>
@@ -427,20 +385,19 @@ function AssetRow({ r, job, st, onCreate }: { r: Row; job: MvpJob; st: MvpStoreA
         <div>
           <ReadyTag r={r} />
         </div>
-        <div {...zone("required")} className={zoneCls("required")}>
-          {required.length ? required.map((s) => <Chip key={s.type} row={r} slot={s} job={job} st={st} />) : <span className="truncate text-sm whitespace-nowrap text-text-placeholder">None required</span>}
+        <DropCell assetId={r.asset.id} level="required">
+          {required.map(chip)}
+        </DropCell>
+        <DropCell assetId={r.asset.id} level="optional">
+          {optional.map(chip)}
+        </DropCell>
+        <div className="flex items-start justify-between gap-2">
+          <WoCell r={r} />
+          {/* Its own cell: it fades in on hover, but it always takes its place, so it never covers the list. */}
+          <RowAction label="New work order" onClick={onCreate}>
+            <Plus />
+          </RowAction>
         </div>
-        <div {...zone("optional")} className={zoneCls("optional")}>
-          {optional.length ? optional.map((s) => <Chip key={s.type} row={r} slot={s} job={job} st={st} />) : <span className="text-sm text-text-placeholder">None</span>}
-          <AddType row={r} job={job} st={st} />
-        </div>
-        <WoCell r={r} />
-      </div>
-      {/* The row's action shows on hover, over the end of the row, as the list's row menu does. */}
-      <div className="pointer-events-none absolute inset-y-0 right-0 flex items-start bg-gradient-to-l from-surface-subtle from-60% to-transparent pt-3 pr-4 pl-12 opacity-0 transition group-focus-within:opacity-100 group-hover:opacity-100 [&>*]:pointer-events-auto">
-        <Button size="sm" variant="outline" onClick={onCreate} className="bg-card shadow-xs">
-          New work order
-        </Button>
       </div>
     </li>
   );
@@ -462,7 +419,7 @@ function Legend() {
       <span className="inline-flex items-center gap-1" title="Depends on the work: open the chip for the question">
         <span className="font-semibold">?</span> Ask
       </span>
-      <span className="text-text-placeholder">Drag a chip between Required and Optional, or open it with the arrow</span>
+      <span className="text-text-placeholder">Drag a document from Optional to Required to make it required for this routine on this asset</span>
     </div>
   );
 }
@@ -672,7 +629,8 @@ export function MvpBench({ mode = "sample" }: { mode?: DataMode }) {
   const [toast, setToast] = useState<Toast | null>(null);
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const job = st.jobs.find((j) => j.id === jobId) ?? st.jobs[0];
+  const visible = st.jobs.filter((j) => !st.hidden.includes(j.id));
+  const job = visible.find((j) => j.id === jobId) ?? visible[0] ?? st.jobs[0];
   const base = useMemo(() => rowsFor(st, job, { phase: PHASE, all: false, empty }), [st, job, empty]);
   const q = filter.trim().toLowerCase();
   const shown = base.filter((r) => !q || `${r.asset.code} ${r.asset.name} ${r.asset.location}`.toLowerCase().includes(q));
@@ -684,11 +642,18 @@ export function MvpBench({ mode = "sample" }: { mode?: DataMode }) {
     setStep({ name: "pick" });
   };
 
+  // Dropping a document on Required or Optional saves it for this routine on this asset.
+  const move = (assetId: string, type: string, level: Level) => {
+    const slot = base.find((r) => r.asset.id === assetId)?.slots.find((x) => x.type === type);
+    if (!slot || slot.level === level) return;
+    st.setLevel(assetId, job.id, slot.type, level === slot.suggestedLevel ? undefined : level);
+  };
+
   if (mode === "new") {
     return (
       <div className="h-full overflow-y-auto">
         <RdPage title={TITLE} subtitle={SUBTITLE}>
-          <NewAccount />
+          <NoAssets />
         </RdPage>
       </div>
     );
@@ -722,7 +687,6 @@ export function MvpBench({ mode = "sample" }: { mode?: DataMode }) {
       <div className="grid min-h-0 flex-1 grid-cols-[176px_minmax(0,1fr)] gap-6 xl:grid-cols-[200px_minmax(0,1fr)] xl:gap-8">
         <Nav job={job} jobs={st.jobs} st={st} onPick={pick} />
         <section className="flex min-h-0 flex-col gap-4">
-          {mode === "no-docs" ? <NoDocsNotice /> : null}
           <ListHeading
             title={`${job.label}: on which asset?`}
             line={
@@ -739,11 +703,13 @@ export function MvpBench({ mode = "sample" }: { mode?: DataMode }) {
           <div className="min-h-0 flex-1 overflow-y-auto rounded-lg border border-border">
             <ColumnHeads />
             {shown.length ? (
-              <ul>
-                {shown.map((r) => (
-                  <AssetRow key={r.asset.id} r={r} job={job} st={st} onCreate={() => setStep({ name: "form", assetId: r.asset.id })} />
-                ))}
-              </ul>
+              <BenchDnd onMove={move}>
+                <ul>
+                  {shown.map((r) => (
+                    <AssetRow key={r.asset.id} r={r} job={job} st={st} onCreate={() => setStep({ name: "form", assetId: r.asset.id })} />
+                  ))}
+                </ul>
+              </BenchDnd>
             ) : (
               <RdEmptyState icon={Search} title={`No asset matches “${filter}”`} body="Try part of the name, the code or the location." />
             )}

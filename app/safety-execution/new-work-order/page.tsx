@@ -299,7 +299,7 @@ export default function NewWorkOrderPage() {
   };
 
   return (
-    <VariantPage note="E · New work order. Today's CMMS form, field for field. Picking the asset brings the job's safety documents under it, and the AI fills the rest from that job.">
+    <VariantPage note="E · New work order. Today's CMMS form, with the AI filling the rest.">
       <div className="relative h-full min-h-0">
         <ListBehind />
         <div className="absolute inset-x-4 inset-y-3 mx-auto flex max-w-[1148px] flex-col overflow-hidden rounded-lg bg-card shadow-2xl">

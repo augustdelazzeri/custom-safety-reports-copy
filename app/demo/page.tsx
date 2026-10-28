@@ -38,7 +38,7 @@ function OptionCard({ href, label, hint }: { href: string; label: string; hint: 
         <span className="text-sm font-semibold text-foreground">{label}</span>
         <ArrowRight className="size-4 text-muted-foreground transition group-hover:translate-x-0.5 group-hover:text-foreground" />
       </span>
-      <span className="text-sm text-muted-foreground">{hint}</span>
+      <span className="line-clamp-1 h-5 text-sm text-muted-foreground">{hint}</span>
       {TRY[href] ? <span className="mt-1 text-sm text-badge-accent-foreground">Try: {TRY[href]}</span> : null}
     </Link>
   );
@@ -112,7 +112,7 @@ export default function DemoPage() {
           <RdCard title="Documentation, one page" icon={<FileText />} action={<RdBadge>From the redesign</RdBadge>} padded>
             <p className="text-sm text-muted-foreground">JHA, SOP, LOTO, permits and audits as five tabs of one page, as in Thiago&apos;s redesign. The rows are the documents use case 2 reads.</p>
             <div className="mt-4 grid grid-cols-1 gap-3 md:grid-cols-2">
-              <OptionCard href="/documentation" label="Documentation" hint="Five kinds, one place. Switch Data to No documents for the empty tabs." />
+              <OptionCard href="/documentation" label="Documentation" hint="Five kinds of document, one page" />
             </div>
           </RdCard>
         </div>

@@ -20,28 +20,29 @@ export interface OptionLink {
 const F = "/safety-execution/task-first";
 
 export const CASE_B_OPTIONS: OptionLink[] = [
-  { href: F, label: "F · Task first (shown to Ryan)", hint: "As presented to Ryan on Monday: pick the job, then one or more assets. Kept as it was" },
-  { href: "/safety-execution/f1", label: "F1 · Long-term vision", hint: "Not complete: draws where the feature goes (PM, document drafts, checklists, several assets at once). Colors are status" },
-  { href: "/safety-execution/f2", label: "F2 · MVP", hint: "The first deliverable: what the OSHA asks for each job on each asset, and a work order in two clicks" },
-  { href: "/safety-execution/v1", label: "V1 · Real data", hint: "Pick the job and the assets; start the missing documents as drafts; create a PM or a work order with the documents attached", tested: true, group: "Earlier versions of V" },
-  { href: "/safety-execution/v2", label: "V2 · Document links", hint: "V1 with each document's ID as a link (drafts too)", tested: true, group: "Earlier versions of V" },
-  { href: "/safety-execution/v3", label: "V3 · Gray", hint: "V2 with gray instead of yellow for what needs action", tested: true, group: "Earlier versions of V" },
+  { href: F, label: "F · Task first (shown to Ryan)", hint: "Shown to Ryan: pick the job, then the assets" },
+  { href: "/safety-execution/f1", label: "F1 · Long-term vision", hint: "Where the feature goes: PM, drafts, many assets" },
+  { href: "/safety-execution/f2", label: "F2 · MVP", hint: "First deliverable: OSHA rules per job, work order in 2 clicks" },
+  { href: "/safety-execution/v1", label: "V1 · Real data", hint: "Pick job and assets, draft what is missing, create the WO", tested: true, group: "Earlier versions of V" },
+  { href: "/safety-execution/v2", label: "V2 · Document links", hint: "V1 with each document ID as a link", tested: true, group: "Earlier versions of V" },
+  { href: "/safety-execution/v3", label: "V3 · Gray", hint: "V2 with gray instead of yellow", tested: true, group: "Earlier versions of V" },
   { href: "/safety-execution/command-bar", label: "A · Command bar", hint: "One field: asset, then task, then Enter", tested: true, group: "Other ideas" },
   { href: "/compliance-calendar", label: "B · Agenda", hint: "The calendar prepares the work by itself", tested: true, group: "Other ideas" },
-  { href: "/safety-execution/mobile", label: "D · At the asset", hint: "Scan the asset's QR, see its documents, do the job", tested: true, group: "Other ideas" },
-  { href: "/safety-execution/new-work-order", label: "E · New work order", hint: "Today's CMMS form: pick the asset, the documents come with it", tested: true, group: "Other ideas" },
+  { href: "/safety-execution/mobile", label: "D · At the asset", hint: "Scan the QR, see its documents, do the job", tested: true, group: "Other ideas" },
+  { href: "/safety-execution/new-work-order", label: "E · New work order", hint: "Today's CMMS form; the documents come with the asset", tested: true, group: "Other ideas" },
   { href: "/safety-execution/readiness", label: "C · Readiness board", hint: "Every asset of a location at a glance", tested: true, group: "Set aside" },
-  { href: "/safety-execution", label: "A · Ask or pick", hint: "First version: chat, location and asset, document grid", tested: true, group: "Earlier versions of A" },
+  { href: "/safety-execution", label: "A · Ask or pick", hint: "First version: chat, asset and document grid", tested: true, group: "Earlier versions of A" },
   { href: "/safety-execution/a2", label: "A · Sentence", hint: "Fill the blanks of one sentence", tested: true, group: "Earlier versions of A" },
-  { href: "/safety-execution/a3", label: "A · Task cards", hint: "Tasks with a readiness dot, receipt on the side", tested: true, group: "Earlier versions of A" },
+  { href: "/safety-execution/a3", label: "A · Task cards", hint: "Tasks with a readiness dot", tested: true, group: "Earlier versions of A" },
   { href: "/safety-execution/a4", label: "A · Steps", hint: "Asset, task, review: one thing per screen", tested: true, group: "Earlier versions of A" },
-  { href: "/safety-execution/a5", label: "A · One list", hint: "Asset in the header, tasks as rows, create on the row", tested: true, group: "Earlier versions of A" },
-  { href: "/safety-execution/a6", label: "A · Chat + receipt", hint: "Talk on the left, see what will exist on the right", tested: true, group: "Earlier versions of A" },
+  { href: "/safety-execution/a5", label: "A · One list", hint: "Asset in the header, tasks as rows", tested: true, group: "Earlier versions of A" },
+  { href: "/safety-execution/a6", label: "A · Chat + receipt", hint: "Chat on the left, receipt on the right", tested: true, group: "Earlier versions of A" },
 ];
 
 export const CASE_C_OPTIONS: OptionLink[] = [
-  { href: "/inbox", label: "A · Inbox + Nova", hint: "Events triaged by AI next to what is already in the Inbox; Nova runs the usual flow" },
-  { href: "/inbox/a1", label: "A1 · Source lists", hint: "A with the lists the work comes from on the left: events, CAPAs, work orders and documents, open only, the one due first on top" },
+  { href: "/inbox", label: "A · Inbox + Nova", hint: "Events triaged by AI next to the Inbox" },
+  { href: "/inbox/a1", label: "A1 · Close work orders", hint: "List of events, CAPAs and documents; close their work orders on the right" },
+  { href: "/inbox/a2", label: "A2 · Close + create", hint: "A1, and create the work order on the spot when there is none" },
   { href: "/events/ev-2041", label: "B · Inside the event", hint: "The next steps live on the event" },
   { href: "/events/board", label: "C · Board", hint: "Open, In review, Closed; drag or decide on the card", tested: true, group: "Set aside (Oct 26)" },
 ];

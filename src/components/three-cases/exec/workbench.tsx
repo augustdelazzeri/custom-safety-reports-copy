@@ -41,6 +41,7 @@ import {
   type Every,
   type Family,
   type Kind,
+  type NeedState,
   type Priority,
   type Rec,
   type RowStatus,
@@ -48,16 +49,17 @@ import {
   type Unit,
 } from "@/lib/three-cases/real-jobs";
 import { cn } from "@/lib/utils";
-import { FilePen, ImagePlus, Loader2, Paperclip, Plus, Search, Sparkles, Trash2, X } from "lucide-react";
+import { CalendarClock, FilePen, ImagePlus, Loader2, Paperclip, Plus, Search, Sparkles, Trash2, X } from "lucide-react";
 import { useMemo, useRef, useState } from "react";
 import { CountBar, DocPill, LookContext, PmCell, ReadyTag, StatusLegend, okDot, plural, useLook, warnText } from "./bench-parts";
 import { useMeterFinish } from "./meter";
-import { CreatedToast, ListHeading, NewAccount, NoDocsNotice, PAGE_TITLE, groupLabel, jobLabel, jobRow, type Created } from "./page-parts";
+import { BenchDnd, DragChip, DropCell } from "./dnd";
+import { CreatedToast, HiddenJobs, HideJobButton, ListHeading, NoAssets, PAGE_TITLE, RowAction, groupLabel, jobLabel, jobRow, type Created } from "./page-parts";
 
 type Phase = "pick" | "form" | "running";
 type Toast = Created;
 
-const COLS = "grid-cols-[16px_minmax(140px,1fr)_144px_minmax(0,1.3fr)_minmax(0,0.7fr)_minmax(168px,1.2fr)]";
+const COLS = "grid-cols-[16px_minmax(140px,1fr)_144px_minmax(0,1.1fr)_minmax(124px,0.9fr)_minmax(200px,1.2fr)]";
 const SUBTITLE = "Pick the job, tick the assets. Start what is missing as drafts, then create a PM or the work orders, with the documents attached.";
 
 function useBench(empty: boolean) {
@@ -92,8 +94,9 @@ function useBench(empty: boolean) {
   const [checklist, setChecklist] = useState("none");
   const [generated, setGenerated] = useState<ChecklistOpt[]>([]);
 
-  const fams = allFamilies(store);
-  const fam = fams.find((f) => f.id === famId) ?? fams[0];
+  const allFams = allFamilies(store);
+  const fams = allFams.filter((f) => !store.hidden.includes(f.id));
+  const fam = fams.find((f) => f.id === famId) ?? fams[0] ?? allFams[0];
   const base = useMemo(() => rowsFor(store, fam), [store, fam]);
   const q = filter.trim().toLowerCase();
   const shown = base.filter((r) => !q || `${r.asset.code} ${r.asset.name} ${r.asset.location}`.toLowerCase().includes(q));
@@ -177,7 +180,7 @@ function useBench(empty: boolean) {
     }, 400);
   };
 
-  return { store, fam, fams, famId, switchFam, picked, toggle, toggleAll, filter, setFilter, base, shown, chosen, toDraft, creating, createDrafts, phase, setPhase, kind, openForm, title, setTitle, assignee, setAssignee, priority, setPriority, category, setCategory, hours, setHours, signature, setSignature, date, setDate, every, setEvery, attach, setAttach, sched, setSched, checklist, setChecklist, generated, setGenerated, create, toast, setToast };
+  return { store, fam, fams, allFams, famId, switchFam, picked, toggle, toggleAll, filter, setFilter, base, shown, chosen, toDraft, creating, createDrafts, phase, setPhase, kind, openForm, title, setTitle, assignee, setAssignee, priority, setPriority, category, setCategory, hours, setHours, signature, setSignature, date, setDate, every, setEvery, attach, setAttach, sched, setSched, checklist, setChecklist, generated, setGenerated, create, toast, setToast };
 }
 type B = ReturnType<typeof useBench>;
 
@@ -185,6 +188,7 @@ type B = ReturnType<typeof useBench>;
 
 function Nav({ b }: { b: B }) {
   const { store, fam, fams } = b;
+  const hiddenFams = b.allFams.filter((f) => store.hidden.includes(f.id));
   const { calm, hue } = useLook();
   const [adding, setAdding] = useState(false);
 
@@ -196,6 +200,13 @@ function Nav({ b }: { b: B }) {
           <span className={jobLabel(on)}>{f.label}</span>
           <CountBar rows={rowsFor(store, f)} />
         </button>
+        <HideJobButton
+          label={f.label}
+          onClick={() => {
+            store.hideFamily(f.id);
+            if (on) b.switchFam(fams.find((x) => x.id !== f.id)?.id ?? f.id);
+          }}
+        />
         {f.custom ? (
           <button
             onClick={() => {
@@ -204,7 +215,7 @@ function Nav({ b }: { b: B }) {
             }}
             aria-label={`Delete ${f.label}`}
             title="Delete this job"
-            className="shrink-0 text-text-placeholder opacity-0 hover:text-foreground group-hover:opacity-100"
+            className="shrink-0 text-text-placeholder opacity-0 hover:text-foreground focus-visible:opacity-100 group-hover:opacity-100"
           >
             <Trash2 className="size-3.5" />
           </button>
@@ -216,7 +227,7 @@ function Nav({ b }: { b: B }) {
   return (
     <nav aria-label="Jobs" className="flex min-h-0 flex-col gap-4">
       <div className="flex min-h-0 flex-col gap-3 overflow-y-auto">
-        {GROUPS.map((g) => (
+        {GROUPS.filter((g) => fams.some((f) => f.group === g.id && !f.custom)).map((g) => (
           <div key={g.id} className="flex flex-col gap-0.5">
             <span className={groupLabel}>{g.label}</span>
             {fams.filter((f) => f.group === g.id && !f.custom).map(item)}
@@ -228,6 +239,7 @@ function Nav({ b }: { b: B }) {
             {fams.filter((f) => f.custom).map(item)}
           </div>
         ) : null}
+        <HiddenJobs jobs={hiddenFams} onShow={store.showFamily} />
       </div>
       <div className="flex shrink-0 flex-col gap-3">
         <div className="flex items-center gap-3 px-3 text-xs text-muted-foreground">
@@ -305,10 +317,15 @@ function Row({ b, r }: { b: B; r: RowStatus }) {
   const on = b.picked.includes(a.id);
   const id = `cb-${b.fam.id}-${a.id}`;
   const required = r.needs.filter((n) => n.level === "required");
-  // Optional documents only show when the asset has them: there is nothing to act on for the others.
+  // Optional shows only documents the asset has that are not required for this job.
   const optional = r.needs.filter((n) => n.level === "recommended" && n.state !== "missing");
+  const pill = (n: NeedState) => (
+    <DragChip key={n.type} assetId={a.id} type={n.type} label={n.doc?.ref ?? KIND_SHORT[n.type]} disabled={n.state === "missing"}>
+      <DocPill n={n} creating={b.creating.includes(`${a.id}|${n.type}`)} />
+    </DragChip>
+  );
   return (
-    <li className={cn("group relative border-b border-border transition-colors last:border-b-0", on ? "bg-badge-accent/40" : "hover:bg-muted/50")}>
+    <li className={cn("group border-b border-border transition-colors last:border-b-0", on ? "bg-badge-accent/40" : "hover:bg-muted/50")}>
       <div className={cn("grid items-start gap-4 px-4 py-3", COLS)}>
         <input id={id} type="checkbox" checked={on} onChange={() => b.toggle(a.id)} className="mt-0.5 size-4 accent-[var(--indigo-9)]" />
         <div className="min-w-0">
@@ -322,22 +339,24 @@ function Row({ b, r }: { b: B; r: RowStatus }) {
         <div>
           <ReadyTag r={r} />
         </div>
-        <div className="flex flex-wrap items-center gap-1.5">
-          {required.length ? required.map((n) => <DocPill key={n.type} n={n} creating={b.creating.includes(`${a.id}|${n.type}`)} />) : <span className="truncate text-sm whitespace-nowrap text-text-placeholder">None required</span>}
+        <DropCell assetId={a.id} level="required">
+          {required.map(pill)}
+        </DropCell>
+        <DropCell assetId={a.id} level="optional">
+          {optional.map(pill)}
+        </DropCell>
+        <div className="flex items-start justify-between gap-2">
+          <PmCell r={r} />
+          {/* Own cell: the buttons fade in on hover but always keep their place, so they never cover the list. */}
+          <span className="flex shrink-0 gap-1">
+            <RowAction label="New work order" onClick={() => b.openForm("wo", [a.id])}>
+              <Plus />
+            </RowAction>
+            <RowAction label="New PM" onClick={() => b.openForm("pm", [a.id])}>
+              <CalendarClock />
+            </RowAction>
+          </span>
         </div>
-        <div className="flex flex-wrap items-center gap-1.5">
-          {optional.length ? optional.map((n) => <DocPill key={n.type} n={n} creating={b.creating.includes(`${a.id}|${n.type}`)} />) : <span className="text-sm text-text-placeholder">None</span>}
-        </div>
-        <PmCell r={r} />
-      </div>
-      {/* The row's actions show on hover, over the end of the row. */}
-      <div className="pointer-events-none absolute inset-y-0 right-0 flex items-start gap-2 bg-gradient-to-l from-surface-subtle from-60% to-transparent pt-3 pr-4 pl-12 opacity-0 transition group-focus-within:opacity-100 group-hover:opacity-100 [&>*]:pointer-events-auto">
-        <Button size="sm" variant="outline" onClick={() => b.openForm("wo", [a.id])} className="bg-card shadow-xs">
-          New work order
-        </Button>
-        <Button size="sm" variant="outline" onClick={() => b.openForm("pm", [a.id])} className="bg-card shadow-xs">
-          New PM
-        </Button>
       </div>
     </li>
   );
@@ -785,7 +804,7 @@ function BenchView({ mode }: { mode: DataMode }) {
     return (
       <div className="h-full overflow-y-auto">
         <RdPage title={PAGE_TITLE} subtitle={SUBTITLE}>
-          <NewAccount />
+          <NoAssets />
         </RdPage>
       </div>
     );
@@ -804,7 +823,6 @@ function BenchView({ mode }: { mode: DataMode }) {
       <div className="grid min-h-0 flex-1 grid-cols-[192px_minmax(0,1fr)] gap-6 xl:grid-cols-[216px_minmax(0,1fr)] xl:gap-8">
         <Nav b={b} />
         <section className="flex min-h-0 flex-col gap-4">
-          {mode === "no-docs" ? <NoDocsNotice ai /> : null}
           <ListHeading title={`${fam.label}: on which assets?`} line={`${ready} of ${base.length} assets have the documents for this job · ${withPm} have a PM`}>
             <div className="relative w-full sm:w-[280px]">
               <Search className="pointer-events-none absolute top-1/2 left-2.5 size-4 -translate-y-1/2 text-muted-foreground" aria-hidden />
@@ -814,11 +832,13 @@ function BenchView({ mode }: { mode: DataMode }) {
           <div className="min-h-0 flex-1 overflow-y-auto rounded-lg border border-border">
             <ColumnHeads b={b} />
             {shown.length ? (
-              <ul>
-                {shown.map((r) => (
-                  <Row key={r.asset.id} b={b} r={r} />
-                ))}
-              </ul>
+              <BenchDnd onMove={(assetId, type, level) => b.store.setLevel(fam.id, assetId, type as Kind, level === "required" ? "required" : "recommended")}>
+                <ul>
+                  {shown.map((r) => (
+                    <Row key={r.asset.id} b={b} r={r} />
+                  ))}
+                </ul>
+              </BenchDnd>
             ) : (
               <RdEmptyState icon={Search} title={`No asset matches “${b.filter}”`} body="Try part of the name, the code or the location." />
             )}
