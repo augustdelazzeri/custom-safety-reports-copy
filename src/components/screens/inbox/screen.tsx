@@ -3,11 +3,8 @@
 /** A1 and A2 are the same screen; A2 also lets the person create the work order where the artifact has none. */
 
 import { RdPage } from "@/components/redesign/ui";
-import { InboxNova, usualReady } from "@/components/three-cases/inbox-nova";
-import { NovaBall } from "@/components/three-cases/nova-panel";
 import { CASE_C_OPTIONS, OptionSwitcher } from "@/components/three-cases/option-switcher";
 import { PageShell, TapCompare } from "@/components/three-cases/shell";
-import { Button } from "@/components/ui/button";
 import { useThreeCases } from "@/contexts/ThreeCasesContext";
 import { applyFilters, buildArtifacts, defaultFilters, useInboxStore, type Filters, type WoView, type Artifact } from "@/lib/screens/inbox";
 import { useMvpStore } from "@/lib/three-cases/mvp-rules";
@@ -24,8 +21,6 @@ export function InboxScreen({ variant }: { variant: Variant }) {
   const defaults = useMemo(() => defaultFilters(variant === "a1" ? "with" : "all"), [variant]);
   const [filters, setFilters] = useState<Filters>(defaults);
   const [selectedId, setSelectedId] = useState<string>();
-  const [novaOpen, setNovaOpen] = useState(false);
-  const ready = usualReady(flows);
 
   // A person from one location keeps seeing only theirs: the choice is remembered.
   useEffect(() => {
@@ -69,8 +64,6 @@ export function InboxScreen({ variant }: { variant: Variant }) {
     <PageShell
       title="Inbox"
       mainClassName="p-0 overflow-hidden"
-      aside={novaOpen ? <InboxNova onClose={() => setNovaOpen(false)} className="w-[400px]" /> : null}
-      onAskSafety={() => setNovaOpen(true)}
       prototypeBar={
         <div className="flex flex-wrap items-center justify-between gap-2">
           <OptionSwitcher caseLabel="Use case 3" options={CASE_C_OPTIONS} />
@@ -80,18 +73,10 @@ export function InboxScreen({ variant }: { variant: Variant }) {
     >
       <RdPage
         fill
-        className="gap-4"
+        className="gap-3"
         title={title}
-        subtitle={variant === "a1" ? "Events, CAPAs and documents with work orders. Open one, finish its work orders." : "Same list, and an event or CAPA with no work order gets one here, in a click."}
-        actions={
-          !novaOpen ? (
-            <Button variant="outline" onClick={() => setNovaOpen(true)} className="gap-2">
-              <NovaBall /> Nova did 3 things{ready ? ` · ${ready} flow${ready > 1 ? "s" : ""} ready` : ""}
-            </Button>
-          ) : null
-        }
       >
-        <div className="grid min-h-0 flex-1 grid-cols-1 gap-6 lg:grid-cols-[minmax(380px,0.8fr)_minmax(0,1.2fr)]">
+        <div className="grid min-h-0 flex-1 grid-cols-1 gap-4 lg:grid-cols-[minmax(540px,0.9fr)_minmax(0,1.1fr)]">
           <div className="flex min-h-0 flex-col gap-3">
             <ArtifactFilters filters={filters} onChange={change} all={all} shown={shown.length} defaults={{ ...defaults, location: filters.location }} />
             <ArtifactList items={shown} selectedId={selected?.id} onSelect={(a) => setSelectedId(a.id)} onReset={() => change(defaults)} />

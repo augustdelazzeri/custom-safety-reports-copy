@@ -6,14 +6,15 @@
  * how far the work orders are. The timeline lives on the right, so it is not repeated here.
  */
 
-import { RdAsk } from "@/components/redesign/table";
 import { RdBadge, RdEmptyState } from "@/components/redesign/ui";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { person } from "@/lib/three-cases/data";
-import { KIND_PLURAL, STATUS_LABEL, STATUS_TONE, isOverdue, type ArtKind, type Artifact, type Filters } from "@/lib/screens/inbox";
+import { KIND_PLURAL, applyFilters, STATUS_LABEL, STATUS_TONE, isOverdue, type ArtKind, type Artifact, type Filters } from "@/lib/screens/inbox";
 import { cn } from "@/lib/utils";
-import { Clock, FileText, ListChecks, TriangleAlert, X, type LucideIcon } from "lucide-react";
+import { Clock, FileText, ListChecks, Search, SlidersHorizontal, TriangleAlert, type LucideIcon } from "lucide-react";
 
 const KIND_ICON: Record<ArtKind, LucideIcon> = { event: TriangleAlert, capa: ListChecks, doc: FileText };
 
@@ -69,48 +70,78 @@ function Row({ a, selected, onSelect }: { a: Artifact; selected: boolean; onSele
   );
 }
 
-function Pick<T extends string>({ label, value, onChange, options, className }: { label: string; value: T; onChange: (v: T) => void; options: { value: T; label: string }[]; className?: string }) {
+function Pick<T extends string>({ label, value, onChange, options }: { label: string; value: T; onChange: (v: T) => void; options: { value: T; label: string }[] }) {
   return (
-    <Select value={value} onValueChange={(v) => onChange(v as T)}>
-      <SelectTrigger size="sm" aria-label={label} className={cn("h-8 gap-1.5 rounded-lg px-2 text-sm", className)}>
-        <span className="text-muted-foreground">{label}</span>
-        <SelectValue />
-      </SelectTrigger>
-      <SelectContent>
-        {options.map((o) => (
-          <SelectItem key={o.value} value={o.value}>
-            {o.label}
-          </SelectItem>
-        ))}
-      </SelectContent>
-    </Select>
+    <label className="flex items-center justify-between gap-3 text-sm text-muted-foreground">
+      {label}
+      <Select value={value} onValueChange={(v) => onChange(v as T)}>
+        <SelectTrigger size="sm" aria-label={label} className="h-8 w-40 rounded-lg px-2 text-sm text-foreground">
+          <SelectValue />
+        </SelectTrigger>
+        <SelectContent>
+          {options.map((o) => (
+            <SelectItem key={o.value} value={o.value}>
+              {o.label}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+    </label>
   );
 }
 
+/** One row: kind as tabs with counts, search, and the rest folded into one Filters popover. */
 export function ArtifactFilters({ filters, onChange, all, shown, defaults }: { filters: Filters; onChange: (f: Filters) => void; all: Artifact[]; shown: number; defaults: Filters }) {
   const set = <K extends keyof Filters>(k: K, v: Filters[K]) => onChange({ ...filters, [k]: v });
   const places = [...new Set(all.map((a) => a.locationName))].sort();
   const people = [...new Set(all.flatMap((a) => a.assigneeIds))].sort((a, b) => person(a).name.localeCompare(person(b).name));
-  const dirty = JSON.stringify({ ...filters, q: "" }) !== JSON.stringify({ ...defaults, q: "" }) || filters.q !== "";
+  const base = applyFilters(all, { ...filters, kind: "all" });
+  const count = (k: Filters["kind"]) => (k === "all" ? base.length : base.filter((a) => a.kind === k).length);
+  const tabs: { value: Filters["kind"]; label: string }[] = [{ value: "all", label: "All" }, ...(Object.keys(KIND_PLURAL) as ArtKind[]).map((k) => ({ value: k, label: KIND_PLURAL[k] }))];
+  const extra = (["status", "location", "assignee", "wos"] as const).filter((k) => filters[k] !== defaults[k]).length + (filters.overdue ? 1 : 0);
   return (
-    <div className="flex flex-col gap-2">
-      <RdAsk value={filters.q} onChange={(q) => set("q", q)} placeholder="Search by ID, title or work order" />
-      <div className="flex flex-wrap items-center gap-1.5">
-        <Pick<Filters["kind"]> label="Kind" value={filters.kind} onChange={(v) => set("kind", v)} options={[{ value: "all", label: "All" }, ...(Object.keys(KIND_PLURAL) as ArtKind[]).map((k) => ({ value: k, label: KIND_PLURAL[k] }))]} />
-        <Pick<Filters["status"]> label="Status" value={filters.status} onChange={(v) => set("status", v)} options={[{ value: "active", label: "Open" }, { value: "done", label: "Done" }, { value: "all", label: "All" }]} />
-        <Pick label="Location" value={filters.location} onChange={(v) => set("location", v)} options={[{ value: "all", label: "All" }, ...places.map((p) => ({ value: p, label: p }))]} />
-        <Pick label="Assignee" value={filters.assignee} onChange={(v) => set("assignee", v)} options={[{ value: "all", label: "Anyone" }, ...people.map((p) => ({ value: p, label: person(p).name }))]} />
-        <Pick<Filters["wos"]> label="WOs" value={filters.wos} onChange={(v) => set("wos", v)} options={[{ value: "with", label: "With" }, { value: "without", label: "None yet" }, { value: "all", label: "All" }]} />
-        <Button type="button" variant={filters.overdue ? "secondary" : "outline"} size="sm" aria-pressed={filters.overdue} onClick={() => set("overdue", !filters.overdue)} className="h-8 gap-1.5 rounded-lg px-2.5 text-sm">
-          <Clock aria-hidden /> Overdue
-        </Button>
-        {dirty ? (
-          <Button type="button" variant="ghost" size="sm" onClick={() => onChange(defaults)} className="h-8 gap-1 rounded-lg px-2 text-sm text-muted-foreground">
-            <X aria-hidden /> Reset
-          </Button>
-        ) : null}
-        <span className="ml-auto text-sm text-muted-foreground tabular-nums">{shown} shown</span>
+    <div className="flex items-center gap-2">
+      <div role="tablist" aria-label="Kind" className="inline-flex shrink-0 items-center gap-0.5 rounded-lg bg-muted p-0.5">
+        {tabs.map((t) => (
+          <button
+            key={t.value}
+            type="button"
+            role="tab"
+            aria-selected={filters.kind === t.value}
+            onClick={() => set("kind", t.value)}
+            className={cn("flex h-7 items-center gap-1.5 rounded-md px-2 text-sm transition-colors outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50", filters.kind === t.value ? "bg-card font-medium text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground")}
+          >
+            {t.value === "doc" ? "Docs" : t.label}
+            <span className="text-xs tabular-nums text-text-subtle">{count(t.value)}</span>
+          </button>
+        ))}
       </div>
+      <div className="relative min-w-24 flex-1">
+        <Search className="pointer-events-none absolute top-1/2 left-2 size-4 -translate-y-1/2 text-muted-foreground" aria-hidden />
+        <Input type="search" value={filters.q} onChange={(e) => set("q", e.target.value)} placeholder="Search" aria-label="Search by ID, title or work order" className="h-8 pr-2 pl-7.5" />
+      </div>
+      <Popover>
+        <PopoverTrigger asChild>
+          <Button type="button" variant={extra ? "secondary" : "outline"} size="sm" className="h-8 shrink-0 gap-1.5 rounded-lg px-2.5 text-sm">
+            <SlidersHorizontal aria-hidden /> Filters{extra ? ` · ${extra}` : ""}
+          </Button>
+        </PopoverTrigger>
+        <PopoverContent align="end" className="flex w-72 flex-col gap-3">
+          <Pick<Filters["status"]> label="Status" value={filters.status} onChange={(v) => set("status", v)} options={[{ value: "active", label: "Open" }, { value: "done", label: "Done" }, { value: "all", label: "All" }]} />
+          <Pick label="Location" value={filters.location} onChange={(v) => set("location", v)} options={[{ value: "all", label: "All" }, ...places.map((p) => ({ value: p, label: p }))]} />
+          <Pick label="Assignee" value={filters.assignee} onChange={(v) => set("assignee", v)} options={[{ value: "all", label: "Anyone" }, ...people.map((p) => ({ value: p, label: person(p).name }))]} />
+          <Pick<Filters["wos"]> label="Work orders" value={filters.wos} onChange={(v) => set("wos", v)} options={[{ value: "with", label: "With" }, { value: "without", label: "None yet" }, { value: "all", label: "All" }]} />
+          <div className="flex items-center justify-between gap-2">
+            <Button type="button" variant={filters.overdue ? "secondary" : "outline"} size="sm" aria-pressed={filters.overdue} onClick={() => set("overdue", !filters.overdue)} className="h-8 gap-1.5 rounded-lg px-2.5 text-sm">
+              <Clock aria-hidden /> Overdue only
+            </Button>
+            <Button type="button" variant="ghost" size="sm" onClick={() => onChange({ ...defaults, kind: filters.kind, q: filters.q })} className="h-8 px-2 text-sm text-muted-foreground">
+              Reset
+            </Button>
+          </div>
+          <p className="text-xs text-muted-foreground tabular-nums">{shown} shown</p>
+        </PopoverContent>
+      </Popover>
     </div>
   );
 }

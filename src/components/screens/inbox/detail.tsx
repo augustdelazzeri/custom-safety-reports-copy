@@ -165,6 +165,7 @@ function WoPanel({ wo, store, onComplete, top }: { wo: WoView; store: InboxStore
   const [cost, setCost] = useState({ label: "", amount: "" });
   const [text, setText] = useState("");
   const [sure, setSure] = useState(false);
+  const [tab, setTab] = useState<"tasks" | "evidence" | "time" | "activity">("tasks");
   const isDone = wo.status === "complete";
   const late = !isDone && (wo.dueIn ?? 0) < 0;
   const logged = entries.reduce((n, t) => n + t.minutes, 0) + (o.timerSince ? Math.floor((now - o.timerSince) / 60_000) : 0);
@@ -196,36 +197,34 @@ function WoPanel({ wo, store, onComplete, top }: { wo: WoView; store: InboxStore
 
   return (
     <div className="flex h-full min-h-0 flex-col">
-      <div className="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto pb-6 [&>*]:shrink-0">
-        {top}
-        <div className="px-6">
-          <div className="flex flex-wrap items-center gap-2">
-            <h3 className="min-w-0 text-base leading-6 font-semibold text-foreground">{wo.title}</h3>
-            <WoStatusBadge s={wo.status} />
-            {wo.priority === "high" ? <RdBadge tone="warning">High priority</RdBadge> : null}
-          </div>
-          <dl className="mt-3 grid grid-cols-2 gap-x-4 gap-y-2 sm:grid-cols-4">
-            <Fact label="Reference">{wo.ref}</Fact>
-            <Fact label="Assigned to">{wo.assigneeId ? person(wo.assigneeId).name : <span className="font-medium text-badge-warning-foreground">Nobody</span>}</Fact>
-            <Fact label={isDone ? "Completed" : "Due"}>
-              <span className={cn(late && "font-medium text-badge-error-foreground")}>{isDone ? (wo.doneAt ?? "Done") : late ? dueText(wo.due, wo.dueIn) : (wo.due ?? "No due date")}</span>
-            </Fact>
-            <Fact label="Priority">{WO_PRIORITY_LABEL[wo.priority]}</Fact>
-            <Fact label="Asset">{wo.asset ?? "No asset"}</Fact>
-            <Fact label="Location">{wo.location || "—"}</Fact>
-          </dl>
-          {wo.description ? <p className="mt-3 text-sm text-foreground">{wo.description}</p> : null}
+      <div className="shrink-0">{top}</div>
+      <div className="shrink-0 px-5 pt-3">
+        <div className="flex flex-wrap items-center gap-2">
+          <h3 className="min-w-0 truncate text-base leading-6 font-semibold text-foreground" title={wo.title}>{wo.title}</h3>
+          <WoStatusBadge s={wo.status} />
+          {wo.priority === "high" ? <RdBadge tone="warning">High priority</RdBadge> : null}
         </div>
-
-        {wo.status === "on_hold" && wo.holdReason ? (
-          <div className="px-6">
-            <RdNotice icon={Pause} title="On hold">
-              {wo.holdReason}
-            </RdNotice>
-          </div>
-        ) : null}
-
-        <RdCard className="mx-6" title="Tasks" icon={<ListChecks />} action={<span className="text-sm text-muted-foreground tabular-nums">{done.length} of {total} done</span>}>
+        <p className="mt-0.5 truncate text-sm text-muted-foreground">
+          {wo.ref} · {wo.assigneeId ? person(wo.assigneeId).name : "Nobody"} · <span className={cn(late && "font-medium text-badge-error-foreground")}>{isDone ? `Completed ${wo.doneAt ?? ""}` : late ? dueText(wo.due, wo.dueIn) : `Due ${wo.due ?? "no date"}`}</span> · {wo.asset ?? "No asset"}
+        </p>
+        {wo.status === "on_hold" && wo.holdReason ? <p className="mt-1 flex items-center gap-1.5 text-sm text-badge-warning-foreground"><Pause className="size-4" aria-hidden /> On hold: {wo.holdReason}</p> : null}
+        <div role="tablist" aria-label="Work order sections" className="mt-3 flex gap-1 border-b border-border">
+          {(
+            [
+              ["tasks", `Tasks ${done.length}/${total}`],
+              ["evidence", `Evidence ${photos.length + files.length}`],
+              ["time", "Time and cost"],
+              ["activity", "Activity"],
+            ] as const
+          ).map(([k, label]) => (
+            <button key={k} type="button" role="tab" aria-selected={tab === k} onClick={() => setTab(k)} className={cn("-mb-px border-b-2 px-3 py-1.5 text-sm transition-colors outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50", tab === k ? "border-primary font-medium text-foreground" : "border-transparent text-muted-foreground hover:text-foreground")}>
+              {label}
+            </button>
+          ))}
+        </div>
+      </div>
+      <div className="flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto px-5 py-3 [&>*]:shrink-0">
+        {tab === "tasks" ? <RdCard className="" title="Tasks" icon={<ListChecks />} action={<span className="text-sm text-muted-foreground tabular-nums">{done.length} of {total} done</span>}>
           <ul className="divide-y divide-border">
             {wo.checklist.map((item, i) => (
               <li key={item}>
@@ -236,10 +235,10 @@ function WoPanel({ wo, store, onComplete, top }: { wo: WoView; store: InboxStore
               </li>
             ))}
           </ul>
-        </RdCard>
+        </RdCard> : null}
 
-        <RdCard
-          className="mx-6"
+        {tab === "evidence" ? <RdCard
+          className=""
           title="Photos and files"
           icon={<Camera />}
           action={
@@ -283,10 +282,10 @@ function WoPanel({ wo, store, onComplete, top }: { wo: WoView; store: InboxStore
           ) : (
             <p className="p-4 text-sm text-muted-foreground">No evidence yet. A photo of the finished work is what the owner looks for.</p>
           )}
-        </RdCard>
+        </RdCard> : null}
 
-        <RdCard
-          className="mx-6"
+        {tab === "time" ? <RdCard
+          className=""
           title="Time and cost"
           icon={<Timer />}
           action={
@@ -356,9 +355,9 @@ function WoPanel({ wo, store, onComplete, top }: { wo: WoView; store: InboxStore
               </div>
             ) : null}
           </div>
-        </RdCard>
+        </RdCard> : null}
 
-        <RdCard className="mx-6" title="Activity" icon={<MessageSquare />}>
+        {tab === "activity" ? <RdCard className="" title="Activity" icon={<MessageSquare />}>
           <div className="flex flex-col gap-3 p-4">
             {(o.activity ?? []).length ? (
               <ul className="flex flex-col gap-2">
@@ -389,10 +388,10 @@ function WoPanel({ wo, store, onComplete, top }: { wo: WoView; store: InboxStore
               </Button>
             </form>
           </div>
-        </RdCard>
+        </RdCard> : null}
       </div>
 
-      <div className="flex shrink-0 flex-wrap items-center gap-2 border-t border-border bg-card px-6 py-3">
+      <div className="flex shrink-0 flex-wrap items-center gap-2 border-t border-border bg-card px-5 py-3">
         {isDone ? (
           <>
             <span className="flex items-center gap-1.5 text-sm font-medium text-foreground">
@@ -477,16 +476,16 @@ function Detail({ artifact, store, variant, onComplete, onMoveToDone }: { artifa
   };
 
   const head = (
-    <div className="border-b border-border px-6 py-4">
-      <p className="mb-1 text-xs font-medium tracking-[0.02em] text-text-subtle tabular-nums">
+    <div className="border-b border-border px-5 py-3">
+      <p className="mb-0.5 text-xs font-medium tracking-[0.02em] text-text-subtle tabular-nums">
         {artifact.ref} · {KIND_LABEL[artifact.kind]}, {artifact.typeLabel}
       </p>
       <div className="flex flex-wrap items-center gap-2">
-        <h2 className="min-w-0 text-xl leading-6 font-bold text-foreground">{artifact.title}</h2>
+        <h2 className="min-w-0 truncate text-lg leading-6 font-bold text-foreground">{artifact.title}</h2>
         {artifact.severity ? <RdBadge tone={artifact.severity.tone}>{artifact.severity.label}</RdBadge> : null}
         <RdBadge tone={STATUS_TONE[artifact.status]}>{STATUS_LABEL[artifact.status]}</RdBadge>
       </div>
-      <p className="mt-1.5 truncate text-sm text-muted-foreground">
+      <p className="mt-1 truncate text-sm text-muted-foreground">
         {artifact.facts
           .slice(0, 3)
           .map(([k, v]) => `${k}: ${v}`)
@@ -525,8 +524,8 @@ function Detail({ artifact, store, variant, onComplete, onMoveToDone }: { artifa
   const top = (
     <>
       {head}
-      <div className="px-6">
-        <div className="mb-2 flex items-center gap-3">
+      <div className="px-5 pt-3">
+        <div className="mb-1.5 flex items-center gap-3">
           <h3 className="text-sm font-semibold text-foreground">Work orders</h3>
           <div className="h-1.5 max-w-40 flex-1 overflow-hidden rounded-full bg-muted" aria-hidden>
             <div className="h-full rounded-full bg-primary transition-all" style={{ width: `${(done / wos.length) * 100}%` }} />
@@ -540,7 +539,7 @@ function Detail({ artifact, store, variant, onComplete, onMoveToDone }: { artifa
             </Button>
           ) : null}
         </div>
-        <ul className="overflow-hidden rounded-lg border border-border">
+        <ul className="max-h-[108px] overflow-y-auto rounded-lg border border-border">
           {wos.map((w) => (
             <li key={w.key} className="border-b border-border last:border-b-0">
               <button
@@ -560,7 +559,7 @@ function Detail({ artifact, store, variant, onComplete, onMoveToDone }: { artifa
       </div>
 
       {allDone ? (
-        <div className="px-6">
+        <div className="px-5 pt-3">
           {artifact.status === "done" ? (
             <RdNotice icon={CheckCircle2} title={`${artifact.ref} is done`}>
               Every work order is complete and it was moved to Done.
@@ -589,9 +588,9 @@ function Detail({ artifact, store, variant, onComplete, onMoveToDone }: { artifa
 
   if (adding) {
     return (
-      <div className="flex h-full min-h-0 flex-col gap-4 overflow-y-auto pb-6 [&>*]:shrink-0">
-        {top}
-        <div className="px-6">
+      <div className="flex h-full min-h-0 flex-col">
+        <div className="shrink-0">{top}</div>
+        <div className="min-h-0 flex-1 overflow-y-auto px-5 py-3">
           <QuickCreate artifact={artifact} onCreate={create} compact />
         </div>
       </div>

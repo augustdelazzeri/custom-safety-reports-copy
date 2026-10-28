@@ -120,6 +120,8 @@ const COLLAPSE_KEY = "ehs-prototype-redesign-sidebar";
 const shellIconClass = "relative text-muted-foreground hover:bg-sidebar-accent hover:text-foreground";
 const iconButton = cn(buttonVariants({ variant: "ghost", size: "icon-sm" }), shellIconClass);
 
+let collapsedCache = false;
+
 function SidebarRow({ item, active, collapsed, onNavigate }: { item: NavItem; active: boolean; collapsed: boolean; onNavigate?: () => void }) {
   const Icon = item.icon;
   const link = (
@@ -152,7 +154,7 @@ function SidebarRow({ item, active, collapsed, onNavigate }: { item: NavItem; ac
 
 function NavGroups({ path, collapsed, onNavigate }: { path: string; collapsed: boolean; onNavigate?: () => void }) {
   return (
-    <nav className="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto" aria-label="Main navigation">
+    <nav className="-mx-1 flex min-h-0 flex-1 flex-col gap-4 overflow-x-hidden overflow-y-auto px-1" aria-label="Main navigation">
       {NAV.map((group) => (
         <div key={group.key} className="flex flex-col gap-0.5">
           {group.label && !collapsed ? <span className="px-2 pt-2 pb-1 text-xs font-medium tracking-wide text-muted-foreground uppercase">{group.label}</span> : null}
@@ -402,7 +404,8 @@ export function RedesignShell({
   children: ReactNode;
 }) {
   const path = usePathname() ?? "/";
-  const [collapsed, setCollapsed] = useState(false);
+  // Each option is its own route, so the shell remounts on a switch: start from the last known state, not from "open".
+  const [collapsed, setCollapsed] = useState(collapsedCache);
   const [askOpen, setAskOpen] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
 
@@ -414,10 +417,12 @@ export function RedesignShell({
     };
   }, []);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     try {
-      // eslint-disable-next-line react-hooks/set-state-in-effect -- read once after mount
-      setCollapsed(window.localStorage.getItem(COLLAPSE_KEY) === "1");
+      const stored = window.localStorage.getItem(COLLAPSE_KEY) === "1";
+      collapsedCache = stored;
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- read once before paint
+      setCollapsed(stored);
     } catch {
       // Blocked storage: the sidebar stays open.
     }
@@ -429,6 +434,7 @@ export function RedesignShell({
       } catch {
         // A convenience only.
       }
+      collapsedCache = !v;
       return !v;
     });
 
@@ -493,7 +499,7 @@ export function RedesignShell({
 
       <div className="flex min-h-0 flex-1">
         {/* Sidebar: no border, no header, on the same ground as the top bar. */}
-        <aside data-no-count className={cn("hidden shrink-0 flex-col gap-1 px-3 pb-4 transition-[width] duration-200 md:flex", collapsed ? "w-14" : "w-[228px]")}>
+        <aside data-no-count className={cn("hidden shrink-0 flex-col gap-1 overflow-x-hidden px-3 pb-4 md:flex", collapsed ? "w-14" : "w-[228px]")}>
           <NavGroups path={path} collapsed={collapsed} />
           <div className={cn("flex items-center gap-1 pt-2", collapsed ? "flex-col" : "justify-between")}>
             <RdTooltip label="Settings" side={collapsed ? "right" : "top"}>
