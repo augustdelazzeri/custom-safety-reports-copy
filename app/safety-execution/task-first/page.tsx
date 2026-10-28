@@ -149,19 +149,19 @@ export default function TaskFirstPage() {
     // versions next to it, starting with V1 (app/safety-execution/v1). To redesign the UI, branch from here.
     <VariantPage note="F · Task first. Pick the job, tick the assets, one approval. Add your own job type: the AI reads which documents it needs.">
       <div className="grid h-full min-h-0 grid-cols-[230px_minmax(0,1fr)] gap-3">
-        <nav className="flex min-h-0 flex-col gap-0.5 overflow-y-auto rounded-xl border border-gray-200 bg-white p-2">
-          <div className="px-2 pb-1 pt-1 text-[11px] font-semibold uppercase tracking-wide text-gray-400">Jobs</div>
+        <nav className="flex min-h-0 flex-col gap-0.5 overflow-y-auto rounded-xl border border-border bg-card p-2">
+          <div className="px-2 pb-1 pt-1 text-xs font-semibold uppercase tracking-wide text-text-placeholder">Jobs</div>
           {JOB_FAMILIES.map((f) => {
             const ts = f.jobs.map((id) => taskStatus(id, s)).filter((t): t is TaskStatus => Boolean(t));
             return (
               <button
                 key={f.id}
                 onClick={() => switchFamily(f.id)}
-                className={cn("flex items-start justify-between gap-2 rounded-lg px-2.5 py-1.5 text-left", f.id === fam ? "bg-indigo-50" : "hover:bg-gray-50")}
+                className={cn("flex items-start justify-between gap-2 rounded-lg px-2.5 py-1.5 text-left", f.id === fam ? "bg-badge-accent" : "hover:bg-surface-subtle")}
               >
                 <span className="min-w-0">
-                  <span className={cn("block text-sm", f.id === fam ? "font-medium text-indigo-900" : "text-gray-800")}>{f.label}</span>
-                  <span className="block truncate text-[11px] text-gray-500">{f.hint}</span>
+                  <span className={cn("block text-sm", f.id === fam ? "font-medium text-badge-accent-foreground" : "text-foreground")}>{f.label}</span>
+                  <span className="block truncate text-xs text-muted-foreground">{f.hint}</span>
                 </span>
                 <span className="mt-1.5 flex shrink-0 gap-0.5">
                   {ts.map((t) => (
@@ -172,14 +172,14 @@ export default function TaskFirstPage() {
             );
           })}
 
-          {custom.length ? <div className="px-2 pb-1 pt-3 text-[11px] font-semibold uppercase tracking-wide text-gray-400">Added by you</div> : null}
+          {custom.length ? <div className="px-2 pb-1 pt-3 text-xs font-semibold uppercase tracking-wide text-text-placeholder">Added by you</div> : null}
           {custom.map((c) => (
-            <div key={c.id} className={cn("group flex items-start justify-between gap-1 rounded-lg px-2.5 py-1.5", c.id === fam ? "bg-indigo-50" : "hover:bg-gray-50")}>
+            <div key={c.id} className={cn("group flex items-start justify-between gap-1 rounded-lg px-2.5 py-1.5", c.id === fam ? "bg-badge-accent" : "hover:bg-surface-subtle")}>
               <button onClick={() => switchFamily(c.id)} className="min-w-0 flex-1 text-left">
-                <span className={cn("block truncate text-sm", c.id === fam ? "font-medium text-indigo-900" : "text-gray-800")}>{c.label}</span>
-                <span className="block truncate text-[11px] text-gray-500">{TASK_TYPES[c.type].label}</span>
+                <span className={cn("block truncate text-sm", c.id === fam ? "font-medium text-badge-accent-foreground" : "text-foreground")}>{c.label}</span>
+                <span className="block truncate text-xs text-muted-foreground">{TASK_TYPES[c.type].label}</span>
               </button>
-              <button onClick={() => removeJob(c.id)} aria-label={`Remove ${c.label}`} className="mt-0.5 text-gray-300 opacity-0 hover:text-gray-600 group-hover:opacity-100">
+              <button onClick={() => removeJob(c.id)} aria-label={`Remove ${c.label}`} className="mt-0.5 text-text-placeholder opacity-0 hover:text-muted-foreground group-hover:opacity-100">
                 <X className="size-3.5" />
               </button>
             </div>
@@ -192,7 +192,7 @@ export default function TaskFirstPage() {
                   e.preventDefault();
                   addJob();
                 }}
-                className="space-y-1.5 rounded-lg border border-indigo-200 bg-indigo-50/40 p-2"
+                className="space-y-1.5 rounded-lg border border-primary/40 bg-badge-accent p-2"
               >
                 <input
                   autoFocus
@@ -200,9 +200,9 @@ export default function TaskFirstPage() {
                   onChange={(e) => setDraft(e.target.value)}
                   onKeyDown={(e) => e.key === "Escape" && setAdding(false)}
                   placeholder="Weld a forklift guard"
-                  className="w-full rounded-md border border-gray-200 bg-white px-2 py-1.5 text-sm outline-none focus:border-indigo-300"
+                  className="w-full rounded-md border border-border bg-card px-2 py-1.5 text-sm outline-none focus:border-primary/40"
                 />
-                <p className="text-[11px] text-gray-500">Name the job. The AI reads which documents it needs and on which assets.</p>
+                <p className="text-xs text-muted-foreground">Name the job. The AI reads which documents it needs and on which assets.</p>
                 <div className="flex justify-end gap-1">
                   <Button type="button" size="sm" variant="ghost" onClick={() => setAdding(false)}>
                     Cancel
@@ -215,7 +215,7 @@ export default function TaskFirstPage() {
             ) : (
               <button
                 onClick={() => setAdding(true)}
-                className="flex w-full items-center gap-1.5 rounded-lg border border-dashed border-gray-300 px-2.5 py-2 text-sm text-gray-600 hover:border-indigo-300 hover:text-indigo-700"
+                className="flex w-full items-center gap-1.5 rounded-lg border border-dashed border-border px-2.5 py-2 text-sm text-muted-foreground hover:border-primary/40 hover:text-badge-accent-foreground"
               >
                 <Plus className="size-4" /> New job type
               </button>
@@ -223,25 +223,25 @@ export default function TaskFirstPage() {
           </div>
         </nav>
 
-        <div className="flex min-h-0 flex-col rounded-xl border border-gray-200 bg-white">
-          <div className="flex flex-wrap items-center justify-between gap-3 border-b border-gray-100 px-4 py-3">
-            <h2 className="text-sm font-semibold text-gray-900">{label}: on which assets?</h2>
+        <div className="flex min-h-0 flex-col rounded-xl border border-border bg-card">
+          <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border px-4 py-3">
+            <h2 className="text-sm font-semibold text-foreground">{label}: on which assets?</h2>
             <Legend />
           </div>
 
           {def ? (
-            <div className="flex flex-wrap items-center gap-2 border-b border-gray-100 bg-indigo-50/40 px-4 py-2 text-xs text-gray-700">
-              <Sparkles className="size-3.5 text-indigo-600" />
+            <div className="flex flex-wrap items-center gap-2 border-b border-border bg-badge-accent px-4 py-2 text-xs text-muted-foreground">
+              <Sparkles className="size-3.5 text-badge-accent-foreground" />
               <span>{def.why}.</span>
-              {def.permit ? <span className="text-indigo-700">Each job also gets a permit: {def.permit}.</span> : null}
+              {def.permit ? <span className="text-badge-accent-foreground">Each job also gets a permit: {def.permit}.</span> : null}
               <span className="ml-auto flex items-center gap-1">
-                <span className="text-gray-500">Not right?</span>
+                <span className="text-muted-foreground">Not right?</span>
                 {(Object.keys(TASK_TYPES) as TaskType[]).map((t) => (
                   <button
                     key={t}
                     onClick={() => setType(t)}
                     title={TASK_TYPES[t].hint}
-                    className={cn("rounded-full border px-2 py-0.5", def.type === t ? "border-indigo-300 bg-white font-medium text-indigo-800" : "border-transparent text-gray-600 hover:bg-white")}
+                    className={cn("rounded-full border px-2 py-0.5", def.type === t ? "border-primary/40 bg-card font-medium text-badge-accent-foreground" : "border-transparent text-muted-foreground hover:bg-card")}
                   >
                     {TASK_TYPES[t].label}
                   </button>
@@ -250,20 +250,20 @@ export default function TaskFirstPage() {
             </div>
           ) : null}
 
-          <div className="flex items-center gap-2 border-b border-gray-100 px-4 py-2">
-            <Search className="size-4 text-gray-400" />
+          <div className="flex items-center gap-2 border-b border-border px-4 py-2">
+            <Search className="size-4 text-text-placeholder" />
             <input
               value={filter}
               onChange={(e) => setFilter(e.target.value)}
               placeholder="Filter by name, code or location: FL-, Press, Warehouse"
-              className="min-w-0 flex-1 bg-transparent text-sm outline-none placeholder:text-gray-400"
+              className="min-w-0 flex-1 bg-transparent text-sm outline-none placeholder:text-text-placeholder"
             />
             {phase === "review" && shown.length > 1 ? (
               <button
                 onClick={() =>
                   setPicked((p) => (allShownPicked ? p.filter((id) => !shown.some((r) => r.task.job.id === id)) : Array.from(new Set([...p, ...shown.map((r) => r.task.job.id)]))))
                 }
-                className="text-xs font-medium text-indigo-700 hover:underline"
+                className="text-xs font-medium text-badge-accent-foreground hover:underline"
               >
                 {allShownPicked ? "Untick all" : `Tick all ${shown.length}`}
               </button>
@@ -276,7 +276,7 @@ export default function TaskFirstPage() {
               const on = picked.includes(t.job.id);
               const m = made.find((x) => x.assetId === assetId);
               return (
-                <li key={t.job.id} className={cn("border-b border-gray-100", on && "bg-indigo-50/40")}>
+                <li key={t.job.id} className={cn("border-b border-border", on && "bg-badge-accent")}>
                   <label className="grid cursor-pointer grid-cols-[20px_12px_minmax(0,1fr)_auto] items-center gap-3 px-4 py-3">
                     <input
                       type="checkbox"
@@ -288,12 +288,12 @@ export default function TaskFirstPage() {
                     <Dot level={t.level} />
                     <span className="min-w-0">
                       <span className="flex items-baseline gap-1.5">
-                        <span className="font-mono text-[11px] text-gray-400">{a?.code}</span>
-                        <span className="truncate text-sm font-medium text-gray-900">{a?.name}</span>
-                        <span className="truncate text-xs text-gray-500">· {a ? locationName(a.locationId) : ""}</span>
+                        <span className="font-mono text-xs text-text-placeholder">{a?.code}</span>
+                        <span className="truncate text-sm font-medium text-foreground">{a?.name}</span>
+                        <span className="truncate text-xs text-muted-foreground">· {a ? locationName(a.locationId) : ""}</span>
                       </span>
-                      {builtIn ? <span className="block truncate text-xs text-gray-600">{t.job.title}</span> : null}
-                      <span className="block text-[11px] text-gray-500">{t.headline}</span>
+                      {builtIn ? <span className="block truncate text-xs text-muted-foreground">{t.job.title}</span> : null}
+                      <span className="block text-xs text-muted-foreground">{t.headline}</span>
                     </span>
                     {m ? (
                       m.exId ? (
@@ -312,17 +312,17 @@ export default function TaskFirstPage() {
                 </li>
               );
             })}
-            {shown.length === 0 ? <li className="px-4 py-6 text-center text-sm text-gray-500">No asset matches “{filter}”</li> : null}
+            {shown.length === 0 ? <li className="px-4 py-6 text-center text-sm text-muted-foreground">No asset matches “{filter}”</li> : null}
           </ul>
-          <div className="flex items-center justify-between gap-3 border-t border-gray-100 px-4 py-3">
+          <div className="flex items-center justify-between gap-3 border-t border-border px-4 py-3">
             {phase === "done" ? (
               <span className="flex items-center gap-1.5 text-sm font-medium text-emerald-700">
                 <Check className="size-4" /> Created {made.map((m) => m.woRef).join(", ")} for{" "}
                 {Array.from(new Set(made.map((m) => person(m.assigneeId).name.split(" ")[0]))).join(" and ")}
-                <span className="font-normal text-gray-500">· each one waits for its permit and drafts, if any</span>
+                <span className="font-normal text-muted-foreground">· each one waits for its permit and drafts, if any</span>
               </span>
             ) : (
-              <span className="text-xs text-gray-500">{chosen.length ? `Creates ${summary}` : "Tick one or more assets"}</span>
+              <span className="text-xs text-muted-foreground">{chosen.length ? `Creates ${summary}` : "Tick one or more assets"}</span>
             )}
             {phase === "done" ? (
               <Button size="sm" variant="outline" onClick={() => switchFamily(fam)}>

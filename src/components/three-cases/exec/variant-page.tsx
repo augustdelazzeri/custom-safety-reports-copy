@@ -7,8 +7,8 @@ import { CASE_B_OPTIONS, OptionSwitcher } from "../option-switcher";
 import { LegacyPageShell, PageShell } from "../shell";
 import { FlowMeter, MeterBadge } from "./meter";
 
-/** Option F is frozen as it was shown to Ryan on Oct 20, frame included. */
-const FROZEN = ["/safety-execution/task-first"];
+/** Option F used to be frozen in the old frame (Oct 20, shown to Ryan); it now uses the new one. The old version is in git (tag pre-design-alignment-2026-10-26). */
+const FROZEN: string[] = [];
 
 /**
  * Frame shared by the Safety Execution options: the option switcher and the click meter, then the

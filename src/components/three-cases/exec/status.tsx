@@ -22,14 +22,14 @@ export function Dot({ level, className, title }: { level?: TaskLevel; className?
   return (
     <span
       title={title ?? (level ? LEVEL[level].label : "Nothing suggested yet")}
-      className={cn("inline-block size-2 shrink-0 rounded-full", level ? LEVEL[level].dot : "bg-gray-300", className)}
+      className={cn("inline-block size-2 shrink-0 rounded-full", level ? LEVEL[level].dot : "bg-border", className)}
     />
   );
 }
 
 export function Legend({ className }: { className?: string }) {
   return (
-    <div className={cn("flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] text-gray-500", className)}>
+    <div className={cn("flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground", className)}>
       {(["ready", "update", "missing", "scheduled"] as TaskLevel[]).map((l) => (
         <span key={l} className="inline-flex items-center gap-1">
           <Dot level={l} /> {l === "ready" ? "Docs on file" : l === "update" ? "Review or link needed" : l === "missing" ? "AI drafts what is missing" : "A PM runs it"}
@@ -59,12 +59,12 @@ export function NeedChips({ task, className, hideRuns = false }: { task: TaskSta
           key={n.type}
           title={needTitle(n)}
           className={cn(
-            "inline-flex items-center gap-0.5 rounded px-1.5 py-0.5 text-[11px] font-medium",
-            n.state === "ok" && "bg-gray-100 text-gray-700",
+            "inline-flex items-center gap-0.5 rounded px-1.5 py-0.5 text-xs font-medium",
+            n.state === "ok" && "bg-muted text-muted-foreground",
             n.state === "update" && !n.stale && "border border-dashed border-sky-300 bg-sky-50 text-sky-800",
             n.state === "update" && n.stale && "bg-amber-50 text-amber-800 ring-1 ring-amber-200",
             n.state === "missing" && "border border-dashed border-rose-300 bg-rose-50/60 text-rose-700",
-            n.state === "skip" && "bg-gray-50 text-gray-400 line-through",
+            n.state === "skip" && "bg-surface-subtle text-text-placeholder line-through",
           )}
         >
           {n.state === "ok" ? <Check className="size-3 text-emerald-600" /> : null}
@@ -76,9 +76,9 @@ export function NeedChips({ task, className, hideRuns = false }: { task: TaskSta
       ))}
       {hideRuns ? null : (
         <>
-          <ArrowRight className="mx-0.5 size-3 text-gray-300" />
+          <ArrowRight className="mx-0.5 size-3 text-text-placeholder" />
           {task.runs.map((r) => (
-            <span key={r.kind} title={r.why} className="rounded bg-indigo-50 px-1.5 py-0.5 text-[11px] font-medium text-indigo-700">
+            <span key={r.kind} title={r.why} className="rounded bg-badge-accent px-1.5 py-0.5 text-xs font-medium text-badge-accent-foreground">
               {r.label}
             </span>
           ))}
