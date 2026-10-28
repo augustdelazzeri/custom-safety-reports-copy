@@ -1,31 +1,22 @@
-import React from 'react';
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { JhaRiskLevelBadge } from '@/components/jha/mocks';
+"use client";
+
+import { RdBadge, RdCard } from "@/components/redesign/ui";
+import { Fact, RiskBadge } from "@/components/screens/docs/kit";
+
+/* eslint-disable @typescript-eslint/no-explicit-any */
 
 export const JhaRiskSummarySection = ({ highestInitialRiskScore, highestResidualRiskScore, totalSteps }: any) => (
-  <Card>
-    <CardHeader>
-      <CardTitle className="text-sm font-bold uppercase tracking-wider text-muted-foreground">Risk Summary</CardTitle>
-    </CardHeader>
-    <CardContent className="space-y-6">
-      <div className="flex justify-between items-center">
-        <span className="text-sm">Initial Risk (Max)</span>
-        <Badge variant="outline" className="bg-red-50 text-red-700">{highestInitialRiskScore}</Badge>
-      </div>
-      <div className="flex justify-between items-center">
-        <span className="text-sm font-bold">Residual Risk (Max)</span>
-        <JhaRiskLevelBadge score={highestResidualRiskScore} />
-      </div>
-      <div className="flex justify-between items-center pt-4 border-t">
-        <span className="text-sm">Total Task Steps</span>
-        <span className="text-sm font-bold">{totalSteps}</span>
-      </div>
-    </CardContent>
-  </Card>
+  <RdCard title="Risk summary">
+    <dl className="flex flex-col gap-4 p-4">
+      <Fact label="Initial risk (highest)">
+        <RiskBadge score={highestInitialRiskScore} withScore />
+      </Fact>
+      <Fact label="Residual risk (highest)">
+        <RiskBadge score={highestResidualRiskScore} withScore />
+      </Fact>
+      <Fact label="Task steps">
+        <RdBadge tone="neutral">{totalSteps}</RdBadge>
+      </Fact>
+    </dl>
+  </RdCard>
 );
-
-export const JhaDetailsLoading = () => <div className="p-8 text-center text-muted-foreground">Loading JHA details...</div>;
-export const JhaDetailsError = () => <div className="p-8 text-center text-destructive">Error loading JHA.</div>;
-export const JhaVersionHistory = () => null;
-export const JhaConfirmationDialog = () => null;

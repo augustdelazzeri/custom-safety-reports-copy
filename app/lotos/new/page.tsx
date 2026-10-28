@@ -1,100 +1,25 @@
 "use client";
 
-import React, { useState } from 'react';
-import Sidebar from '@/components/Sidebar';
-import Header from '@/components/Header';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { Save, Sparkles, Lock } from 'lucide-react';
-import { 
-  AsyncLocationSelect, 
-  AsyncAssetSelect, 
-  AsyncUserSelect,
-  ApproversSelector
-} from '@/components/audit/upsert/mocks';
-import { 
-  StepIndicator,
-  StepProgress,
-  LotoSteps,
-  StepFooter,
-  Scoped
-} from '@/components/loto/mocks';
+import { LotoSteps } from "@/components/loto/mocks";
+import { ApprovalCard, DocPage, FormCard, FormFooter, TextField } from "@/components/screens/docs/kit";
+import { useRouter } from "next/navigation";
 
 export default function NewLoto() {
+  const router = useRouter();
   return (
-    <div className="flex h-screen overflow-hidden bg-background">
-      <Sidebar />
-      <div className="flex flex-1 flex-col overflow-hidden">
-        <Header title="New LOTO" />
-        <main className="flex-1 overflow-y-auto bg-gray-50/30">
-          <Scoped>
-            <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6 md:px-8 lg:px-10">
-              <div className="space-y-8">
-                <div className="flex items-center justify-between">
-                  <div className="flex flex-col">
-                    <div className="mb-2 flex items-center gap-3">
-                      <div className="rounded-lg bg-blue-100 p-2">
-                        <Lock className="h-6 w-6 text-blue-600" />
-                      </div>
-                      <h1 className="text-2xl font-bold text-gray-900">New Lockout Tagout Procedure</h1>
-                    </div>
-                    <StepIndicator />
-                  </div>
-                </div>
-
-                <div className="rounded-xl border border-gray-200 bg-white shadow-sm p-6 space-y-8">
-                  <div className="grid gap-6">
-                    <div className="space-y-2">
-                      <Label>Procedure Title <span className="text-red-500">*</span></Label>
-                      <Input placeholder="e.g. Lockout for Main Pump Maintenance" />
-                    </div>
-
-                    <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-                      <div className="space-y-2">
-                        <Label>Department</Label>
-                        <Input placeholder="e.g. Maintenance" />
-                      </div>
-                      <div className="space-y-2">
-                        <Label>Owner <span className="text-red-500">*</span></Label>
-                        <AsyncUserSelect placeholder="Select owner..." />
-                      </div>
-                    </div>
-
-                    <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-                      <div className="space-y-2">
-                        <Label>Location</Label>
-                        <AsyncLocationSelect placeholder="Select location..." />
-                      </div>
-                      <div className="space-y-2">
-                        <Label>Asset</Label>
-                        <AsyncAssetSelect placeholder="Select asset..." />
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                <StepProgress />
-                <LotoSteps />
-                
-                <div className="rounded-xl border border-gray-200 bg-white shadow-sm p-6">
-                  <ApproversSelector title="Approval Workflow" description="Select people to approve this procedure." />
-                </div>
-
-                <div className="flex items-center justify-end gap-3 pt-6 border-t border-gray-200">
-                  <Button variant="outline" className="h-11 px-6">
-                    <Save className="mr-2 h-4 w-4" /> Save as Draft
-                  </Button>
-                  <Button className="h-11 px-8 bg-blue-600 hover:bg-blue-700">
-                    <Sparkles className="mr-2 h-4 w-4" /> Submit for Review
-                  </Button>
-                </div>
-              </div>
-            </div>
-          </Scoped>
-        </main>
+    <DocPage breadcrumb="Lockout/tagout" title="New lockout/tagout" subtitle="List the energy sources and the order to isolate them." back="/lotos">
+      <div className="flex max-w-5xl flex-col gap-6">
+        <FormCard title="Basic information">
+          <TextField label="Title" required placeholder="e.g. Lockout for main pump maintenance" className="md:col-span-2" />
+          <TextField label="Department" placeholder="e.g. Maintenance" />
+          <TextField label="Owner" required placeholder="Select owner" />
+          <TextField label="Location" placeholder="Select location" />
+          <TextField label="Asset" placeholder="Select asset" />
+        </FormCard>
+        <LotoSteps />
+        <ApprovalCard description="Choose the people who approve this procedure." />
+        <FormFooter draft="Save as draft" submit="Submit for review" onCancel={() => router.push("/lotos")} />
       </div>
-    </div>
+    </DocPage>
   );
 }

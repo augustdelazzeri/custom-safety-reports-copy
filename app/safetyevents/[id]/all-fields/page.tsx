@@ -8,8 +8,8 @@ import {
 } from '@/components/events/edit/mocks';
 import { trpc } from '@/providers/trpc';
 import { useParams } from 'next/navigation';
-import Sidebar from '@/components/Sidebar';
-import Header from '@/components/Header';
+import { PageShell } from '@/components/three-cases/shell';
+import { RdPage } from '@/components/redesign/ui';
 
 export default function EditEvent() {
   const params = useParams();
@@ -24,47 +24,35 @@ export default function EditEvent() {
 
   if (isPending) {
     return (
-      <div className="flex h-screen overflow-hidden bg-background">
-        <Sidebar />
-        <div className="flex flex-1 flex-col overflow-hidden">
-          <Header />
-          <main className="flex-1 overflow-y-auto p-4 md:p-6">
+      <PageShell title="Edit event" mainClassName="p-0">
+      <RdPage title="Edit event">
             <EditEventLoading />
-          </main>
-        </div>
-      </div>
+      </RdPage>
+    </PageShell>
     );
   }
 
   if (!isSuccess || !event) {
     return (
-      <div className="flex h-screen overflow-hidden bg-background">
-        <Sidebar />
-        <div className="flex flex-1 flex-col overflow-hidden">
-          <Header />
-          <main className="flex-1 overflow-y-auto p-4 md:p-6">
+      <PageShell title="Edit event" mainClassName="p-0">
+      <RdPage title="Edit event">
             <EditEventError />
-          </main>
-        </div>
-      </div>
+      </RdPage>
+    </PageShell>
     );
   }
 
   const eventFormTemplate = (event as any).eventFormTemplate;
 
   return (
-    <div className="flex h-screen overflow-hidden bg-background">
-      <Sidebar />
-      <div className="flex flex-1 flex-col overflow-hidden">
-        <Header title="Edit Event" />
-        <main className="flex-1 overflow-y-auto bg-slate-50/50">
+    <PageShell title="Edit event" mainClassName="p-0">
+      <RdPage title="Edit event">
           {eventFormTemplate ? (
             <EditEventTemplateForm eventId={eventId} event={event} eventFormTemplate={eventFormTemplate} />
           ) : (
             <EditEventBasicForm eventId={eventId} event={event} />
           )}
-        </main>
-      </div>
-    </div>
+      </RdPage>
+    </PageShell>
   );
 }

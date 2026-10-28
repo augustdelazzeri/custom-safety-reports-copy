@@ -1,82 +1,38 @@
 "use client";
 
-import React, { useState } from 'react';
-import Sidebar from '@/components/Sidebar';
-import Header from '@/components/Header';
-import { Button } from '@/components/ui/button';
-import { Search, X, FileUp } from 'lucide-react';
-import { Input } from '@/components/ui/input';
-import { 
-  SdsTable, 
-  Filters, 
-  SdsLoading, 
-  SdsError, 
-  SdsEmpty, 
-  SdsMobileView
-} from '@/components/sds/mocks';
-import { trpc } from '@/providers/trpc';
-import { useIsMobile } from '@/hooks/use-mobile';
+import { TitleCell } from "@/components/redesign/ui";
+import type { RdColumn } from "@/components/redesign/table";
+import { Button } from "@/components/ui/button";
+import { DocList, DocPage, StatusBadge } from "@/components/screens/docs/kit";
+import { SDS_ROWS } from "@/lib/screens/docs";
+import { useDataMode } from "@/lib/three-cases/demo-data";
+import { FileUp } from "lucide-react";
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type Row = any;
+
+const columns: RdColumn<Row>[] = [
+  { key: "title", header: "Product", render: (r) => <TitleCell title={r.product} reference={r.slug} /> },
+  { key: "maker", header: "Manufacturer", width: "24%", render: (r) => <span className="block truncate">{r.manufacturer}</span> },
+  { key: "where", header: "Location", width: "22%", render: (r) => <span className="block truncate">{r.where}</span> },
+  { key: "status", header: "Status", width: "14%", render: (r) => <StatusBadge status={r.status} /> },
+];
 
 export default function SdsLog() {
-  const isMobile = useIsMobile();
-  const [search, setSearch] = useState('');
-  
-  const { data, isLoading, error } = trpc.sds.list.infiniteOptions.useInfiniteQuery();
-  const sdsList = data?.pages?.[0]?.result || [];
-
-  const handleResetFilters = () => {
-    setSearch('');
-  };
-
+  const [mode] = useDataMode();
+  const rows: Row[] = mode === "sample" ? SDS_ROWS.map((r) => ({ id: r.ref, product: r.product, slug: r.ref, manufacturer: r.maker, status: r.status, where: r.where })) : [];
   return (
-    <div className="flex h-screen overflow-hidden bg-background">
-      <Sidebar />
-      <div className="flex flex-1 flex-col overflow-hidden">
-        <Header title="Safety Data Sheets (SDS)" />
-        <main className="flex-1 overflow-y-auto bg-gray-50/30 p-4 md:p-6 lg:p-8">
-          <div className="flex flex-col items-start justify-between gap-4 lg:flex-row">
-            <div>
-              <h1 className="text-2xl font-bold">SDS Library</h1>
-              <p className="mt-1 text-sm text-muted-foreground">Comprehensive library of chemical safety documentation.</p>
-            </div>
-            <div className="flex w-full items-center gap-2 md:w-auto">
-                <Button className="flex-1 bg-blue-700 hover:bg-blue-800">
-                  <FileUp className="h-4 w-4 mr-2" /> Upload SDS
-                </Button>
-            </div>
-          </div>
-
-          <div className="flex flex-col md:flex-row items-center justify-between gap-4 mt-6">
-            <Filters
-              activeFilterCount={search ? 1 : 0}
-              resetFilters={handleResetFilters}
-            />
-            <div className="relative w-full flex-1 md:w-64">
-                <Search className="absolute top-2.5 left-2.5 h-4 w-4 text-muted-foreground" />
-                <Input
-                  placeholder="Search chemicals..."
-                  className="pr-4 pl-8 bg-white"
-                  value={search}
-                  onChange={(e) => setSearch(e.target.value)}
-                />
-            </div>
-          </div>
-
-          {error ? <SdsError /> : null}
-          {isLoading ? <SdsLoading /> : null}
-          {sdsList?.length === 0 && !isLoading && !error && (
-            <SdsEmpty />
-          )}
-
-          {!isMobile && sdsList && sdsList.length > 0 ? (
-            <SdsTable sdsList={sdsList} />
-          ) : null}
-
-          {isMobile && sdsList && sdsList.length > 0 ? (
-            <SdsMobileView sdsList={sdsList} />
-          ) : null}
-        </main>
-      </div>
-    </div>
+    <DocPage
+      breadcrumb="Documentation"
+      title="SDS library"
+      subtitle="The safety data sheets for every chemical on site."
+      actions={
+        <Button className="gap-2" title="Opens the upload (not part of this prototype)">
+          <FileUp className="size-4" /> Upload SDS
+        </Button>
+      }
+    >
+      <DocList rows={rows} loading={false} error={null} columns={columns} basePath="/sds" noun="safety data sheets" words={(r: Row) => `${r.product} ${r.slug} ${r.manufacturer}`} statusOf={(r: Row) => r.status} />
+    </DocPage>
   );
 }

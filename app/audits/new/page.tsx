@@ -1,8 +1,9 @@
 "use client";
 
 import React, { useState } from 'react';
-import Sidebar from '@/components/Sidebar';
-import Header from '@/components/Header';
+import { PageShell } from '@/components/three-cases/shell';
+import { RdPage } from '@/components/redesign/ui';
+import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -22,6 +23,7 @@ import { WritingAssistant } from '@/components/ui/writing-assistant';
 import { DateTimePicker } from '@/components/ui/date-time-picker';
 
 export default function NewAudit() {
+  const router = useRouter();
   const [isMediaOpen, setIsMediaOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -69,29 +71,20 @@ export default function NewAudit() {
   };
 
   return (
-    <div className="flex h-screen overflow-hidden bg-background">
-      <Sidebar />
-      <div className="flex flex-1 flex-col overflow-hidden">
-        <Header title={t('audits.new.title')} />
-        <main className="flex-1 overflow-y-auto bg-gray-50/30">
-          <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6 md:px-8 lg:px-10">
-            <div className="space-y-8">
-              {/* Header */}
-              <div className="text-center">
-                <h2 className="mb-2 text-3xl font-bold text-gray-900">{t('audits.new.title')}</h2>
-                <p className="text-gray-600">{t('audits.new.subtitle')}</p>
-              </div>
-
+    <PageShell title={t('audits.new.title')} mainClassName="p-0">
+      <RdPage title={t('audits.new.title')} subtitle={t('audits.new.subtitle')} onBack={() => router.push('/audits')}>
+          <div className="mx-auto w-full max-w-4xl">
+            <div className="space-y-6">
               {/* Document Administration */}
-              <div className="rounded-xl border border-gray-200 bg-white shadow-sm overflow-hidden">
-                <div className="border-b border-gray-100 bg-gray-50/50 p-6">
+              <div className="rounded-[var(--lab-radius)] border border-border bg-card overflow-hidden">
+                <div className="border-b border-border bg-surface-subtle p-4">
                   <div className="flex items-start gap-3">
-                    <div className="p-2 bg-white rounded-lg border shadow-sm">
-                      <FileText className="h-5 w-5 text-blue-600" />
+                    <div className="p-2 bg-card rounded-lg border">
+                      <FileText className="h-5 w-5 text-muted-foreground" />
                     </div>
                     <div>
-                      <h3 className="text-lg font-bold text-gray-900">{t('audits.new.docAdmin.title')}</h3>
-                      <p className="text-sm text-gray-500">{t('audits.new.docAdmin.subtitle')}</p>
+                      <h3 className="text-base font-semibold text-foreground">{t('audits.new.docAdmin.title')}</h3>
+                      <p className="text-sm text-muted-foreground">{t('audits.new.docAdmin.subtitle')}</p>
                     </div>
                   </div>
                 </div>
@@ -99,10 +92,10 @@ export default function NewAudit() {
                 <div className="space-y-8 p-6">
                   {/* Basic Information */}
                   <div>
-                    <h4 className="mb-4 text-sm font-semibold uppercase tracking-wider text-gray-500">{t('audits.new.basicInfo.title')}</h4>
+                    <h4 className="mb-4 text-sm font-semibold text-foreground">{t('audits.new.basicInfo.title')}</h4>
                     <div className="grid gap-6">
                       <div className="space-y-2">
-                        <Label>{t('audits.new.documentTitle.label')} <span className="text-red-500">*</span></Label>
+                        <Label>{t('audits.new.documentTitle.label')} <span className="text-muted-foreground">*</span></Label>
                         <Input placeholder={t('audits.new.documentTitle.placeholder')} />
                       </div>
 
@@ -118,12 +111,12 @@ export default function NewAudit() {
                       </div>
 
                       <div className="space-y-2">
-                        <Label>{t('audits.new.auditOwner.label')} <span className="text-red-500">*</span></Label>
+                        <Label>{t('audits.new.auditOwner.label')} <span className="text-muted-foreground">*</span></Label>
                         <AsyncUserSelect placeholder={t('audits.new.auditOwner.placeholder')} />
                       </div>
 
                       <div className="space-y-2">
-                        <Label>{t('audits.new.description.label')} <span className="text-red-500">*</span></Label>
+                        <Label>{t('audits.new.description.label')} <span className="text-muted-foreground">*</span></Label>
                         <WritingAssistant 
                           placeholder={t('audits.new.description.placeholder')}
                           className="min-h-[120px]"
@@ -133,7 +126,7 @@ export default function NewAudit() {
                         <div className="flex w-full justify-between items-center pt-1">
                           <button
                             type="button"
-                            className="inline-flex items-center gap-1 text-xs font-medium text-gray-500 hover:text-gray-700 transition-colors"
+                            className="inline-flex items-center gap-1 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
                             onClick={() => setIsMediaOpen(!isMediaOpen)}
                           >
                             <Paperclip className="h-3 w-3" />
@@ -145,15 +138,15 @@ export default function NewAudit() {
                       </div>
 
                       <div className="space-y-2">
-                        <Label>{t('audits.new.nextReviewDate.label')} <span className="text-red-500">*</span></Label>
+                        <Label>{t('audits.new.nextReviewDate.label')} <span className="text-muted-foreground">*</span></Label>
                         <DateTimePicker placeholder={t('audits.new.nextReviewDate.placeholder')} />
                       </div>
                     </div>
                   </div>
 
                   {/* Location & Asset Information */}
-                  <div className="pt-6 border-t border-gray-100">
-                    <h4 className="mb-4 text-sm font-semibold uppercase tracking-wider text-gray-500">{t('audits.new.locationAsset.title')}</h4>
+                  <div className="pt-6 border-t border-border">
+                    <h4 className="mb-4 text-sm font-semibold text-foreground">{t('audits.new.locationAsset.title')}</h4>
                     <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
                       <div className="space-y-2">
                         <Label>{t('audits.new.location.label')}</Label>
@@ -171,10 +164,10 @@ export default function NewAudit() {
               </div>
 
               {/* Related Documents */}
-              <div className="rounded-xl border border-gray-200 bg-white shadow-sm overflow-hidden">
-                <div className="border-b border-gray-100 bg-gray-50/50 p-6">
-                  <h3 className="text-lg font-bold text-gray-900">{t('audits.new.relatedDocs.title')}</h3>
-                  <p className="text-sm text-gray-500">{t('audits.new.relatedDocs.subtitle')}</p>
+              <div className="rounded-[var(--lab-radius)] border border-border bg-card overflow-hidden">
+                <div className="border-b border-border bg-surface-subtle p-4">
+                  <h3 className="text-base font-semibold text-foreground">{t('audits.new.relatedDocs.title')}</h3>
+                  <p className="text-sm text-muted-foreground">{t('audits.new.relatedDocs.subtitle')}</p>
                 </div>
                 <div className="p-6">
                   <LinkedDocumentsSection />
@@ -182,33 +175,33 @@ export default function NewAudit() {
               </div>
 
               {/* Approval Workflow */}
-              <div className="rounded-xl border border-gray-200 bg-white shadow-sm overflow-hidden">
-                <div className="border-b border-gray-100 bg-gray-50/50 p-6">
-                  <h3 className="text-lg font-bold text-gray-900">{t('audits.new.approvalWorkflow.title')}</h3>
-                  <p className="text-sm text-gray-500">{t('audits.new.approvalWorkflow.subtitle')}</p>
+              <div className="rounded-[var(--lab-radius)] border border-border bg-card overflow-hidden">
+                <div className="border-b border-border bg-surface-subtle p-4">
+                  <h3 className="text-base font-semibold text-foreground">{t('audits.new.approvalWorkflow.title')}</h3>
+                  <p className="text-sm text-muted-foreground">{t('audits.new.approvalWorkflow.subtitle')}</p>
                 </div>
                 <div className="p-6 space-y-6">
                   <div className="space-y-3">
                     <Label className="text-base font-semibold">{t('audits.new.approvalFlow.label')}</Label>
                     <RadioGroup defaultValue="parallel" className="grid gap-4">
-                      <div className="flex items-start space-x-3 rounded-xl border border-gray-100 p-4 hover:bg-gray-50 transition-colors">
+                      <div className="flex items-start space-x-3 rounded-xl border border-border p-4 hover:bg-muted transition-colors">
                         <RadioGroupItem value="sequential" id="sequential" className="mt-1" />
                         <div className="grid gap-1">
                           <Label htmlFor="sequential" className="font-bold cursor-pointer">{t('audits.new.approvalFlow.sequential.label')}</Label>
-                          <p className="text-sm text-gray-500">{t('audits.new.approvalFlow.sequential.description')}</p>
+                          <p className="text-sm text-muted-foreground">{t('audits.new.approvalFlow.sequential.description')}</p>
                         </div>
                       </div>
-                      <div className="flex items-start space-x-3 rounded-xl border-2 border-blue-100 bg-blue-50/30 p-4">
+                      <div className="flex items-start space-x-3 rounded-xl border-2 border-primary bg-surface-subtle p-4">
                         <RadioGroupItem value="parallel" id="parallel" className="mt-1" />
                         <div className="grid gap-1">
                           <Label htmlFor="parallel" className="font-bold cursor-pointer">{t('audits.new.approvalFlow.parallel.label')}</Label>
-                          <p className="text-sm text-gray-500">{t('audits.new.approvalFlow.parallel.description')}</p>
+                          <p className="text-sm text-muted-foreground">{t('audits.new.approvalFlow.parallel.description')}</p>
                         </div>
                       </div>
                     </RadioGroup>
                   </div>
 
-                  <div className="pt-6 border-t border-gray-100">
+                  <div className="pt-6 border-t border-border">
                     <ApproversSelector 
                       title={t('audits.new.approvers.title')}
                       description={t('audits.new.approvers.description')}
@@ -218,20 +211,19 @@ export default function NewAudit() {
               </div>
 
               {/* Actions */}
-              <div className="flex items-center justify-end gap-3 pt-6 border-t border-gray-200">
-                <Button variant="outline" className="h-11 px-6">
+              <div className="flex items-center justify-end gap-3 pt-6 border-t border-border">
+                <Button variant="outline" className="px-4">
                   <Save className="mr-2 h-4 w-4" />
                   {t('audits.new.saveDraft')}
                 </Button>
-                <Button className="h-11 px-8 bg-blue-600 hover:bg-blue-700">
+                <Button>
                   <Sparkles className="mr-2 h-4 w-4" />
                   {t('audits.new.saveBuildChecklist')}
                 </Button>
               </div>
             </div>
           </div>
-        </main>
-      </div>
-    </div>
+      </RdPage>
+    </PageShell>
   );
 }

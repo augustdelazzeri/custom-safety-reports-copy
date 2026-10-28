@@ -13,7 +13,7 @@ export default function F2Page() {
       bare
       title="Safety work orders"
       barExtra={<DataModeSwitch />}
-      note="F2 · MVP. The screen of F1 without what is out of the first deliverable (several assets at once, PM, document drafts, SDS, category, time, signature, files, AI checklist). Hover a row for New work order: two clicks with everything filled in. Data switches to an empty account."
+      note="F2 · MVP. F1 without what is outside the first deliverable (several assets at once, PM, document drafts, SDS, category, time, signature, files, AI checklist). Hover a row for New work order: two clicks with everything filled in. Data switches to an empty account."
     >
       {/* A new store for each plant: the empty account keeps its own work orders. */}
       <MvpBench key={mode} mode={mode} />

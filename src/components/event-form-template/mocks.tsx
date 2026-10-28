@@ -59,7 +59,7 @@ export const FormBuilder = ({ fields }: any) => {
       items: [
         { label: 'Short Text', icon: <Type className="size-4" /> },
         { label: 'Long Text', icon: <AlignLeft className="size-4" /> },
-        { label: 'Number', icon: <span className="font-bold text-[10px]">#</span> },
+        { label: 'Number', icon: <span className="font-bold text-xs">#</span> },
         { label: 'Dropdown', icon: <ChevronDown className="size-4" /> },
         { label: 'Multi-select', icon: <ListChecks className="size-4" /> },
         { label: 'Checkbox', icon: <div className="size-3 border border-current rounded-sm" /> },
@@ -112,35 +112,35 @@ export const FormBuilder = ({ fields }: any) => {
   return (
     <div className="flex-1 flex overflow-hidden">
       {/* Palette (Left) */}
-      <div className="w-72 border-r bg-white flex flex-col">
+      <div className="w-72 border-r bg-card flex flex-col">
         <div className="p-4 border-b">
           <div className="relative">
-            <Search className="absolute top-2.5 left-3 size-3.5 text-gray-400" />
-            <Input placeholder="Search fields..." className="pl-9 h-9 rounded-lg bg-gray-50/50 text-xs border-gray-200" />
+            <Search className="absolute top-2.5 left-3 size-3.5 text-text-placeholder" />
+            <Input placeholder="Search fields..." className="pl-9 h-9 rounded-lg bg-muted/50 text-xs border-border" />
           </div>
         </div>
         <div className="flex-1 overflow-y-auto p-4 space-y-6">
           {sections.map(section => (
             <div key={section.id} className="space-y-2">
-              <h3 className="text-[10px] font-bold text-gray-400 uppercase tracking-widest px-1">{section.label}</h3>
+              <h3 className="text-xs font-bold text-text-placeholder px-1">{section.label}</h3>
               <div className="grid grid-cols-1 gap-1.5">
                 {section.items.map(item => (
                   <div 
                     key={item.label} 
                     className={cn(
-                      "group flex items-center justify-between p-2.5 rounded-lg border transition-all shadow-2xs",
+                      "group flex items-center justify-between p-2.5 rounded-lg border transition-all ",
                       (item as any).locked 
-                        ? "bg-gray-50/50 border-gray-100 opacity-60 cursor-not-allowed" 
-                        : "bg-white border-gray-100 hover:border-blue-200 hover:bg-blue-50/30 cursor-grab active:cursor-grabbing"
+                        ? "bg-muted/50 border-border opacity-60 cursor-not-allowed" 
+                        : "bg-card border-border hover:border-border hover:bg-badge-accent cursor-grab active:cursor-grabbing"
                     )}
                   >
                     <div className="flex items-center gap-3">
-                      <div className="text-gray-400 group-hover:text-blue-600">
+                      <div className="text-text-placeholder group-hover:text-primary">
                         {(item as any).locked ? <Lock className="size-3.5" /> : item.icon}
                       </div>
-                      <span className="text-xs font-semibold text-gray-700">{item.label}</span>
+                      <span className="text-xs font-semibold text-foreground">{item.label}</span>
                     </div>
-                    {!(item as any).locked && <Plus className="size-3.5 text-gray-300 group-hover:text-blue-500" />}
+                    {!(item as any).locked && <Plus className="size-3.5 text-text-placeholder group-hover:text-primary" />}
                   </div>
                 ))}
               </div>
@@ -150,18 +150,18 @@ export const FormBuilder = ({ fields }: any) => {
       </div>
 
       {/* Canvas (Center) */}
-      <div className="flex-1 bg-gray-50/50 p-8 overflow-y-auto">
+      <div className="flex-1 bg-muted/50 p-8 overflow-y-auto">
         <div className="max-w-3xl mx-auto space-y-6">
           <div className="flex items-center justify-between">
-            <h2 className="text-lg font-bold text-gray-900">Form Canvas</h2>
-            <p className="text-[11px] font-medium text-gray-500">Drag fields from the left palette to add them, or reorder existing fields</p>
+            <h2 className="text-lg font-bold text-foreground">Form Canvas</h2>
+            <p className="text-xs font-medium text-muted-foreground0">Drag fields from the left palette to add them, or reorder existing fields</p>
           </div>
 
           {/* Core Fields Section */}
           <div className="space-y-4">
-            <div className="flex items-center gap-2 text-gray-400">
+            <div className="flex items-center gap-2 text-text-placeholder">
               <Lock className="size-3.5" />
-              <h3 className="text-[10px] font-bold uppercase tracking-widest">Core Fields (Required)</h3>
+              <h3 className="text-xs font-bold">Core Fields (Required)</h3>
             </div>
             
             <div className="space-y-3">
@@ -169,22 +169,22 @@ export const FormBuilder = ({ fields }: any) => {
                 <div 
                   key={field.id} 
                   className={cn(
-                    "p-4 border rounded-xl bg-white flex items-center justify-between group transition-all shadow-2xs",
-                    selectedFieldId === field.id ? "ring-2 ring-blue-500 border-blue-500" : "border-gray-200"
+                    "p-4 border rounded-xl bg-card flex items-center justify-between group transition-all ",
+                    selectedFieldId === field.id ? "ring-2 ring-primary border-primary" : "border-border"
                   )}
                   onClick={() => setSelectedFieldId(field.id)}
                 >
                   <div className="flex items-center gap-4">
-                    <div className="p-2 bg-gray-50 rounded-lg text-gray-400">
+                    <div className="p-2 bg-muted rounded-lg text-text-placeholder">
                       <Lock className="size-4" />
                     </div>
                     <div className="space-y-1">
                       <div className="flex items-center gap-2">
-                        <span className="text-sm font-bold text-gray-900">{field.label}</span>
-                        <span className="text-[10px] text-gray-500 font-medium">{field.type}</span>
-                        <Badge className="bg-red-50 text-red-600 border-red-100 text-[9px] font-bold h-4 px-1.5 rounded-sm">Required</Badge>
+                        <span className="text-sm font-bold text-foreground">{field.label}</span>
+                        <span className="text-xs text-muted-foreground0 font-medium">{field.type}</span>
+                        <Badge className="bg-badge-error text-destructive border-destructive text-xs font-bold h-4 px-1.5 rounded-sm">Required</Badge>
                       </div>
-                      <p className="text-[11px] text-gray-500">{field.description}</p>
+                      <p className="text-xs text-muted-foreground0">{field.description}</p>
                     </div>
                   </div>
                 </div>
@@ -193,37 +193,37 @@ export const FormBuilder = ({ fields }: any) => {
           </div>
 
           <div className="py-2 flex items-center justify-center">
-            <div className="h-px bg-gray-200 flex-1" />
-            <span className="px-4 text-[10px] font-bold text-gray-400 uppercase tracking-widest">Additional Fields</span>
-            <div className="h-px bg-gray-200 flex-1" />
+            <div className="h-px bg-muted flex-1" />
+            <span className="px-4 text-xs font-bold text-text-placeholder">Additional Fields</span>
+            <div className="h-px bg-muted flex-1" />
           </div>
 
           {/* Additional Fields Section */}
-          <div className="space-y-3 min-h-[200px] border-2 border-dashed border-gray-200 rounded-2xl p-4 flex flex-col gap-3">
+          <div className="space-y-3 min-h-[200px] border-2 border-dashed border-border rounded-2xl p-4 flex flex-col gap-3">
             {additionalFields.map((field: any) => (
               <div 
                 key={field.id} 
                 className={cn(
-                  "p-4 border rounded-xl bg-white flex items-center justify-between group transition-all shadow-2xs cursor-pointer",
-                  selectedFieldId === field.id ? "ring-2 ring-blue-500 border-blue-500" : "border-gray-200 hover:border-gray-300"
+                  "p-4 border rounded-xl bg-card flex items-center justify-between group transition-all  cursor-pointer",
+                  selectedFieldId === field.id ? "ring-2 ring-primary border-primary" : "border-border hover:border-border"
                 )}
                 onClick={() => setSelectedFieldId(field.id)}
               >
                 <div className="flex items-center gap-4">
-                  <div className="p-2 bg-gray-50 rounded-lg text-gray-400">
+                  <div className="p-2 bg-muted rounded-lg text-text-placeholder">
                     <GripVertical className="size-4" />
                   </div>
                   <div className="space-y-1">
                     <div className="flex items-center gap-2">
-                      <span className="text-sm font-bold text-gray-900">{field.label}</span>
-                      <span className="text-[10px] text-gray-500 font-medium">{field.type}</span>
-                      {field.required && <Badge className="bg-red-50 text-red-600 border-red-100 text-[9px] font-bold h-4 px-1.5 rounded-sm">Required</Badge>}
+                      <span className="text-sm font-bold text-foreground">{field.label}</span>
+                      <span className="text-xs text-muted-foreground0 font-medium">{field.type}</span>
+                      {field.required && <Badge className="bg-badge-error text-destructive border-destructive text-xs font-bold h-4 px-1.5 rounded-sm">Required</Badge>}
                     </div>
-                    {field.description && <p className="text-[11px] text-gray-500">{field.description}</p>}
+                    {field.description && <p className="text-xs text-muted-foreground0">{field.description}</p>}
                   </div>
                 </div>
                 <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                  <Button variant="ghost" size="icon" className="size-8 text-gray-400 hover:text-red-500">
+                  <Button variant="ghost" size="icon" className="size-8 text-text-placeholder hover:text-destructive">
                     <Trash2 className="size-4" />
                   </Button>
                 </div>
@@ -231,7 +231,7 @@ export const FormBuilder = ({ fields }: any) => {
             ))}
             <Button 
               variant="outline" 
-              className="w-full h-12 border-dashed border-2 border-gray-200 rounded-xl text-gray-400 text-xs font-bold hover:bg-gray-50 hover:border-gray-300"
+              className="w-full h-12 border-dashed border-2 border-border rounded-xl text-text-placeholder text-xs font-bold hover:bg-muted hover:border-border"
               onClick={handleAddField}
             >
               <Plus className="size-4 mr-2" />
@@ -242,17 +242,17 @@ export const FormBuilder = ({ fields }: any) => {
       </div>
 
       {/* Settings (Right) */}
-      <div className="w-80 border-l bg-white flex flex-col">
+      <div className="w-80 border-l bg-card flex flex-col">
         <div className="p-6 border-b flex items-center justify-between">
           <div className="space-y-0.5">
-            <h3 className="text-sm font-bold text-gray-900">Field Settings</h3>
-            <p className="text-[11px] font-medium text-gray-500">Configure field properties</p>
+            <h3 className="text-sm font-bold text-foreground">Field Settings</h3>
+            <p className="text-xs font-medium text-muted-foreground0">Configure field properties</p>
           </div>
           <div className="flex items-center gap-1">
-            <Button variant="ghost" size="icon" className="size-8 text-gray-400 hover:text-red-500">
+            <Button variant="ghost" size="icon" className="size-8 text-text-placeholder hover:text-destructive">
               <Trash2 className="size-4" />
             </Button>
-            <Button variant="ghost" size="icon" className="size-8 text-gray-400" onClick={() => setSelectedFieldId(null)}>
+            <Button variant="ghost" size="icon" className="size-8 text-text-placeholder" onClick={() => setSelectedFieldId(null)}>
               <X className="size-4" />
             </Button>
           </div>
@@ -260,12 +260,12 @@ export const FormBuilder = ({ fields }: any) => {
         <div className="flex-1 flex flex-col p-6 overflow-y-auto">
           {!selectedFieldId ? (
             <div className="flex-1 flex flex-col items-center justify-center text-center space-y-4">
-              <div className="size-12 bg-gray-50 rounded-xl border border-gray-100 flex items-center justify-center mx-auto">
-                <Settings className="size-6 text-gray-300" />
+              <div className="size-12 bg-muted rounded-xl border border-border flex items-center justify-center mx-auto">
+                <Settings className="size-6 text-text-placeholder" />
               </div>
               <div className="space-y-1">
-                <p className="text-xs font-bold text-gray-900">No field selected</p>
-                <p className="text-[11px] text-gray-500 leading-normal">Select a field on the canvas to view and edit its properties</p>
+                <p className="text-xs font-bold text-foreground">No field selected</p>
+                <p className="text-xs text-muted-foreground0 leading-normal">Select a field on the canvas to view and edit its properties</p>
               </div>
             </div>
           ) : (
@@ -273,41 +273,41 @@ export const FormBuilder = ({ fields }: any) => {
               {/* Common Settings */}
               <div className="space-y-5">
                 <div className="space-y-2">
-                  <Label className="text-xs font-bold text-gray-700">Label</Label>
+                  <Label className="text-xs font-bold text-foreground">Label</Label>
                   <Input 
                     defaultValue={fields.find((f: any) => f.id === selectedFieldId)?.label} 
-                    className="h-10 rounded-xl border-gray-200 bg-white text-xs focus:ring-2 focus:ring-blue-500 transition-all" 
+                    className="h-10 rounded-xl border-border bg-card text-xs focus:ring-2 focus:ring-primary transition-all" 
                     readOnly={fields.find((f: any) => f.id === selectedFieldId)?.section === 'core'}
                   />
                   {fields.find((f: any) => f.id === selectedFieldId)?.section === 'core' && (
-                    <p className="text-[10px] text-gray-400 font-medium">Core field labels cannot be modified</p>
+                    <p className="text-xs text-text-placeholder font-medium">Core field labels cannot be modified</p>
                   )}
                 </div>
 
                 <div className="space-y-2">
-                  <Label className="text-xs font-bold text-gray-700">Help Text</Label>
+                  <Label className="text-xs font-bold text-foreground">Help Text</Label>
                   <textarea 
                     defaultValue={fields.find((f: any) => f.id === selectedFieldId)?.description}
                     placeholder="Add help text for this field..."
-                    className="w-full min-h-[80px] rounded-xl border border-gray-200 bg-white p-3 text-xs focus:ring-2 focus:ring-blue-500 outline-none transition-all"
+                    className="w-full min-h-[80px] rounded-xl border border-border bg-card p-3 text-xs focus:ring-2 focus:ring-primary outline-none transition-all"
                   />
                 </div>
 
                 <div className="flex items-center justify-between py-1">
                   <div className="space-y-0.5">
-                    <Label className="text-xs font-bold text-gray-700">Required Field</Label>
-                    <p className="text-[10px] text-gray-400 font-medium">Make this field mandatory</p>
+                    <Label className="text-xs font-bold text-foreground">Required Field</Label>
+                    <p className="text-xs text-text-placeholder font-medium">Make this field mandatory</p>
                   </div>
                   <div 
                     className={cn(
                       "w-10 h-5 rounded-full relative transition-colors cursor-pointer",
                       fields.find((f: any) => f.id === selectedFieldId)?.required || fields.find((f: any) => f.id === selectedFieldId)?.section === 'core'
-                        ? "bg-blue-600" 
-                        : "bg-gray-200"
+                        ? "bg-primary" 
+                        : "bg-muted"
                     )}
                   >
                     <div className={cn(
-                      "absolute top-0.5 size-4 bg-white rounded-full transition-all shadow-sm",
+                      "absolute top-0.5 size-4 bg-card rounded-full transition-all ",
                       fields.find((f: any) => f.id === selectedFieldId)?.required || fields.find((f: any) => f.id === selectedFieldId)?.section === 'core'
                         ? "right-0.5" 
                         : "left-0.5"
@@ -316,8 +316,8 @@ export const FormBuilder = ({ fields }: any) => {
                 </div>
 
                 <div className="space-y-2">
-                  <Label className="text-xs font-bold text-gray-700">Field Type</Label>
-                  <div className="h-10 px-3 flex items-center bg-gray-50 border border-gray-100 rounded-xl text-xs text-gray-500 font-medium cursor-not-allowed">
+                  <Label className="text-xs font-bold text-foreground">Field Type</Label>
+                  <div className="h-10 px-3 flex items-center bg-muted border border-border rounded-xl text-xs text-muted-foreground0 font-medium cursor-not-allowed">
                     {fields.find((f: any) => f.id === selectedFieldId)?.type}
                   </div>
                 </div>
@@ -327,14 +327,14 @@ export const FormBuilder = ({ fields }: any) => {
                   fields.find((f: any) => f.id === selectedFieldId)?.type === 'Multi-select') && (
                   <div className="space-y-4 pt-4 border-t">
                     <div className="flex items-center justify-between">
-                      <Label className="text-xs font-bold text-gray-700">Options</Label>
-                      <button className="text-[11px] font-bold text-blue-600 hover:underline">+ Add Option</button>
+                      <Label className="text-xs font-bold text-foreground">Options</Label>
+                      <button className="text-xs font-bold text-primary hover:underline">+ Add Option</button>
                     </div>
                     <div className="space-y-2">
                       {['Option 1', 'Option 2', 'Option 3'].map((opt, i) => (
                         <div key={i} className="flex items-center gap-2 group">
-                          <Input defaultValue={opt} className="h-9 rounded-lg border-gray-200 text-xs" />
-                          <Button variant="ghost" size="icon" className="size-8 text-gray-300 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity">
+                          <Input defaultValue={opt} className="h-9 rounded-lg border-border text-xs" />
+                          <Button variant="ghost" size="icon" className="size-8 text-text-placeholder hover:text-destructive opacity-0 group-hover:opacity-100 transition-opacity">
                             <Trash2 className="size-3.5" />
                           </Button>
                         </div>
@@ -394,39 +394,39 @@ export const ConditionalLogicBuilder = ({ rules: initialRules }: any) => {
   };
 
   return (
-    <div className="flex-1 bg-gray-50/30 overflow-y-auto p-8">
+    <div className="flex-1 bg-muted/30 overflow-y-auto p-8">
       <div className="max-w-4xl mx-auto space-y-8">
         <div className="flex items-center justify-between">
           <div className="space-y-1">
-            <h2 className="text-xl font-bold text-gray-900">Conditional Logic</h2>
-            <p className="text-sm text-gray-500">Define rules to show/hide multiple fields based on form values</p>
+            <h2 className="text-xl font-bold text-foreground">Conditional Logic</h2>
+            <p className="text-sm text-muted-foreground0">Define rules to show/hide multiple fields based on form values</p>
           </div>
           <Button 
             variant="outline" 
-            className="h-10 px-4 rounded-xl border-gray-200 text-gray-700 font-bold text-xs gap-2 bg-white shadow-2xs"
+            className="h-10 px-4 rounded-xl border-border text-foreground font-bold text-xs gap-2 bg-card "
             onClick={() => setShowNewRule(true)}
           >
-            <Plus className="size-4 text-blue-600" />
+            <Plus className="size-4 text-primary" />
             Add Rule
           </Button>
         </div>
 
         <div className="space-y-4">
           {showNewRule && (
-            <Card className="border-2 border-blue-500 shadow-lg overflow-hidden animate-in zoom-in-95 duration-200">
-              <CardHeader className="bg-white border-b py-3 px-6 flex flex-row items-center justify-between">
-                <CardTitle className="text-sm font-bold text-gray-900">New Multi-Field Rule</CardTitle>
+            <Card className="border-2 border-primary shadow-lg overflow-hidden animate-in zoom-in-95 duration-200">
+              <CardHeader className="bg-card border-b py-3 px-6 flex flex-row items-center justify-between">
+                <CardTitle className="text-sm font-bold text-foreground">New Multi-Field Rule</CardTitle>
                 <Button variant="ghost" size="icon" className="size-8" onClick={() => setShowNewRule(false)}>
-                  <X className="size-4 text-gray-400" />
+                  <X className="size-4 text-text-placeholder" />
                 </Button>
               </CardHeader>
               <CardContent className="p-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                   <div className="space-y-4">
                     <div className="space-y-2">
-                      <Label className="text-xs font-bold text-gray-500 uppercase tracking-tight">When this field</Label>
+                      <Label className="text-xs font-bold text-muted-foreground0 tracking-tight">When this field</Label>
                       <Select defaultValue="title">
-                        <SelectTrigger className="h-10 rounded-xl border-gray-200">
+                        <SelectTrigger className="h-10 rounded-xl border-border">
                           <SelectValue placeholder="Select field..." />
                         </SelectTrigger>
                         <SelectContent>
@@ -436,9 +436,9 @@ export const ConditionalLogicBuilder = ({ rules: initialRules }: any) => {
                       </Select>
                     </div>
                     <div className="space-y-2">
-                      <Label className="text-xs font-bold text-gray-500 uppercase tracking-tight">Operator</Label>
+                      <Label className="text-xs font-bold text-muted-foreground0 tracking-tight">Operator</Label>
                       <Select defaultValue="is_empty">
-                        <SelectTrigger className="h-10 rounded-xl border-gray-200">
+                        <SelectTrigger className="h-10 rounded-xl border-border">
                           <SelectValue placeholder="Select operator" />
                         </SelectTrigger>
                         <SelectContent>
@@ -452,9 +452,9 @@ export const ConditionalLogicBuilder = ({ rules: initialRules }: any) => {
 
                   <div className="space-y-4">
                     <div className="space-y-2">
-                      <Label className="text-xs font-bold text-gray-500 uppercase tracking-tight">Then</Label>
+                      <Label className="text-xs font-bold text-muted-foreground0 tracking-tight">Then</Label>
                       <Select defaultValue="show">
-                        <SelectTrigger className="h-10 rounded-xl border-gray-200">
+                        <SelectTrigger className="h-10 rounded-xl border-border">
                           <SelectValue placeholder="Select action..." />
                         </SelectTrigger>
                         <SelectContent>
@@ -465,7 +465,7 @@ export const ConditionalLogicBuilder = ({ rules: initialRules }: any) => {
                     </div>
 
                     <div className="space-y-2">
-                      <Label className="text-xs font-bold text-gray-500 uppercase tracking-tight">Apply to these fields (Multi-select)</Label>
+                      <Label className="text-xs font-bold text-muted-foreground0 tracking-tight">Apply to these fields (Multi-select)</Label>
                       <div className="flex flex-wrap gap-2 pt-1">
                         {['Body Part Affected', 'GPS Location', 'Injury Details', 'Supervisor Review'].map((fName) => {
                           const isSel = selectedTargets.includes(fName);
@@ -483,12 +483,12 @@ export const ConditionalLogicBuilder = ({ rules: initialRules }: any) => {
                               className={cn(
                                 "px-2.5 py-1 rounded-lg text-xs font-semibold border transition-all flex items-center gap-1.5",
                                 isSel
-                                  ? "bg-blue-50 border-blue-200 text-blue-700 font-bold"
-                                  : "bg-gray-50 border-gray-200 text-gray-600 hover:bg-gray-100"
+                                  ? "bg-badge-accent border-border text-primary font-bold"
+                                  : "bg-muted border-border text-muted-foreground hover:bg-muted"
                               )}
                             >
                               {fName}
-                              {isSel && <Check className="size-3 text-blue-600" />}
+                              {isSel && <Check className="size-3 text-primary" />}
                             </button>
                           );
                         })}
@@ -499,7 +499,7 @@ export const ConditionalLogicBuilder = ({ rules: initialRules }: any) => {
 
                 <div className="flex justify-end gap-3 mt-8 pt-6 border-t">
                   <Button variant="ghost" className="text-xs font-bold" onClick={() => setShowNewRule(false)}>Cancel</Button>
-                  <Button onClick={handleAddRuleSubmit} className="h-10 px-6 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold">Add Multi-Field Rule</Button>
+                  <Button onClick={handleAddRuleSubmit} className="h-10 px-6 bg-primary hover:bg-primary text-primary-foreground rounded-xl text-xs font-bold">Add Multi-Field Rule</Button>
                 </div>
               </CardContent>
             </Card>
@@ -510,20 +510,20 @@ export const ConditionalLogicBuilder = ({ rules: initialRules }: any) => {
               const targets = rule.targetFields || (rule.targetField ? [rule.targetField] : ['Body Part Affected']);
 
               return (
-                <div key={rule.id} className="p-5 border border-gray-200 rounded-2xl bg-white shadow-2xs flex items-center justify-between group hover:border-gray-300 transition-all">
+                <div key={rule.id} className="p-5 border border-border rounded-2xl bg-card  flex items-center justify-between group hover:border-border transition-all">
                   <div className="flex items-center gap-6">
                     <div className="flex items-center gap-3">
-                      <span className="text-xs font-bold uppercase text-gray-400 tracking-wider">When</span>
-                      <Badge variant="outline" className="h-7 px-3 rounded-lg border-gray-200 bg-gray-50 text-gray-900 font-bold">{rule.whenField}</Badge>
-                      <span className="text-xs font-bold text-blue-600 lowercase">{rule.operator}</span>
+                      <span className="text-xs font-bold text-text-placeholder">When</span>
+                      <Badge variant="outline" className="h-7 px-3 rounded-lg border-border bg-muted text-foreground font-bold">{rule.whenField}</Badge>
+                      <span className="text-xs font-bold text-primary lowercase">{rule.operator}</span>
                     </div>
-                    <ChevronRight className="size-4 text-gray-300" />
+                    <ChevronRight className="size-4 text-text-placeholder" />
                     <div className="flex items-center gap-3">
-                      <span className="text-xs font-bold uppercase text-gray-400 tracking-wider">Then</span>
-                      <span className="text-xs font-bold text-emerald-600">{rule.thenAction}</span>
+                      <span className="text-xs font-bold text-text-placeholder">Then</span>
+                      <span className="text-xs font-bold text-badge-success-foreground">{rule.thenAction}</span>
                       <div className="flex flex-wrap gap-1.5">
                         {targets.map((tgt: string, idx: number) => (
-                          <Badge key={idx} variant="outline" className="h-7 px-2.5 rounded-lg border-blue-100 bg-blue-50/50 text-blue-900 font-bold text-xs">
+                          <Badge key={idx} variant="outline" className="h-7 px-2.5 rounded-lg border-border bg-badge-accent text-primary font-bold text-xs">
                             {tgt}
                           </Badge>
                         ))}
@@ -536,7 +536,7 @@ export const ConditionalLogicBuilder = ({ rules: initialRules }: any) => {
                       variant="ghost" 
                       size="sm"
                       onClick={() => handleDuplicateRule(rule)}
-                      className="h-8 px-2.5 text-xs font-bold text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded-lg gap-1.5"
+                      className="h-8 px-2.5 text-xs font-bold text-muted-foreground0 hover:text-primary hover:bg-badge-accent rounded-lg gap-1.5"
                     >
                       <Copy className="size-3.5" /> Duplicate
                     </Button>
@@ -544,7 +544,7 @@ export const ConditionalLogicBuilder = ({ rules: initialRules }: any) => {
                       variant="ghost" 
                       size="icon" 
                       onClick={() => handleDeleteRule(rule.id)}
-                      className="size-8 text-gray-400 hover:text-red-500 rounded-lg"
+                      className="size-8 text-text-placeholder hover:text-destructive rounded-lg"
                     >
                       <Trash2 className="size-4" />
                     </Button>
@@ -554,13 +554,13 @@ export const ConditionalLogicBuilder = ({ rules: initialRules }: any) => {
             })}
 
             {!rulesList.length && !showNewRule && (
-              <div className="py-20 flex flex-col items-center justify-center text-center space-y-4 bg-gray-50/50 rounded-3xl border-2 border-dashed border-gray-200">
-                <div className="size-16 bg-white rounded-2xl shadow-sm border border-gray-100 flex items-center justify-center">
-                  <Settings className="size-8 text-gray-300 rotate-90" />
+              <div className="py-20 flex flex-col items-center justify-center text-center space-y-4 bg-muted/50 rounded-3xl border-2 border-dashed border-border">
+                <div className="size-16 bg-card rounded-2xl  border border-border flex items-center justify-center">
+                  <Settings className="size-8 text-text-placeholder rotate-90" />
                 </div>
                 <div className="space-y-1">
-                  <h3 className="text-base font-bold text-gray-900">No rules defined yet</h3>
-                  <p className="text-xs text-gray-500 max-w-xs leading-relaxed">Click "Add Rule" to create your first conditional logic rule.</p>
+                  <h3 className="text-base font-bold text-foreground">No rules defined yet</h3>
+                  <p className="text-xs text-muted-foreground0 max-w-xs leading-relaxed">Click "Add Rule" to create your first conditional logic rule.</p>
                 </div>
               </div>
             )}
@@ -572,15 +572,15 @@ export const ConditionalLogicBuilder = ({ rules: initialRules }: any) => {
 };
 
 export const TemplatePreview = ({ name, fields }: any) => (
-  <div className="flex-1 bg-white overflow-y-auto">
+  <div className="flex-1 bg-card overflow-y-auto">
     <div className="max-w-2xl mx-auto py-12 px-6 space-y-10">
       <div className="space-y-4 border-b pb-8">
-        <Badge className="bg-blue-50 text-blue-600 border-blue-100 uppercase text-[10px] font-bold rounded-md px-2">Preview Mode</Badge>
+        <Badge className="bg-badge-accent text-primary border-border text-xs font-bold rounded-md px-2">Preview Mode</Badge>
         <div className="space-y-1">
-          <h1 className="text-3xl font-bold text-gray-900">{name}</h1>
-          <p className="text-sm text-gray-500 italic">This is a preview of how the form will appear to users. You can interact with the fields and test validation, but no data will be saved.</p>
+          <h1 className="text-3xl font-bold text-foreground">{name}</h1>
+          <p className="text-sm text-muted-foreground0 italic">This is a preview of how the form will appear to users. You can interact with the fields and test validation, but no data will be saved.</p>
         </div>
-        <Button variant="ghost" size="sm" className="h-8 px-0 text-blue-600 font-bold hover:bg-transparent">
+        <Button variant="ghost" size="sm" className="h-8 px-0 text-primary font-bold hover:bg-transparent">
           ← Back to Editor
         </Button>
       </div>
@@ -589,37 +589,37 @@ export const TemplatePreview = ({ name, fields }: any) => (
         {fields?.map((field: any) => (
           <div key={field.id} className="space-y-2.5">
             <div className="flex items-center gap-1.5">
-              <Label className="text-sm font-bold text-gray-900">{field.label}</Label>
-              {field.required && <span className="text-red-500 text-lg leading-none">*</span>}
+              <Label className="text-sm font-bold text-foreground">{field.label}</Label>
+              {field.required && <span className="text-destructive text-lg leading-none">*</span>}
             </div>
             {field.type === 'Text Area' ? (
               <textarea 
                 placeholder={field.description}
-                className="w-full min-h-[120px] rounded-xl border-gray-200 bg-gray-50/50 p-4 text-sm focus:ring-2 focus:ring-blue-500 focus:bg-white transition-all outline-none" 
+                className="w-full min-h-[120px] rounded-xl border-border bg-muted/50 p-4 text-sm focus:ring-2 focus:ring-primary focus:bg-card transition-all outline-none" 
               />
             ) : field.type === 'GPS Location' ? (
-              <Button variant="outline" className="w-full h-12 rounded-xl border-gray-200 text-gray-600 font-bold text-xs gap-2 bg-gray-50/50">
+              <Button variant="outline" className="w-full h-12 rounded-xl border-border text-muted-foreground font-bold text-xs gap-2 bg-muted/50">
                 <MapPin className="size-4" />
                 Capture GPS Location
               </Button>
             ) : field.type === 'Date/Time' ? (
               <div className="grid grid-cols-2 gap-3">
                 <div className="relative">
-                  <Calendar className="absolute left-3.5 top-3.5 size-4 text-gray-400" />
-                  <Input placeholder="MM/DD/YYYY" className="h-11 pl-10 rounded-xl bg-gray-50/50 border-gray-200" />
+                  <Calendar className="absolute left-3.5 top-3.5 size-4 text-text-placeholder" />
+                  <Input placeholder="MM/DD/YYYY" className="h-11 pl-10 rounded-xl bg-muted/50 border-border" />
                 </div>
                 <div className="relative">
-                  <Clock className="absolute left-3.5 top-3.5 size-4 text-gray-400" />
-                  <Input placeholder="-- : -- --" className="h-11 pl-10 rounded-xl bg-gray-50/50 border-gray-200" />
+                  <Clock className="absolute left-3.5 top-3.5 size-4 text-text-placeholder" />
+                  <Input placeholder="-- : -- --" className="h-11 pl-10 rounded-xl bg-muted/50 border-border" />
                 </div>
               </div>
             ) : (
               <Input 
                 placeholder={field.description}
-                className="h-11 rounded-xl border-gray-200 bg-gray-50/50 px-4 text-sm focus:ring-2 focus:ring-blue-500 focus:bg-white transition-all shadow-2xs" 
+                className="h-11 rounded-xl border-border bg-muted/50 px-4 text-sm focus:ring-2 focus:ring-primary focus:bg-card transition-all " 
               />
             )}
-            {field.description && !field.type.includes('Area') && <p className="text-[11px] text-gray-400 font-medium">{field.description}</p>}
+            {field.description && !field.type.includes('Area') && <p className="text-xs text-text-placeholder font-medium">{field.description}</p>}
           </div>
         ))}
       </div>
@@ -628,8 +628,8 @@ export const TemplatePreview = ({ name, fields }: any) => (
 );
 
 export const EditEventFormTemplateLoading = () => <div className="p-20 text-center space-y-4">
-  <div className="size-10 border-3 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto" />
-  <p className="text-sm font-bold text-gray-900">Loading template editor...</p>
+  <div className="size-10 border-3 border-primary border-t-transparent rounded-full animate-spin mx-auto" />
+  <p className="text-sm font-bold text-foreground">Loading template editor...</p>
 </div>;
 
 export const EditEventFormTemplateError = () => <div className="p-20 text-center text-destructive font-bold">Error loading template.</div>;

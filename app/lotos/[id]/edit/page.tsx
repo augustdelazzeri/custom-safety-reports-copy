@@ -1,102 +1,32 @@
 "use client";
 
-import React from 'react';
-import Sidebar from '@/components/Sidebar';
-import Header from '@/components/Header';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Badge } from '@/components/ui/badge';
-import { Save, Sparkles, ArrowLeft, ClipboardList } from 'lucide-react';
-import { 
-  AsyncLocationSelect, 
-  AsyncAssetSelect, 
-  AsyncUserSelect,
-  ApproversSelector
-} from '@/components/audit/upsert/mocks';
-import { 
-  StepIndicator,
-  StepProgress,
-  LotoSteps,
-  StepFooter,
-  Scoped
-} from '@/components/loto/mocks';
-import { trpc } from '@/providers/trpc';
-import { useRouter } from 'next/navigation';
+import { LotoSteps } from "@/components/loto/mocks";
+import { ApprovalCard, DocPage, DocState, FormCard, FormFooter, TextField } from "@/components/screens/docs/kit";
+import { withRec } from "@/lib/screens/docs";
+import { trpc } from "@/providers/trpc";
+import { useParams, useRouter } from "next/navigation";
 
-export default function EditLoto({ params }: { params: { id: string } }) {
+export default function EditLoto() {
   const router = useRouter();
-  const { data: loto, isLoading } = trpc.loto.getByInstanceIdForEdit.useQuery({ id: params.id });
+  const { id } = useParams<{ id: string }>();
+  const { data: raw, isLoading, error } = trpc.loto.getByInstanceIdForEdit.useQuery({ id });
+  const d = withRec("loto", id, raw);
 
-  if (isLoading || !loto) return <div className="p-8 text-center">Loading...</div>;
+  if (error) return <DocState breadcrumb="Lockout/tagout" kind="error" what="this lockout/tagout procedure" back={`/lotos/${id}`} />;
+  if (isLoading || !d) return <DocState breadcrumb="Lockout/tagout" kind="loading" what="the lockout/tagout procedure" back={`/lotos/${id}`} />;
 
   return (
-    <div className="flex h-screen overflow-hidden bg-background">
-      <Sidebar />
-      <div className="flex flex-1 flex-col overflow-hidden">
-        <Header title={`Edit LOTO: ${loto.slug}`} />
-        <main className="flex-1 overflow-y-auto bg-gray-50/30">
-          <Scoped>
-            <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6 md:px-8 lg:px-10">
-              <div className="space-y-8">
-                <div className="flex items-center gap-4">
-                  <Button variant="ghost" size="icon" onClick={() => router.back()}>
-                    <ArrowLeft className="h-5 w-5" />
-                  </Button>
-                  <div>
-                    <div className="flex items-center gap-2">
-                      <div className="rounded-lg bg-blue-100 p-1.5">
-                        <ClipboardList className="h-5 w-5 text-blue-600" />
-                      </div>
-                      <h2 className="text-3xl font-bold text-gray-900">Edit LOTO Procedure</h2>
-                    </div>
-                    <div className="flex items-center gap-2 mt-1">
-                      <Badge variant="outline">{loto.slug}</Badge>
-                      <Badge variant="secondary">Version {loto.version}</Badge>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="rounded-xl border border-gray-200 bg-white shadow-sm p-6 space-y-8">
-                  <div className="grid gap-6">
-                    <div className="space-y-2">
-                      <Label>Procedure Title <span className="text-red-500">*</span></Label>
-                      <Input defaultValue={loto.title} />
-                    </div>
-
-                    <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-                      <div className="space-y-2">
-                        <Label>Department</Label>
-                        <Input defaultValue={loto.department} />
-                      </div>
-                      <div className="space-y-2">
-                        <Label>Owner <span className="text-red-500">*</span></Label>
-                        <AsyncUserSelect defaultValue={loto.ownerId} />
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                <StepProgress />
-                <LotoSteps />
-
-                <div className="rounded-xl border border-gray-200 bg-white shadow-sm p-6">
-                  <ApproversSelector title="Approval Workflow" description="Update the people responsible for approving this procedure." />
-                </div>
-
-                <div className="flex items-center justify-end gap-3 pt-6 border-t border-gray-200">
-                  <Button variant="outline" className="h-11 px-6">
-                    <Save className="mr-2 h-4 w-4" /> Save changes
-                  </Button>
-                  <Button className="h-11 px-8 bg-blue-600 hover:bg-blue-700">
-                    <Sparkles className="mr-2 h-4 w-4" /> Submit Revision
-                  </Button>
-                </div>
-              </div>
-            </div>
-          </Scoped>
-        </main>
+    <DocPage breadcrumb="Lockout/tagout" title="Edit lockout/tagout procedure" eyebrow={`${d.slug} · Version ${d.version}`} subtitle="Saving creates a new version that goes back through approval." back="history">
+      <div className="flex max-w-5xl flex-col gap-6">
+        <FormCard title="Basic information">
+          <TextField label="Title" required defaultValue={d.title} className="md:col-span-2" />
+          <TextField label="Department" defaultValue={d.department} />
+          <TextField label="Owner" required defaultValue={d.ownerId} />
+        </FormCard>
+        <LotoSteps />
+        <ApprovalCard description="Update the people who approve this procedure." />
+        <FormFooter draft="Save changes" submit="Submit revision" onCancel={() => router.back()} />
       </div>
-    </div>
+    </DocPage>
   );
 }

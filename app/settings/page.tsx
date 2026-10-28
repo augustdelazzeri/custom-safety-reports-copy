@@ -8,7 +8,9 @@
  * The old pages under /settings/* stay as they are and are not linked from here.
  */
 
-import { RdPage, RdTabs } from "@/components/redesign/ui";
+import { Button } from "@/components/ui/button";
+import Link from "next/link";
+import { RdPage, RdTabs, figmaButton } from "@/components/redesign/ui";
 import { CompanyTab } from "@/components/screens/settings/company";
 import { PeopleTab } from "@/components/screens/settings/people";
 import { PlaceholderCard, SettingsPane, SoonPrimary } from "@/components/screens/settings/shared";
@@ -57,6 +59,20 @@ export default function SettingsPage() {
         />
       );
     const spec = PLACEHOLDERS[key];
+    if (key === "templates")
+      return (
+        <SettingsPane
+          title={title}
+          description={about}
+          action={
+            <Button asChild className={figmaButton}>
+              <Link href="/settings/safety-templates">Open form templates</Link>
+            </Button>
+          }
+        >
+          <PlaceholderCard spec={spec} />
+        </SettingsPane>
+      );
     return (
       <SettingsPane title={title} description={about} action={spec.action ? <SoonPrimary label={spec.action} /> : undefined}>
         <PlaceholderCard spec={spec} />

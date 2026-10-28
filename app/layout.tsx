@@ -3,7 +3,7 @@ import "./globals.css";
 import { Providers } from "../src/components/Providers";
 
 export const metadata: Metadata = {
-  title: "UpKeep EHS - Safety Events",
+  title: "UpKeep Safety prototype",
   description: "Custom Safety Event Forms",
 };
 

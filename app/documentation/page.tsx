@@ -14,12 +14,14 @@ import { DataModeSwitch } from "@/components/three-cases/data-mode-switch";
 import { PageShell } from "@/components/three-cases/shell";
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { OWNERS, SDS_ROWS, seed, type SdsRow, type SdsStatus } from "@/lib/screens/docs";
 import { person } from "@/lib/three-cases/data";
 import { useDataMode } from "@/lib/three-cases/demo-data";
 import { DOCS, getMvpAsset, type MvpDoc, type MvpKind } from "@/lib/three-cases/mvp-rules";
 import { dateIn, fmtDate } from "@/lib/three-cases/real-jobs";
 import { cn } from "@/lib/utils";
 import { ChevronDown, FileText, FileUp, Plus } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
 
 /** The six documentation rows of today's sidebar, in its order, as tabs, with the redesign's short labels. The SDS library was "Library" in the redesign's sidebar. */
@@ -33,42 +35,23 @@ const TABS: { key: TabKey; label: string; one: string }[] = [
   { key: "sds", label: "SDS library", one: "safety data sheet" },
 ];
 
+/** Where a row opens, and where "New" goes (the SDS library has no new form: it is an upload). */
+const ROUTE: Record<TabKey, string> = { jha: "/jhas", sop: "/sops", loto: "/lotos", ptw: "/ptws", audit: "/audits", sds: "/sds" };
+const NEW_ROUTE: Partial<Record<TabKey, string>> = { jha: "/jhas/new", sop: "/sops/new", loto: "/lotos/new", ptw: "/ptws/new", audit: "/audits/new" };
+
 // ───────────────────────────── SDS library
 
-type SdsStatus = "current" | "due" | "overdue";
 const SDS_STATUS: Record<SdsStatus, { label: string; tone: BadgeTone }> = {
   current: { label: "Current", tone: "success" },
   due: { label: "Review due", tone: "warning" },
   overdue: { label: "Review overdue", tone: "error" },
 };
-interface SdsRow {
-  ref: string;
-  product: string;
-  maker: string;
-  hazards: string[];
-  where: string;
-  /** Days since the last revision; a sheet is reviewed every 3 years. */
-  revisedDaysAgo: number;
-  status: SdsStatus;
-}
-const SDS_ROWS: SdsRow[] = [
-  { ref: "SDS-0100", product: "Argon / CO2 shielding gas", maker: "Airgas", hazards: ["Gas under pressure"], where: "Welding bay 1", revisedDaysAgo: 220, status: "current" },
-  { ref: "SDS-0102", product: "Pump seal flush", maker: "Chemours", hazards: ["Irritant"], where: "Utility room", revisedDaysAgo: 1155, status: "overdue" },
-  { ref: "SDS-0104", product: "Hydraulic oil AW 46", maker: "Mobil DTE 25", hazards: ["Aspiration"], where: "Press line", revisedDaysAgo: 410, status: "current" },
-  { ref: "SDS-0106", product: "Heavy-duty degreaser", maker: "Simple Green", hazards: ["Irritant"], where: "Maintenance shop", revisedDaysAgo: 95, status: "current" },
-  { ref: "SDS-0108", product: "Isopropyl alcohol 99%", maker: "Fisher Scientific", hazards: ["Flammable", "Irritant"], where: "Machine shop", revisedDaysAgo: 600, status: "current" },
-  { ref: "SDS-0110", product: "Machine coolant S-500", maker: "Hangsterfer's", hazards: ["Irritant"], where: "Machine shop", revisedDaysAgo: 1060, status: "due" },
-  { ref: "SDS-0112", product: "Battery electrolyte (sulfuric acid)", maker: "EnerSys", hazards: ["Corrosive"], where: "Warehouse charging station", revisedDaysAgo: 300, status: "current" },
-  { ref: "SDS-0114", product: "Propane, forklift fuel", maker: "AmeriGas", hazards: ["Flammable", "Gas under pressure"], where: "Warehouse", revisedDaysAgo: 150, status: "current" },
-  { ref: "SDS-0116", product: "Boiler water treatment", maker: "Nalco", hazards: ["Corrosive", "Toxic"], where: "Boiler room", revisedDaysAgo: 1120, status: "due" },
-  { ref: "SDS-0118", product: "Multi-surface cleaner", maker: "Ecolab", hazards: ["Irritant"], where: "Packaging", revisedDaysAgo: 40, status: "current" },
-];
-
 // Sheets revised before this year show the year, so "Dec 1" is not read as five weeks from now.
 const fmtRevised = (iso: string) =>
   iso.slice(0, 4) === dateIn(0).slice(0, 4) ? fmtDate(iso) : new Date(`${iso}T12:00:00`).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
 
 function SdsList({ empty }: { empty: boolean }) {
+  const router = useRouter();
   const [q, setQ] = useState("");
   const [picked, setPicked] = useState<string[]>([]);
   const [sort, setSort] = useState("revision");
@@ -128,7 +111,7 @@ function SdsList({ empty }: { empty: boolean }) {
           onSort={setSort}
         />
       </div>
-      {rows.length ? <RdTable rows={rows} columns={columns} rowKey={(r) => r.ref} onRow={() => undefined} /> : <RdEmptyState title="Nothing matches" body="Try other words, or clear the filters." />}
+      {rows.length ? <RdTable rows={rows} columns={columns} rowKey={(r) => r.ref} onRow={(r) => router.push(`${ROUTE.sds}/${r.ref}`)} /> : <RdEmptyState title="Nothing matches" body="Try other words, or clear the filters." />}
       <p className="text-xs text-text-subtle">
         Showing {rows.length} of {SDS_ROWS.length}
       </p>
@@ -144,7 +127,6 @@ const STATUS: Record<Status, { label: string; tone: BadgeTone }> = {
   due: { label: "Review due", tone: "warning" },
   overdue: { label: "Review overdue", tone: "error" },
 };
-const OWNERS = ["dan", "maria", "aisha", "dan", "carlos"];
 
 interface DocRow {
   doc: MvpDoc;
@@ -155,8 +137,6 @@ interface DocRow {
   assets: string;
 }
 
-/** A number from the reference, so each document keeps the same owner and review date on every visit. */
-const seed = (ref: string) => ref.split("").reduce((n, c) => n + c.charCodeAt(0), 0);
 
 function toRow(doc: MvpDoc): DocRow {
   const n = seed(doc.ref);
@@ -174,6 +154,7 @@ function toRow(doc: MvpDoc): DocRow {
 }
 
 function DocList({ kind, rows, empty }: { kind: (typeof TABS)[number]; rows: DocRow[]; empty: boolean }) {
+  const router = useRouter();
   const [q, setQ] = useState("");
   const [picked, setPicked] = useState<string[]>([]);
   const [sort, setSort] = useState("review");
@@ -189,7 +170,7 @@ function DocList({ kind, rows, empty }: { kind: (typeof TABS)[number]; rows: Doc
             <Button variant="outline" className="gap-2" title="Opens the upload (not part of this prototype)">
               <FileUp className="size-4" /> Upload PDFs
             </Button>
-            <Button className="gap-2" title="Opens the new document (not part of this prototype)">
+            <Button className="gap-2" onClick={() => router.push(NEW_ROUTE[kind.key] ?? ROUTE[kind.key])}>
               <Plus className="size-4" /> New {kind.one}
             </Button>
           </div>
@@ -237,7 +218,7 @@ function DocList({ kind, rows, empty }: { kind: (typeof TABS)[number]; rows: Doc
       </div>
       {shown.length ? (
         <>
-          <RdTable rows={shown} columns={columns} rowKey={(r) => r.doc.ref} onRow={() => undefined} />
+          <RdTable rows={shown} columns={columns} rowKey={(r) => r.doc.ref} onRow={(r) => router.push(`${ROUTE[kind.key]}/${r.doc.ref}`)} />
           <p className="text-xs text-text-subtle">
             Showing {shown.length} of {rows.length}
           </p>
@@ -250,6 +231,7 @@ function DocList({ kind, rows, empty }: { kind: (typeof TABS)[number]; rows: Doc
 }
 
 export default function DocumentationPage() {
+  const router = useRouter();
   const [mode] = useDataMode();
   const empty = mode !== "sample";
   const [active, setActive] = useState<TabKey>("jha");
@@ -279,7 +261,7 @@ export default function DocumentationPage() {
             <PopoverContent align="end" className="w-[260px] p-2">
               <p className={cn(menuTitle, "pb-2")}>Which kind?</p>
               {[TABS.find((t) => t.key === active)!, ...TABS.filter((t) => t.key !== active)].map((t) => (
-                <button key={t.key} type="button" className={cn(menuItem, "justify-between")} title="Opens the new document (not part of this prototype)">
+                <button key={t.key} type="button" className={cn(menuItem, "justify-between")} onClick={() => router.push(NEW_ROUTE[t.key] ?? ROUTE[t.key])}>
                   {t.label}
                   {t.key === active ? <span className={menuItemHint}>This tab</span> : null}
                 </button>

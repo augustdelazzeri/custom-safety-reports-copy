@@ -3,26 +3,17 @@
 import React, { Suspense } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import Sidebar from "../../../src/components/Sidebar";
-import Header from "../../../src/components/Header";
+import { PageShell } from "@/components/three-cases/shell";
+import { RdPage } from "@/components/redesign/ui";
 import SafetyEventFormRuntime from "../../../src/components/SafetyEventFormRuntime";
 import TemplateSelector from "../../../src/components/TemplateSelector";
-import { TemplateProvider, useTemplate } from "../../../src/contexts/TemplateContext";
+import { TemplateProvider } from "../../../src/contexts/TemplateContext";
 
-function TemplateFormContent({ templateId }: { templateId?: string | null }) {
-  const { getTemplate, selectedTemplateId } = useTemplate();
-  const currentTemplate = getTemplate();
-  const finalTemplateId = templateId || selectedTemplateId;
-  
+function TemplateFormContent() {
   return (
-    <div className="ml-64">
-      <Header />
-      
-      {/* Main Content */}
-      <main className="max-w-6xl mx-auto px-6 py-8">
-        <SafetyEventFormRuntime useCustomTemplate={true} />
-      </main>
-    </div>
+    <RdPage title="Report a safety event" subtitle="Fill in the form for the selected template.">
+      <SafetyEventFormRuntime useCustomTemplate={true} />
+    </RdPage>
   );
 }
 
@@ -41,15 +32,14 @@ function TemplateFormPageInner() {
       // Show template selector
       return (
         <TemplateProvider>
-          <div className="min-h-screen bg-gray-50">
-            <Sidebar />
+          <PageShell title="Report safety event" mainClassName="p-0">
             <TemplateSelector 
               templateIds={templateIds}
               accessPointId={accessPointId}
               location={location}
               asset={asset}
             />
-          </div>
+          </PageShell>
         </TemplateProvider>
       );
     } else if (templateIds.length === 1) {
@@ -63,10 +53,9 @@ function TemplateFormPageInner() {
       const finalTemplateId = templateIds[0];
       return (
         <TemplateProvider selectedTemplateId={finalTemplateId}>
-          <div className="min-h-screen bg-gray-50">
-            <Sidebar />
-            <TemplateFormContent templateId={finalTemplateId} />
-          </div>
+          <PageShell title="Report safety event" mainClassName="p-0">
+            <TemplateFormContent />
+          </PageShell>
         </TemplateProvider>
       );
     }
@@ -77,17 +66,16 @@ function TemplateFormPageInner() {
 
   return (
     <TemplateProvider selectedTemplateId={finalTemplateId}>
-      <div className="min-h-screen bg-gray-50">
-        <Sidebar />
-        <TemplateFormContent templateId={finalTemplateId} />
-      </div>
+      <PageShell title="Report safety event" mainClassName="p-0">
+        <TemplateFormContent />
+      </PageShell>
     </TemplateProvider>
   );
 }
 
 export default function TemplateFormPage() {
   return (
-    <Suspense fallback={<div className="min-h-screen bg-gray-50 flex items-center justify-center">Loading...</div>}>
+    <Suspense fallback={<PageShell title="Report safety event"><div /></PageShell>}>
       <TemplateFormPageInner />
     </Suspense>
   );

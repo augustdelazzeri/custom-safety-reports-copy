@@ -3,8 +3,8 @@
 import { NewEventBasicForm, NewEventTemplateForm } from '@/components/events/create/mocks';
 import { usePermissions } from '@/hooks/use-permissions';
 import { PERMISSION_KEYS } from '@shared/types/permissions.types';
-import Sidebar from '@/components/Sidebar';
-import Header from '@/components/Header';
+import { PageShell } from '@/components/three-cases/shell';
+import { RdPage } from '@/components/redesign/ui';
 import { useSearchParams } from 'next/navigation';
 import { Suspense } from 'react';
 
@@ -14,25 +14,21 @@ function NewEventContent() {
   const templateId = searchParams.get('templateId');
 
   return (
-    <div className="flex h-screen overflow-hidden bg-background">
-      <Sidebar />
-      <div className="flex flex-1 flex-col overflow-hidden">
-        <Header title="Report Safety Event" />
-        <main className="flex-1 overflow-y-auto p-4 md:p-6 lg:p-8">
+    <PageShell title="Report safety event" mainClassName="p-0">
+      <RdPage title="Report a safety event" subtitle="Tell us what happened. Safety will route it to the right people.">
           {templateId ? (
             <NewEventTemplateForm templateId={templateId} />
           ) : (
             <NewEventBasicForm />
           )}
-        </main>
-      </div>
-    </div>
+      </RdPage>
+    </PageShell>
   );
 }
 
 export default function NewEvent() {
   return (
-    <Suspense fallback={<div>Loading...</div>}>
+    <Suspense fallback={<PageShell title="Report safety event"><div /></PageShell>}>
       <NewEventContent />
     </Suspense>
   );

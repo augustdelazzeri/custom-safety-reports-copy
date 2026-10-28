@@ -145,7 +145,7 @@ export const trpc: any = {
         }
         return createMockQuery({
           id: config.id,
-          name: config.id === 't1' ? 'Template 2' : 'Safety for Ed',
+          name: config.id === 't1' ? 'Template 2' : config.id === 'new-template-id' ? 'Untitled form' : 'Safety for Ed',
           type: 'event',
           fields: [
             { id: 'f1', label: 'Title', type: 'Text', required: true, description: 'A short description of the event', section: 'core' },
