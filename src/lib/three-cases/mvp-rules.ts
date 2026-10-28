@@ -6,7 +6,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { person } from "./data";
-import { ASSETS as BASE_ASSETS, GROUPS, dateIn, libraryChecklists, tasksFor, type ChecklistOpt, type DocState, type GroupId, type Priority } from "./real-jobs";
+import { skipsSuggestion, ASSETS as BASE_ASSETS, GROUPS, dateIn, libraryChecklists, tasksFor, type ChecklistOpt, type DocState, type GroupId, type Priority } from "./real-jobs";
 
 /** The five document types of the MVP (the SDS is out), in the order of the EHS sidebar. */
 export type MvpKind = "jha" | "sop" | "loto" | "ptw" | "audit";
@@ -315,12 +315,15 @@ export function resolveRow(st: MvpStore, job: MvpJob, a: MvpAsset, s: Settings):
   const def = defaultsFor(job, a, info);
   const pool = docPool(s.empty);
   const slots: Slot[] = [];
+  // Each asset keeps at least its first suggestion, so Required is never empty.
+  const keep = MVP_KINDS.find((t) => def[t].level !== "none");
   for (const type of MVP_KINDS) {
     const base = def[type];
     const key = slotKey(a.id, job.id, type);
     const moved = s.phase >= 2 ? st.levels[key] : undefined;
     const candidates = pool.filter((x) => x.type === type && x.assetIds.includes(a.id));
     if (base.level === "none" && !moved && !s.all && !candidates.length) continue;
+    if (s.empty && !moved && !s.all && type !== keep && skipsSuggestion(a.id, job.id, type)) continue;
     // The AI suggests every document for every asset. With no documents in the account the suggestions are all there is, so all are required.
     const suggestedLevel: Level = base.level === "none" ? "optional" : s.empty ? "required" : base.level;
     const level: Level = moved ?? suggestedLevel;

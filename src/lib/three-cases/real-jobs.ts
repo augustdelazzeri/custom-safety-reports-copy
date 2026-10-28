@@ -18,6 +18,14 @@ export type Priority = "none" | "low" | "medium" | "high";
 export type Unit = "day" | "week" | "month" | "year";
 
 export const KINDS: Kind[] = ["jha", "sop", "loto", "ptw", "audit", "sds"];
+
+/** With no documents the AI still suggests a set per asset, and the sets differ: the same job does not need the same types on every asset. JHA always stays. */
+export function skipsSuggestion(assetId: string, jobId: string, type: string): boolean {
+  if (type === "jha") return false;
+  let h = 0;
+  for (const c of `${assetId}|${jobId}|${type}`) h = (h * 31 + c.charCodeAt(0)) >>> 0;
+  return h % 3 === 0;
+}
 export const KIND_LABEL: Record<Kind, string> = { jha: "JHA", sop: "SOP", loto: "LOTO", ptw: "Permit to Work", audit: "Audit / Inspection", sds: "SDS" };
 /** Short names for the chips in the list. */
 export const KIND_SHORT: Record<Kind, string> = { jha: "JHA", sop: "SOP", loto: "LOTO", ptw: "Permit", audit: "Audit", sds: "SDS" };
@@ -352,7 +360,7 @@ export function rowStatus(store: Store, fam: Family, asset: RAsset): RowStatus {
   // own: it suggests the three general ones (JHA, SOP, audit) and anything else the asset already has.
   const suggested: Need[] = fam.custom ? KINDS.filter((t) => ["jha", "sop", "audit"].includes(t) || docOf(store, asset.id, t)).map((t) => ({ type: t, level: "required" as Level })) : needsOf(fam, asset);
   // The account without documents has only the suggestions to show, so all of them are listed as required (and missing).
-  const base: Need[] = suggested.map((n) => ({ ...n, level: store.empty ? ("required" as Level) : n.level }));
+  const base: Need[] = suggested.filter((n, i) => !store.empty || i === 0 || !skipsSuggestion(asset.id, fam.id, n.type)).map((n) => ({ ...n, level: store.empty ? ("required" as Level) : n.level }));
   // Documents the asset has that the AI did not suggest for this job: optional.
   for (const t of KINDS) if (!base.some((n) => n.type === t) && docOf(store, asset.id, t)) base.push({ type: t, level: "recommended" });
   // What the person dragged between Required and Optional counts from then on.
